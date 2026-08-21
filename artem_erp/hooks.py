@@ -1,5 +1,5 @@
 app_name = "artem_erp"
-app_title = "Artem ERP"
+app_title = "Artem Healthtech ERP"
 app_publisher = "Artem Healthtech"
 app_description = "ERPNext and HRMS customizations for Artem Healthtech"
 app_email = "support@artemhealthtech.com"
