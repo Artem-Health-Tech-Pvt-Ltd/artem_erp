@@ -44,6 +44,9 @@ app_license = "mit"
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+    "Shift Assignment": "public/js/shift_assignment.js",
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -82,11 +85,15 @@ app_license = "mit"
 # 	"filters": "artem_erp.utils.jinja_filters"
 # }
 
+# Migration
+# ------------------
+after_migrate = "artem_erp.install.after_migrate"
+
 # Installation
 # ------------
 
 # before_install = "artem_erp.install.before_install"
-# after_install = "artem_erp.install.after_install"
+after_install = "artem_erp.install.after_install"
 
 # Uninstallation
 # ------------
@@ -176,9 +183,9 @@ app_license = "mit"
 # ------------------------------
 #
 # Specify custom mixins to extend the standard doctype controller.
-# extend_doctype_class = {
-# 	"Task": "artem_erp.custom.task.CustomTaskMixin"
-# }
+extend_doctype_class = {
+	"Employee Checkin": "artem_erp.override.employee_checkin.CustomEmployeeCheckin"
+}
 
 # Overriding Methods
 # ------------------------------

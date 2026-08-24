@@ -1,0 +1,68 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-08-21 18:00:56.321953",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "shift_location",
+  "latitude",
+  "longitude",
+  "checkin_radius"
+ ],
+ "fields": [
+  {
+   "allow_on_submit": 1,
+   "fieldname": "shift_location",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Shift Location ",
+   "options": "Shift Location"
+  },
+  {
+   "allow_on_submit": 1,
+   "fetch_from": "shift_location.latitude",
+   "fieldname": "latitude",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Latitude",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fetch_from": "shift_location.longitude",
+   "fieldname": "longitude",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Longitude",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Radius within which check-in is allowed (in meters)",
+   "fetch_from": "shift_location.checkin_radius",
+   "fieldname": "checkin_radius",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": " Checkin Radius ",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-24 15:45:09.181993",
+ "modified_by": "Administrator",
+ "module": "Artem ERP",
+ "name": "Shift Assignment Location",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
