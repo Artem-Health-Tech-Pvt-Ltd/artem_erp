@@ -1,130 +1,109 @@
 frappe.ui.form.on("Shift Assignment", {
-    refresh(frm) {
-        if (!frm.doc.custom_shift_assignment_location) {
-            return;
-        }
+	refresh(frm) {
+		if (!frm.doc.custom_shift_assignment_location) {
+			return;
+		}
 
-        let changed = false;
+		let changed = false;
 
-        const promises = frm.doc.custom_shift_assignment_location.map(row => {
-            if (!row.shift_location) {
-                return Promise.resolve();
-            }
+		const promises = frm.doc.custom_shift_assignment_location.map((row) => {
+			if (!row.shift_location) {
+				return Promise.resolve();
+			}
 
-            return frappe.db.get_value(
-                "Shift Location",
-                row.shift_location,
-                ["latitude", "longitude", "checkin_radius"]
-            ).then(r => {
-                if (!r.message) {
-                    return;
-                }
+			return frappe.db
+				.get_value("Shift Location", row.shift_location, [
+					"latitude",
+					"longitude",
+					"checkin_radius",
+				])
+				.then((r) => {
+					if (!r.message) {
+						return;
+					}
 
-                const master = r.message;
+					const master = r.message;
 
-                if (row.latitude != master.latitude) {
-                    frappe.model.set_value(
-                        row.doctype,
-                        row.name,
-                        "latitude",
-                        master.latitude
-                    );
+					if (row.latitude != master.latitude) {
+						frappe.model.set_value(row.doctype, row.name, "latitude", master.latitude);
 
-                    changed = true;
-                }
+						changed = true;
+					}
 
-                if (row.longitude != master.longitude) {
-                    frappe.model.set_value(
-                        row.doctype,
-                        row.name,
-                        "longitude",
-                        master.longitude
-                    );
+					if (row.longitude != master.longitude) {
+						frappe.model.set_value(
+							row.doctype,
+							row.name,
+							"longitude",
+							master.longitude
+						);
 
-                    changed = true;
-                }
+						changed = true;
+					}
 
-                if (row.checkin_radius != master.checkin_radius) {
-                    frappe.model.set_value(
-                        row.doctype,
-                        row.name,
-                        "checkin_radius",
-                        master.checkin_radius
-                    );
+					if (row.checkin_radius != master.checkin_radius) {
+						frappe.model.set_value(
+							row.doctype,
+							row.name,
+							"checkin_radius",
+							master.checkin_radius
+						);
 
-                    changed = true;
-                }
-            });
-        });
+						changed = true;
+					}
+				});
+		});
 
-        Promise.all(promises).then(() => {
-            if (changed && !frm.is_new()) {
-                frm.save();
-            }
-        });
-    }
+		Promise.all(promises).then(() => {
+			if (changed && !frm.is_new()) {
+				frm.save();
+			}
+		});
+	},
 });
 
-
 frappe.ui.form.on("Shift Assignment Location", {
-    shift_location(frm, cdt, cdn) {
-        const row = locals[cdt][cdn];
+	shift_location(frm, cdt, cdn) {
+		const row = locals[cdt][cdn];
 
-        if (!row.shift_location) {
-            return;
-        }
+		if (!row.shift_location) {
+			return;
+		}
 
-        frappe.db.get_value(
-            "Shift Location",
-            row.shift_location,
-            ["latitude", "longitude", "checkin_radius"]
-        ).then(r => {
-            if (!r.message) {
-                return;
-            }
+		frappe.db
+			.get_value("Shift Location", row.shift_location, [
+				"latitude",
+				"longitude",
+				"checkin_radius",
+			])
+			.then((r) => {
+				if (!r.message) {
+					return;
+				}
 
-            const master = r.message;
+				const master = r.message;
 
-            const updates = [];
+				const updates = [];
 
-            if (row.latitude != master.latitude) {
-                updates.push(
-                    frappe.model.set_value(
-                        cdt,
-                        cdn,
-                        "latitude",
-                        master.latitude
-                    )
-                );
-            }
+				if (row.latitude != master.latitude) {
+					updates.push(frappe.model.set_value(cdt, cdn, "latitude", master.latitude));
+				}
 
-            if (row.longitude != master.longitude) {
-                updates.push(
-                    frappe.model.set_value(
-                        cdt,
-                        cdn,
-                        "longitude",
-                        master.longitude
-                    )
-                );
-            }
+				if (row.longitude != master.longitude) {
+					updates.push(frappe.model.set_value(cdt, cdn, "longitude", master.longitude));
+				}
 
-            if (row.checkin_radius != master.checkin_radius) {
-                updates.push(
-                    frappe.model.set_value(
-                        cdt,
-                        cdn,
-                        "checkin_radius",
-                        master.checkin_radius
-                    )
-                );
-            }
+				if (row.checkin_radius != master.checkin_radius) {
+					updates.push(
+						frappe.model.set_value(cdt, cdn, "checkin_radius", master.checkin_radius)
+					);
+				}
 
-            Promise.all(updates).then(() => {
-                if (updates.length && !frm.is_new()) {
-                    frm.save();
-                }
-            });
-        });
-    }
+				Promise.all(updates).then(() => {
+					if (updates.length && !frm.is_new()) {
+						frm.save();
+					}
+				});
+			});
+	},
 });

@@ -45,7 +45,7 @@ app_license = "mit"
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_js = {
-    "Shift Assignment": "public/js/shift_assignment.js",
+	"Shift Assignment": "public/js/shift_assignment.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -183,9 +183,7 @@ after_install = "artem_erp.install.after_install"
 # ------------------------------
 #
 # Specify custom mixins to extend the standard doctype controller.
-extend_doctype_class = {
-	"Employee Checkin": "artem_erp.override.employee_checkin.CustomEmployeeCheckin"
-}
+extend_doctype_class = {"Employee Checkin": "artem_erp.override.employee_checkin.CustomEmployeeCheckin"}
 
 # Overriding Methods
 # ------------------------------
@@ -262,4 +260,3 @@ extend_doctype_class = {
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-
