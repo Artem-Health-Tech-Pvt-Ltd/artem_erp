@@ -49,12 +49,12 @@ class CustomEmployeeCheckin(EmployeeCheckin):
 			locations = assignment.get("custom_shift_assignment_location") or []
 
 			if not locations:
-				continue
+				return
 
 			# 6. Check every assigned location
 			for row in locations:
 				if not row.shift_location:
-					continue
+					return
 
 				location = frappe.db.get_value(
 					"Shift Location",
@@ -68,7 +68,7 @@ class CustomEmployeeCheckin(EmployeeCheckin):
 				)
 
 				if not location:
-					continue
+					return
 
 				radius = location.checkin_radius
 				latitude = location.latitude
