@@ -53,3 +53,9 @@ jspm_packages/
 
 # Aider AI Chat
 .aider*
+
+
+# GitHub Actions workflows
+.github/workflows/
+.github/workflows/ci.yml
+.github/workflows/linter.yml
