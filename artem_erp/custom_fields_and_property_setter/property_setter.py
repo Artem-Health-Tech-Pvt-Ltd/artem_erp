@@ -48,21 +48,4 @@ def get_property_setters():
 			"property_type": "Check",
 			"value": 1,
 		},
-  
-		# Travel Request - Travel Itinerary Child table in Travel Request
-		{
-			"doctype": "Travel Itinerary",
-			"doctype_or_field": "DocField",
-			"fieldname": "travel_from",
-			"property": "type",
-			"property_type": "Select",
-			"value": "Link",
-		},
-		{
-			"doctype": "Travel Itinerary",
-			"doctype_or_field": "DocField",
-			"fieldname": "travel_to",
-			"property": "options",
-			"value": "City",
-		},
 	]
