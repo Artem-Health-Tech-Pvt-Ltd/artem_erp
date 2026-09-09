@@ -46,6 +46,9 @@ app_license = "mit"
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_js = {
 	"Shift Assignment": "public/js/shift_assignment.js",
+	"Employee Advance": "public/js/employee_advance.js",
+	"Expense Claim": "public/js/expense_claim.js",
+	"Travel Request": "public/js/travel_request.js"
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -145,13 +148,27 @@ after_install = "artem_erp.install.after_install"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Employee Advance": {
+		"before_save": "artem_erp.doc_events.employee_advance.track_workflow_actions",
+		"before_submit": "artem_erp.doc_events.employee_advance.track_workflow_actions",
+		"before_cancel": "artem_erp.doc_events.employee_advance.track_workflow_actions",
+	},
+	"Expense Claim": {
+		"before_save": "artem_erp.doc_events.expense_claim.track_workflow_actions",
+		"before_submit": "artem_erp.doc_events.expense_claim.track_workflow_actions",
+		"before_cancel": "artem_erp.doc_events.expense_claim.track_workflow_actions",
+		"on_update": "artem_erp.doc_events.expense_claim.on_update",
+		"on_cancel": "artem_erp.doc_events.expense_claim.on_cancel",
+		"on_trash": "artem_erp.doc_events.expense_claim.on_trash",
+	},
+	"Travel Request": {
+		"validate": "artem_erp.doc_events.travel_request.validate",
+		"before_save": "artem_erp.doc_events.travel_request.track_workflow_actions",
+		"before_submit": "artem_erp.doc_events.travel_request.track_workflow_actions",
+		"before_cancel": "artem_erp.doc_events.travel_request.track_workflow_actions",
+	},
+}
 
 # Scheduled Tasks
 # ---------------
@@ -195,9 +212,9 @@ extend_doctype_class = {"Employee Checkin": "artem_erp.override.employee_checkin
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
-# override_doctype_dashboards = {
-# 	"Task": "artem_erp.task.get_dashboard_data"
-# }
+override_doctype_dashboards = {
+	"Expense Claim": "artem_erp.dashboard.expense_claim_dashboard.get_data"
+}
 
 # exempt linked doctypes from being automatically cancelled
 #

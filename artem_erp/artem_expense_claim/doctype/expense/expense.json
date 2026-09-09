@@ -1,0 +1,275 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "EXP-.######",
+ "creation": "2026-09-03 17:21:53.755745",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "is_overlimit__expense",
+  "is_claim_raise",
+  "section_break_vkpr",
+  "employee",
+  "department",
+  "column_break_iluf",
+  "employee_name",
+  "employee_grade",
+  "expense_details_section",
+  "expense_date",
+  "expense_category",
+  "is_attachment_required",
+  "is_request_form_required",
+  "column_break_szgc",
+  "city",
+  "limit_amount",
+  "section_break_vefr",
+  "from_city",
+  "total_distance_in_km",
+  "column_break_jaqg",
+  "to_city",
+  "per_km_rate",
+  "section_break_xkvg",
+  "total_amount",
+  "section_break_rbhe",
+  "purpose",
+  "expense_attachment_section",
+  "attachment"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "is_overlimit__expense",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Is overlimit  expense",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_vkpr",
+   "fieldtype": "Section Break",
+   "label": "Employee Info"
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "expense_category",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Expense Category",
+   "options": "Expense Claim Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_vefr",
+   "fieldtype": "Section Break",
+   "label": "Travel Info"
+  },
+  {
+   "fieldname": "total_distance_in_km",
+   "fieldtype": "Float",
+   "label": "Total Distance (In KM)"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Amount"
+  },
+  {
+   "fieldname": "section_break_rbhe",
+   "fieldtype": "Section Break",
+   "label": "Perpose of Expense"
+  },
+  {
+   "fieldname": "expense_attachment_section",
+   "fieldtype": "Section Break",
+   "label": "Expense Attachment"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Table",
+   "label": "Attachment",
+   "mandatory_depends_on": "eval:doc.is_attachment_required",
+   "options": "Attachments"
+  },
+  {
+   "default": "0",
+   "fetch_from": "expense_category.custom_is_attachment_required",
+   "fieldname": "is_attachment_required",
+   "fieldtype": "Check",
+   "label": " Is Attachment Required",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_iluf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fetch_from": "expense_category.custom_is_request_form_required",
+   "fieldname": "is_request_form_required",
+   "fieldtype": "Check",
+   "label": "Is Request Form Required",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_jaqg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_xkvg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "purpose",
+   "fieldtype": "Long Text",
+   "label": "Purpose",
+   "reqd": 1
+  },
+  {
+   "fieldname": "limit_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Limit Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "expense_details_section",
+   "fieldtype": "Section Break",
+   "label": "Expense Details"
+  },
+  {
+   "fetch_from": "employee.grade",
+   "fieldname": "employee_grade",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Employee Grade",
+   "options": "Employee Grade"
+  },
+  {
+   "fetch_from": "employee.department",
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "per_km_rate",
+   "fieldtype": "Currency",
+   "label": "Per KM Rate",
+   "read_only": 1
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "City",
+   "options": "City",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_szgc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "is_claim_raise",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Is claim raise",
+   "read_only": 1
+  },
+  {
+   "fieldname": "to_city",
+   "fieldtype": "Link",
+   "label": "To City",
+   "options": "City"
+  },
+  {
+   "fieldname": "from_city",
+   "fieldtype": "Link",
+   "label": "From City",
+   "options": "City"
+  },
+  {
+   "columns": 1,
+   "default": "Today",
+   "fieldname": "expense_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Expense Date",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "is_child_table": 1,
+   "link_doctype": "Expense Claim Detail",
+   "link_fieldname": "custom_expense",
+   "parent_doctype": "Expense Claim",
+   "table_fieldname": "expenses"
+  }
+ ],
+ "modified": "2026-09-08 17:53:03.579605",
+ "modified_by": "Administrator",
+ "module": "Artem Expense Claim",
+ "name": "Expense",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Employee",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "expense_category",
+ "track_changes": 1
+}
