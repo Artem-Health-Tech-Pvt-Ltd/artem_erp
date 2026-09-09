@@ -17,12 +17,11 @@ CUSTOM_FIELDS = {
 			"system_generated": 0,
 		},
 	],
- 
 	# ------ Expense Claim Type ------
 	"Expense Claim Type": [
 		{
 			"fieldname": "custom_expense_limit_details",
-   			"label": "Expense Limit Details",
+			"label": "Expense Limit Details",
 			"fieldtype": "Table",
 			"options": "Expense Limit Details",
 			"insert_after": "description",
@@ -36,19 +35,19 @@ CUSTOM_FIELDS = {
 			"system_generated": 0,
 		},
 		{
-			"fieldname" : "custom_is_attachment_required",
+			"fieldname": "custom_is_attachment_required",
 			"label": "Is Attachment Required",
 			"fieldtype": "Check",
 			"insert_after": "custom_expenses_requirement_section",
-			"system_generated": 0,	
+			"system_generated": 0,
 		},
-  		{
+		{
 			"fieldname": "custom_is_request_form_required",
-            "label": "Is Request Form Required",
-            "fieldtype": "Check",
-            "insert_after": "custom_is_attachment_required",
-            "system_generated": 0,
-  		},
+			"label": "Is Request Form Required",
+			"fieldtype": "Check",
+			"insert_after": "custom_is_attachment_required",
+			"system_generated": 0,
+		},
 		{
 			"fieldname": "custom_is_accommodation_required",
 			"label": "Is Accommodation Required",
@@ -58,14 +57,13 @@ CUSTOM_FIELDS = {
 		},
 		{
 			"fieldname": "custom_expense_limit_details",
-   			"label": "Expense Limit Details",
+			"label": "Expense Limit Details",
 			"fieldtype": "Table",
 			"options": "Expense Limit Details",
 			"insert_after": "description",
 			"system_generated": 0,
 		},
 	],
-	
 	#  ------ Employee Advance ------
 	"Employee Advance": [
 		{
@@ -91,12 +89,11 @@ CUSTOM_FIELDS = {
 			"fieldtype": "Small Text",
 			"insert_after": "custom_employee_advance_approval_hiestory",
 			"allow_on_submit": 1,
-			"no_copy" : 1,
+			"no_copy": 1,
 			"system_generated": 0,
 			"hidden": 1,
-		}
+		},
 	],
-	
 	# ------ Expense Claim ------
 	"Expense Claim": [
 		{
@@ -122,10 +119,9 @@ CUSTOM_FIELDS = {
 			"allow_on_submit": 1,
 			"system_generated": 0,
 			"hidden": 1,
-		}
+		},
 	],
- 
-	#  Expense Claim Detail Child table in Expense Claim 
+	#  Expense Claim Detail Child table in Expense Claim
 	"Expense Claim Detail": [
 		{
 			"fieldname": "custom_expense",
@@ -154,19 +150,18 @@ CUSTOM_FIELDS = {
 			"insert_after": "custom_expense",
 			"fetch_from": "custom_expense.is_request_form_required",
 			"read_only": 1,
-   			"no_copy": 1,
+			"no_copy": 1,
 			"system_generated": 0,
 		},
 		{
 			"fieldname": "custom_request_form",
 			"label": "Request Form",
 			"fieldtype": "Link",
-            "options": "Travel Request",
+			"options": "Travel Request",
 			"insert_after": "custom_is_request_form_required",
 			"depends_on": "eval:doc.custom_is_request_form_required == 1",
 			"mandatory_depends_on": "eval:doc.custom_is_request_form_required == 1",
 			"system_generated": 0,
-   
 		},
 		{
 			"fieldname": "custom_expense_details_section",
@@ -249,9 +244,8 @@ CUSTOM_FIELDS = {
 			"read_only": 1,
 			"no_copy": 1,
 			"system_generated": 0,
-		}
+		},
 	],
- 
 	# Employee
 	"Employee": [
 		{
@@ -268,12 +262,11 @@ CUSTOM_FIELDS = {
 			"options": "Expense Over-limit Authorization",
 			"insert_after": "custom_expense_claim_overlimit_limit_tab",
 			"system_generated": 0,
-		}
+		},
 	],
-
 	# Employee Grade
 	"Employee Grade": [
-    	{
+		{
 			"fieldname": "custom_grade_description",
 			"label": "Grade Description",
 			"fieldtype": "Small Text",
@@ -282,8 +275,6 @@ CUSTOM_FIELDS = {
 			"system_generated": 0,
 		}
 	],
- 
- 
 	#  Travel Request
 	"Travel Request": [
 		{
@@ -298,7 +289,7 @@ CUSTOM_FIELDS = {
 		{
 			"fieldname": "custom_employee_grade",
 			"label": "Employee Grade",
-			"fieldtype": "Link",		
+			"fieldtype": "Link",
 			"options": "Employee Grade",
 			"insert_after": "employee_name",
 			"fetch_from": "employee.grade",
@@ -309,7 +300,7 @@ CUSTOM_FIELDS = {
 		{
 			"fieldname": "custom_employee_designation",
 			"label": "Employee Designation",
-			"fieldtype": "Link",		
+			"fieldtype": "Link",
 			"options": "Designation",
 			"insert_after": "date_of_birth",
 			"fetch_from": "employee.designation",
@@ -329,13 +320,13 @@ CUSTOM_FIELDS = {
 			"system_generated": 0,
 		},
 		{
-			"fieldname" : "custom_total_costing_section",
+			"fieldname": "custom_total_costing_section",
 			"label": "Total Costing",
 			"fieldtype": "Section Break",
 			"insert_after": "costings",
-			"system_generated": 0
+			"system_generated": 0,
 		},
-  		{
+		{
 			"fieldname": "custom_total_estimated_cost",
 			"label": "Total Estimated Cost",
 			"fieldtype": "Currency",
@@ -372,7 +363,7 @@ CUSTOM_FIELDS = {
 			"fieldname": "custom_remark",
 			"label": "Reason of Approve/Reject Travel Request",
 			"fieldtype": "Small Text",
-   			"insert_after": "custom_travel_request_approval_hiestory_section",
+			"insert_after": "custom_travel_request_approval_hiestory_section",
 			"read_only": 1,
 			"no_copy": 1,
 			"system_generated": 0,
@@ -389,7 +380,6 @@ CUSTOM_FIELDS = {
 			"system_generated": 0,
 		},
 	],
-
 	# Travel Request Costing Child table in Travel Request
 	"Travel Request Costing": [
 		{
@@ -420,6 +410,5 @@ CUSTOM_FIELDS = {
 			"mandatory_depends_on": "eval:doc.custom_is_accommodation_required",
 			"system_generated": 0,
 		},
-  
-	]
+	],
 }

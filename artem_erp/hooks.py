@@ -48,7 +48,7 @@ doctype_js = {
 	"Shift Assignment": "public/js/shift_assignment.js",
 	"Employee Advance": "public/js/employee_advance.js",
 	"Expense Claim": "public/js/expense_claim.js",
-	"Travel Request": "public/js/travel_request.js"
+	"Travel Request": "public/js/travel_request.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -212,9 +212,7 @@ extend_doctype_class = {"Employee Checkin": "artem_erp.override.employee_checkin
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
-override_doctype_dashboards = {
-	"Expense Claim": "artem_erp.dashboard.expense_claim_dashboard.get_data"
-}
+override_doctype_dashboards = {"Expense Claim": "artem_erp.dashboard.expense_claim_dashboard.get_data"}
 
 # exempt linked doctypes from being automatically cancelled
 #

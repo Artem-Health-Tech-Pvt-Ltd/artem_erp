@@ -26,7 +26,10 @@ frappe.ui.form.on("Travel Request", {
 						fieldname: "advance_approved",
 						fieldtype: "Currency",
 						label: __("Total Advance Approved"),
-						default: frm.doc.custom_total_advance_approved || frm.doc.custom_total_advance_required || 0,
+						default:
+							frm.doc.custom_total_advance_approved ||
+							frm.doc.custom_total_advance_required ||
+							0,
 						reqd: is_approval ? 1 : 0,
 						hidden: !is_approval,
 					},
@@ -64,7 +67,10 @@ frappe.ui.form.on("Travel Request", {
 								frm.doc.custom_remark = reason;
 								if (is_approval) {
 									frm.doc.custom_total_advance_approved = advance_approved;
-									frm.set_value("custom_total_advance_approved", advance_approved);
+									frm.set_value(
+										"custom_total_advance_approved",
+										advance_approved
+									);
 								}
 								d.hide();
 								frappe.dom.freeze();

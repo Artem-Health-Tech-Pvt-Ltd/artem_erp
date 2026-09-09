@@ -34,7 +34,9 @@ frappe.listview_settings["Expense"] = {
 		is_overlimit__expense: function (val, df, doc) {
 			if (cint(val) || cint(doc.is_overlimit__expense)) {
 				setTimeout(() => {
-					const row = document.querySelector(`.list-row-container [data-name="${doc.name}"]`);
+					const row = document.querySelector(
+						`.list-row-container [data-name="${doc.name}"]`
+					);
 					if (row) {
 						row.classList.add("expense-overlimit-row");
 					}
@@ -48,7 +50,9 @@ frappe.listview_settings["Expense"] = {
 		setTimeout(() => {
 			listview.data.forEach((doc) => {
 				if (cint(doc.is_overlimit__expense)) {
-					const row = listview.$page.find(`.list-row-container [data-name="${doc.name}"]`);
+					const row = listview.$page.find(
+						`.list-row-container [data-name="${doc.name}"]`
+					);
 					if (row.length) {
 						row.addClass("expense-overlimit-row");
 					}

@@ -1,6 +1,6 @@
 import frappe
-from frappe.utils import now_datetime
 from frappe.model.workflow import get_workflow
+from frappe.utils import now_datetime
 
 
 def track_workflow_actions(doc, method=None):
@@ -37,7 +37,9 @@ def track_workflow_actions(doc, method=None):
 
 	# Current session user and employee name
 	current_user = frappe.session.user
-	employee_name = frappe.db.get_value("Employee", {"user_id": current_user}, "employee_name") or frappe.utils.get_fullname(current_user)
+	employee_name = frappe.db.get_value(
+		"Employee", {"user_id": current_user}, "employee_name"
+	) or frappe.utils.get_fullname(current_user)
 
 	# Determine original requested amount from the first workflow action or before_save
 	history_rows = doc.get("custom_expense_claim_approval_hiestory") or []
@@ -128,7 +130,9 @@ def update_linked_expenses(doc):
 	if doc.name:
 		doc_before_save = doc.get_doc_before_save()
 		if doc_before_save:
-			previous_expenses = [d.custom_expense for d in doc_before_save.get("expenses") or [] if d.custom_expense]
+			previous_expenses = [
+				d.custom_expense for d in doc_before_save.get("expenses") or [] if d.custom_expense
+			]
 			removed_expenses = set(previous_expenses) - set(current_expenses)
 			for exp_name in removed_expenses:
 				frappe.db.set_value("Expense", exp_name, "is_claim_raise", 0, update_modified=False)
@@ -138,4 +142,3 @@ def reset_linked_expenses(doc):
 	for d in doc.get("expenses") or []:
 		if d.custom_expense:
 			frappe.db.set_value("Expense", d.custom_expense, "is_claim_raise", 0, update_modified=False)
-

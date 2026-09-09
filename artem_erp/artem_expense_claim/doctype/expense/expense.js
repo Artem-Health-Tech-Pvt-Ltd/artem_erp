@@ -68,7 +68,10 @@ function reset_expense_travel_and_amount_fields(frm) {
 function toggle_per_km_fields(frm, is_per_km = false) {
 	frm.doc.__is_per_km = is_per_km;
 
-	frm.toggle_display(["total_distance_in_km", "per_km_rate", "section_break_vefr", "from_city", "to_city"], is_per_km);
+	frm.toggle_display(
+		["total_distance_in_km", "per_km_rate", "section_break_vefr", "from_city", "to_city"],
+		is_per_km
+	);
 	frm.toggle_reqd(["total_distance_in_km", "per_km_rate"], is_per_km);
 	frm.set_df_property("total_amount", "read_only", is_per_km ? 1 : 0);
 	frm.toggle_display(["limit_amount"], !is_per_km);
@@ -133,7 +136,11 @@ function fetch_expense_limit(frm) {
 
 					if (limit_amount > 0) {
 						const color_class = available_limit <= 0 ? "text-danger" : "text-success";
-						const desc = `<span class="text-muted">${__("Used")}: <b>${format_currency(used_amount)}</b> | ${__("Available")}: <b class="${color_class}">${format_currency(available_limit)}</b> (${__("for selected expense date")})</span>`;
+						const desc = `<span class="text-muted">${__("Used")}: <b>${format_currency(
+							used_amount
+						)}</b> | ${__("Available")}: <b class="${color_class}">${format_currency(
+							available_limit
+						)}</b> (${__("for selected expense date")})</span>`;
 						frm.set_df_property("limit_amount", "description", desc);
 					} else {
 						frm.set_df_property("limit_amount", "description", "");
@@ -154,7 +161,8 @@ function calculate_overlimit(frm, show_message = false) {
 
 	const total_amount = flt(frm.doc.total_amount);
 	const limit_amount = flt(frm.doc.limit_amount);
-	const available_limit = frm.doc.__available_limit !== undefined ? flt(frm.doc.__available_limit) : limit_amount;
+	const available_limit =
+		frm.doc.__available_limit !== undefined ? flt(frm.doc.__available_limit) : limit_amount;
 
 	if (limit_amount > 0 && total_amount > available_limit) {
 		frm.set_value("is_overlimit__expense", 1);

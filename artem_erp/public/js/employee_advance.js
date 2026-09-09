@@ -3,13 +3,17 @@ frappe.ui.form.on("Employee Advance", {
 		const action = (frm.selected_workflow_action || "").trim();
 		const lower_action = action.toLowerCase();
 
-		if (["approve", "reject","cancel"].includes(lower_action)) {
+		if (["approve", "reject", "cancel"].includes(lower_action)) {
 			// Unfreeze UI because Frappe freezes the DOM right before triggering before_workflow_action
 			frappe.dom.unfreeze();
 
 			return new Promise((resolve, reject) => {
 				const dialog_title = __(
-					lower_action === "approve" ? "Approval Reason" : lower_action === "reject" ? "Reject Reason" : "Cancel Reason"
+					lower_action === "approve"
+						? "Approval Reason"
+						: lower_action === "reject"
+						? "Reject Reason"
+						: "Cancel Reason"
 				);
 
 				const d = new frappe.ui.Dialog({
@@ -29,7 +33,12 @@ frappe.ui.form.on("Employee Advance", {
 							return;
 						}
 						frappe.db
-							.set_value("Employee Advance", frm.doc.name, "custom_approval_reject_reason", reason)
+							.set_value(
+								"Employee Advance",
+								frm.doc.name,
+								"custom_approval_reject_reason",
+								reason
+							)
 							.then(() => {
 								frm.doc.custom_approval_reject_reason = reason;
 								d.hide();

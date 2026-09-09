@@ -7,7 +7,6 @@ from artem_erp.custom_fields_and_property_setter.property_setter import get_prop
 from artem_erp.role_and_permission.role_and_permission import ROLE_PERMISSIONS
 
 
-
 def after_migrate():
 	create_custom_fields(CUSTOM_FIELDS, update=True, ignore_validate=True)
 	make_property_setter()
@@ -26,38 +25,35 @@ def make_property_setter():
 
 
 def setup_role_permissions():
-    """
-    Create/update Custom DocPerm permissions for all configured roles.
-    """
+	"""
+	Create/update Custom DocPerm permissions for all configured roles.
+	"""
 
-    for role, doctypes in ROLE_PERMISSIONS.items():
+	for role, doctypes in ROLE_PERMISSIONS.items():
+		# Skip if Role does not exist
+		if not frappe.db.exists("Role", role):
+			continue
 
-        # Skip if Role does not exist
-        if not frappe.db.exists("Role", role):
-            continue
+		for doctype, permissions in doctypes.items():
+			# Skip if DocType does not exist
+			if not frappe.db.exists("DocType", doctype):
+				continue
 
-        for doctype, permissions in doctypes.items():
+			for permission, value in permissions.items():
+				# Skip unsupported/invalid permission types
+				if permission == "mask":
+					continue
 
-            # Skip if DocType does not exist
-            if not frappe.db.exists("DocType", doctype):
-                continue
+				update_permission_property(
+					doctype=doctype,
+					role=role,
+					permlevel=0,
+					ptype=permission,
+					value=value,
+					validate=False,
+				)
 
-            for permission, value in permissions.items():
+			# Clear DocType permission cache
+			frappe.clear_cache(doctype=doctype)
 
-                # Skip unsupported/invalid permission types
-                if permission == "mask":
-                    continue
-
-                update_permission_property(
-                    doctype=doctype,
-                    role=role,
-                    permlevel=0,
-                    ptype=permission,
-                    value=value,
-                    validate=False,
-                )
-
-            # Clear DocType permission cache
-            frappe.clear_cache(doctype=doctype)
-
-    frappe.clear_cache()
+	frappe.clear_cache()

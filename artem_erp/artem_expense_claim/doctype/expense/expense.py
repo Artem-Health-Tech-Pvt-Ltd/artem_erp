@@ -18,7 +18,7 @@ class Expense(Document):
 			if is_claimed:
 				frappe.throw(
 					_("This expense is already linked to an Expense Claim and cannot be edited."),
-					title=_("Action Not Allowed")
+					title=_("Action Not Allowed"),
 				)
 
 	def set_limit_and_check_overlimit(self):
@@ -77,8 +77,10 @@ class Expense(Document):
 				else:
 					self.is_overlimit__expense = 1
 					frappe.throw(
-						_("The entered expense amount exceeds the allowed limit. Please contact the HR Team or your Reporting Manager for approval."),
-						title=_("Over-Limit Expense")
+						_(
+							"The entered expense amount exceeds the allowed limit. Please contact the HR Team or your Reporting Manager for approval."
+						),
+						title=_("Over-Limit Expense"),
 					)
 			else:
 				self.is_overlimit__expense = 0
@@ -209,7 +211,9 @@ def check_expense_overlimit(
 		"available_limit": available_limit,
 		"over_limit_amount": over_limit_amount,
 		"allowed_over_limit_amount": flt(allowed_over_limit) if allowed_over_limit is not None else 0.0,
-		"message": _("The entered expense amount exceeds the allowed limit. Please contact the HR Team or your Reporting Manager for approval."),
+		"message": _(
+			"The entered expense amount exceeds the allowed limit. Please contact the HR Team or your Reporting Manager for approval."
+		),
 	}
 
 

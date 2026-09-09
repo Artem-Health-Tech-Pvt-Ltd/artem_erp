@@ -1,6 +1,6 @@
 import frappe
-from frappe.utils import now_datetime
 from frappe.model.workflow import get_workflow
+from frappe.utils import now_datetime
 
 
 def track_workflow_actions(doc, method=None):
@@ -8,7 +8,7 @@ def track_workflow_actions(doc, method=None):
 	Record workflow action history for Employee Advance in custom_employee_advance_approval_hiestory
 	when workflow transition occurs.
 	"""
- 
+
 	doc_before_save = doc.get_doc_before_save()
 	if not doc_before_save:
 		return
@@ -38,7 +38,9 @@ def track_workflow_actions(doc, method=None):
 
 	# Current session user and employee name
 	current_user = frappe.session.user
-	employee_name = frappe.db.get_value("Employee", {"user_id": current_user}, "employee_name") or frappe.utils.get_fullname(current_user)
+	employee_name = frappe.db.get_value(
+		"Employee", {"user_id": current_user}, "employee_name"
+	) or frappe.utils.get_fullname(current_user)
 
 	# Determine original requested amount from the first workflow action or before_save
 	history_rows = doc.get("custom_employee_advance_approval_hiestory") or []
