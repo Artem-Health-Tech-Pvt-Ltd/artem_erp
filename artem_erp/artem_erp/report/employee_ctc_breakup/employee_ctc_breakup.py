@@ -6,7 +6,6 @@ from frappe import _
 from frappe.utils import flt, get_link_to_form, has_common
 from frappe.utils.formatters import fmt_money
 from frappe.utils.jinja import render_template
-
 from hrms.payroll.doctype.salary_structure.salary_structure import _make_salary_slip
 
 
@@ -369,4 +368,3 @@ def validate_employee_access(employee: str):
 			frappe.PermissionError,
 			title=_("Not Permitted"),
 		)
-
