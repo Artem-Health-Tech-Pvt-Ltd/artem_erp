@@ -41,7 +41,7 @@ frappe.query_reports["Employee CTC Breakup"] = {
 							return;
 						frappe.query_report.set_filter_value(
 							"salary_structure_assignment",
-							(result[0] && result[0].name) || "",
+							(result[0] && result[0].name) || ""
 						);
 					});
 			},
@@ -68,9 +68,10 @@ frappe.query_reports["Employee CTC Breakup"] = {
 	onload: async function (report) {
 		if (report.get_filter_value("employee")) return;
 
-		const employee = (typeof hrms !== "undefined" && hrms.get_current_employee)
-			? await hrms.get_current_employee()
-			: frappe.session.user;
+		const employee =
+			typeof hrms !== "undefined" && hrms.get_current_employee
+				? await hrms.get_current_employee()
+				: frappe.session.user;
 		if (!employee) return;
 		report.set_filter_value("employee", employee);
 	},
@@ -84,4 +85,3 @@ frappe.query_reports["Employee CTC Breakup"] = {
 		return value;
 	},
 };
-
