@@ -3,4 +3,7 @@
 # Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
 
 [post_model_sync]
-# Patches added in this section will be executed after doctypes are migrated
+# Patches added in this section will be executed after doctypes are migrated\
+
+
+artem_erp.patches.ctc_breackup_workspace_shortcut 16/09/2026 #4

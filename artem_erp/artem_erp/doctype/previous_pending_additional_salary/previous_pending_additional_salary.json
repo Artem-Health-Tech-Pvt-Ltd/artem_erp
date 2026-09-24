@@ -1,0 +1,188 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-09-22 18:45:01.613026",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "additional_salary",
+  "employee",
+  "employee_name",
+  "column_break_przh",
+  "payout_date",
+  "bonus_type",
+  "pay_action",
+  "section_break_atjh",
+  "column_break_ohom",
+  "total_amount",
+  "paid_percentage",
+  "paid_amount",
+  "remaining_amount",
+  "column_break_eppc",
+  "previous_pay_action",
+  "previous_additional_salary_total_amount",
+  "previous_additional_salary_paid_percentage",
+  "previous_additional_salary_paid_amount",
+  "previous_additional_salary_remaining_amount",
+  "section_break_pyuk",
+  "comment",
+  "is_reviewed"
+ ],
+ "fields": [
+  {
+   "fieldname": "additional_salary",
+   "fieldtype": "Link",
+   "label": "Additional Salary",
+   "options": "Additional Salary"
+  },
+  {
+   "fetch_from": "additional_salary.employee",
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee ",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "additional_salary.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee Name "
+  },
+  {
+   "fieldname": "column_break_przh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "payout_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Payout Date",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "additional_salary.salary_component",
+   "fieldname": "bonus_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Bonus Type",
+   "options": "Salary Component",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pay_action",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Pay Action ",
+   "options": "Pay\nPartially Paid\nOn Hold\nNever Pay\nPaid Outside ERP Payroll",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_atjh",
+   "fieldtype": "Section Break",
+   "label": "Amount"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Amount ",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.pay_action == \"Partially Paid\"",
+   "fieldname": "paid_percentage",
+   "fieldtype": "Percent",
+   "label": "Paid Percentage "
+  },
+  {
+   "fieldname": "paid_amount",
+   "fieldtype": "Currency",
+   "label": "Paid Amount ",
+   "mandatory_depends_on": "eval:[\"Pay\", \"Partially Paid\"].includes(doc.pay_action)",
+   "read_only_depends_on": "eval:[\"Never Pay\", \"Paid Outside ERP Payroll\"].includes(doc.pay_action)"
+  },
+  {
+   "columns": 1,
+   "fieldname": "remaining_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Remaining Amount ",
+   "read_only_depends_on": "eval:[\"Never Pay\", \"Paid Outside ERP Payroll\"].includes(doc.pay_action)"
+  },
+  {
+   "fieldname": "section_break_pyuk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "comment",
+   "fieldtype": "Small Text",
+   "label": "Comment"
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "is_reviewed",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Reviewed"
+  },
+  {
+   "fieldname": "previous_additional_salary_total_amount",
+   "fieldtype": "Currency",
+   "label": "Previous Additional Salary Total Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_additional_salary_paid_percentage",
+   "fieldtype": "Percent",
+   "label": "Previous Additional Salary Paid Percentage ",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_additional_salary_paid_amount",
+   "fieldtype": "Currency",
+   "label": "Previous Additional Salary Paid Amount ",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ohom",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "previous_additional_salary_remaining_amount",
+   "fieldtype": "Currency",
+   "label": "Previous Additional Salary Remaining Amount ",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_eppc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "previous_pay_action",
+   "fieldtype": "Data",
+   "label": "Previous Pay Action",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-24 13:52:53.463957",
+ "modified_by": "Administrator",
+ "module": "Artem ERP",
+ "name": "Previous Pending Additional Salary",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
