@@ -1,0 +1,164 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-09-21 16:47:52.093694",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "current_additonal_salary_details_tab",
+  "amended_from",
+  "is_system_generated",
+  "section_break_plu9",
+  "company",
+  "payroll_from_date",
+  "column_break_wqhk",
+  "status",
+  "payroll_to_date",
+  "section_break_tvvn",
+  "additional_salary_payment_details",
+  "previous__pending_additional_salary_tab",
+  "previous_pending_additional_salary"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_plu9",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Employee Additional Salary Payroll Review",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "payroll_from_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Payroll From Date  ",
+   "reqd": 1
+  },
+  {
+   "fieldname": "payroll_to_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Payroll To Date ",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company ",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status ",
+   "options": "Draft\nIn Review\nCompleted",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "Is System generated ",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_wqhk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_tvvn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "additional_salary_payment_details",
+   "fieldtype": "Table",
+   "label": "Additional Salary Payment Details ",
+   "options": "Additional Salary Payment Details"
+  },
+  {
+   "fieldname": "previous__pending_additional_salary_tab",
+   "fieldtype": "Tab Break",
+   "label": "Previous  Pending Additional Salary"
+  },
+  {
+   "fieldname": "previous_pending_additional_salary",
+   "fieldtype": "Table",
+   "label": "Previous Pending Additional Salary ",
+   "options": "Previous Pending Additional Salary"
+  },
+  {
+   "fieldname": "current_additonal_salary_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Current Month Additonal Salary Details"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-09-22 18:48:15.135355",
+ "modified_by": "Administrator",
+ "module": "Artem ERP",
+ "name": "Employee Additional Salary Payroll Review",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
