@@ -51,18 +51,32 @@ function toggle_additional_salary_review_button(frm) {
 				frm.add_custom_button(__("Review Employee Additional Salary"), function () {
 					if (frm.is_dirty()) {
 						frappe.confirm(
-							__("You have unsaved changes. Do you want to save before reviewing Additional Salaries?"),
+							__(
+								"You have unsaved changes. Do you want to save before reviewing Additional Salaries?"
+							),
 							() => {
 								frm.save().then(() => {
-									frappe.set_route("Form", "Employee Additional Salary Payroll Review", r.message.name);
+									frappe.set_route(
+										"Form",
+										"Employee Additional Salary Payroll Review",
+										r.message.name
+									);
 								});
 							},
 							() => {
-								frappe.set_route("Form", "Employee Additional Salary Payroll Review", r.message.name);
+								frappe.set_route(
+									"Form",
+									"Employee Additional Salary Payroll Review",
+									r.message.name
+								);
 							}
 						);
 					} else {
-						frappe.set_route("Form", "Employee Additional Salary Payroll Review", r.message.name);
+						frappe.set_route(
+							"Form",
+							"Employee Additional Salary Payroll Review",
+							r.message.name
+						);
 					}
 				});
 			}

@@ -9,7 +9,6 @@ def get_property_setters():
 			"property_type": "Check",
 			"value": 1,
 		},
-  
 		#  Additional Salary
 		{
 			"doctype": "Additional Salary",
@@ -35,7 +34,7 @@ def get_property_setters():
 			"property_type": "Check",
 			"value": 1,
 		},
-  		{
+		{
 			"doctype": "Additional Salary",
 			"doctype_or_field": "DocField",
 			"fieldname": "amount",
@@ -43,5 +42,4 @@ def get_property_setters():
 			"property_type": "Check",
 			"value": 1,
 		},
-
 	]

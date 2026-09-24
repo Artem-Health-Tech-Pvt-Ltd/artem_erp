@@ -22,8 +22,6 @@ frappe.ui.form.on("Employee Additional Salary Payroll Review", {
 					},
 				});
 			});
-
-
 		}
 	},
 
@@ -35,13 +33,10 @@ frappe.ui.form.on("Employee Additional Salary Payroll Review", {
 				if (paid > 0 && paid > total) {
 					frappe.msgprint({
 						title: __("Invalid Paid Amount"),
-						message: __("{0}: Row {1} ({2}) - Paid Amount ({3}) must be less than or equal to Total Amount ({4}).", [
-							label,
-							row.idx,
-							row.employee,
-							paid,
-							total,
-						]),
+						message: __(
+							"{0}: Row {1} ({2}) - Paid Amount ({3}) must be less than or equal to Total Amount ({4}).",
+							[label, row.idx, row.employee, paid, total]
+						),
 						indicator: "red",
 					});
 					frappe.validated = false;
@@ -51,8 +46,20 @@ frappe.ui.form.on("Employee Additional Salary Payroll Review", {
 			return true;
 		};
 
-		if (!check_table("additional_salary_payment_details", __("Current Month Additional Salaries"))) return;
-		if (!check_table("previous_pending_additional_salary", __("Previous Pending Additional Salaries"))) return;
+		if (
+			!check_table(
+				"additional_salary_payment_details",
+				__("Current Month Additional Salaries")
+			)
+		)
+			return;
+		if (
+			!check_table(
+				"previous_pending_additional_salary",
+				__("Previous Pending Additional Salaries")
+			)
+		)
+			return;
 	},
 });
 
@@ -65,7 +72,10 @@ frappe.ui.form.on("Additional Salary Payment Details", {
 			frappe.model.set_value(cdt, cdn, "paid_amount", total);
 			frappe.model.set_value(cdt, cdn, "remaining_amount", 0);
 			frappe.model.set_value(cdt, cdn, "paid_percentage", 100);
-		} else if (row.pay_action === "Never Pay" || row.pay_action === "Paid Outside ERP Payroll") {
+		} else if (
+			row.pay_action === "Never Pay" ||
+			row.pay_action === "Paid Outside ERP Payroll"
+		) {
 			frappe.model.set_value(cdt, cdn, "paid_amount", 0);
 			frappe.model.set_value(cdt, cdn, "remaining_amount", 0);
 			frappe.model.set_value(cdt, cdn, "paid_percentage", 0);
@@ -87,7 +97,9 @@ frappe.ui.form.on("Additional Salary Payment Details", {
 		if (paid > 0 && paid > total) {
 			frappe.msgprint({
 				title: __("Invalid Paid Amount"),
-				message: __("Paid Amount must be less than or equal to Total Amount ({0}).", [total]),
+				message: __("Paid Amount must be less than or equal to Total Amount ({0}).", [
+					total,
+				]),
 				indicator: "orange",
 			});
 			frappe.model.set_value(cdt, cdn, "paid_amount", total);
@@ -138,13 +150,43 @@ frappe.ui.form.on("Previous Pending Additional Salary", {
 			},
 			callback: function (r) {
 				if (r.message) {
-					frappe.model.set_value(cdt, cdn, "previous_pay_action", r.message.previous_pay_action || r.message.pay_action || "");
-					frappe.model.set_value(cdt, cdn, "previous_additional_salary_total_amount", r.message.total_amount);
-					frappe.model.set_value(cdt, cdn, "previous_additional_salary_paid_percentage", r.message.paid_percentage);
-					frappe.model.set_value(cdt, cdn, "previous_additional_salary_paid_amount", r.message.paid_amount);
-					frappe.model.set_value(cdt, cdn, "previous_additional_salary_remaining_amount", r.message.remaining_amount);
+					frappe.model.set_value(
+						cdt,
+						cdn,
+						"previous_pay_action",
+						r.message.previous_pay_action || r.message.pay_action || ""
+					);
+					frappe.model.set_value(
+						cdt,
+						cdn,
+						"previous_additional_salary_total_amount",
+						r.message.total_amount
+					);
+					frappe.model.set_value(
+						cdt,
+						cdn,
+						"previous_additional_salary_paid_percentage",
+						r.message.paid_percentage
+					);
+					frappe.model.set_value(
+						cdt,
+						cdn,
+						"previous_additional_salary_paid_amount",
+						r.message.paid_amount
+					);
+					frappe.model.set_value(
+						cdt,
+						cdn,
+						"previous_additional_salary_remaining_amount",
+						r.message.remaining_amount
+					);
 					frappe.model.set_value(cdt, cdn, "total_amount", r.message.remaining_amount);
-					frappe.model.set_value(cdt, cdn, "remaining_amount", r.message.remaining_amount);
+					frappe.model.set_value(
+						cdt,
+						cdn,
+						"remaining_amount",
+						r.message.remaining_amount
+					);
 					frappe.model.set_value(cdt, cdn, "paid_amount", 0);
 					frappe.model.set_value(cdt, cdn, "paid_percentage", 0);
 					frappe.model.set_value(cdt, cdn, "pay_action", r.message.pay_action);
@@ -161,7 +203,10 @@ frappe.ui.form.on("Previous Pending Additional Salary", {
 			frappe.model.set_value(cdt, cdn, "paid_amount", total);
 			frappe.model.set_value(cdt, cdn, "remaining_amount", 0);
 			frappe.model.set_value(cdt, cdn, "paid_percentage", 100);
-		} else if (row.pay_action === "Never Pay" || row.pay_action === "Paid Outside ERP Payroll") {
+		} else if (
+			row.pay_action === "Never Pay" ||
+			row.pay_action === "Paid Outside ERP Payroll"
+		) {
 			frappe.model.set_value(cdt, cdn, "paid_amount", 0);
 			frappe.model.set_value(cdt, cdn, "remaining_amount", 0);
 			frappe.model.set_value(cdt, cdn, "paid_percentage", 0);
@@ -183,7 +228,9 @@ frappe.ui.form.on("Previous Pending Additional Salary", {
 		if (paid > 0 && paid > total) {
 			frappe.msgprint({
 				title: __("Invalid Paid Amount"),
-				message: __("Paid Amount must be less than or equal to Total Amount ({0}).", [total]),
+				message: __("Paid Amount must be less than or equal to Total Amount ({0}).", [
+					total,
+				]),
 				indicator: "orange",
 			});
 			frappe.model.set_value(cdt, cdn, "paid_amount", total);

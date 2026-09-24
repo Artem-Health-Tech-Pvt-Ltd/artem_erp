@@ -1,7 +1,6 @@
 import frappe
 from frappe import _, bold
 from frappe.utils import add_months, comma_and, date_diff, flt, formatdate, get_link_to_form, getdate
-
 from hrms.payroll.doctype.additional_salary.additional_salary import AdditionalSalary
 
 
@@ -9,16 +8,13 @@ def get_employee_joining_date(employee):
 	if not employee:
 		return None
 	if frappe.get_meta("Employee").has_field("date_of_joining"):
-		return (
-			frappe.db.get_value("Employee", employee, "date_of_joining")
-		)
+		return frappe.db.get_value("Employee", employee, "date_of_joining")
 	return frappe.db.get_value("Employee", employee, "date_of_joining")
 
 
 class CustomAdditionalSalary(AdditionalSalary):
 	def validate(self):
 		super().validate()
-  
 
 	def validate_previous_additional_salary_to_date(self):
 		if not self.employee or not self.salary_component or self.docstatus == 2:
@@ -32,11 +28,7 @@ class CustomAdditionalSalary(AdditionalSalary):
 				(salary.employee == self.employee)
 				& (salary.salary_component == self.salary_component)
 				& (salary.is_recurring == 1)
-				& (
-					salary.to_date.isnull()
-					| (salary.to_date == "")
-					| (salary.to_date == "0000-00-00")
-				)
+				& (salary.to_date.isnull() | (salary.to_date == "") | (salary.to_date == "0000-00-00"))
 				& (salary.docstatus != 2)
 				& (salary.disabled == 0)
 			)
@@ -104,7 +96,11 @@ class CustomAdditionalSalary(AdditionalSalary):
 		if not start_date:
 			return None
 
-		if self.is_recurring and self.custom_duration_of_additional_salary in ("Quarterly", "Half Yearly", "Yearly"):
+		if self.is_recurring and self.custom_duration_of_additional_salary in (
+			"Quarterly",
+			"Half Yearly",
+			"Yearly",
+		):
 			duration_map = {"Quarterly": 3, "Half Yearly": 6, "Yearly": 12}
 			interval = duration_map[self.custom_duration_of_additional_salary]
 			return add_months(start_date, interval)
@@ -119,10 +115,11 @@ class CustomAdditionalSalary(AdditionalSalary):
 			super().validate_dates()
 			return
 
-
 		# Recurring Additional Salary Validation
 		if not self.custom_duration_of_additional_salary:
-			frappe.throw(_("Duration Of Additional Salary is mandatory for recurring type additional salaries."))
+			frappe.throw(
+				_("Duration Of Additional Salary is mandatory for recurring type additional salaries.")
+			)
 
 		if self.custom_duration_of_additional_salary not in ("Quarterly", "Half Yearly", "Yearly"):
 			frappe.throw(_("Duration Of Additional Salary must be one of: Quarterly, Half Yearly, Yearly."))
@@ -136,9 +133,12 @@ class CustomAdditionalSalary(AdditionalSalary):
 
 		first_payment_date = self.get_first_payment_date()
 
-		employee_details = frappe.db.get_value(
-			"Employee", self.employee, ["date_of_joining", "relieving_date"], as_dict=True
-		) or {}
+		employee_details = (
+			frappe.db.get_value(
+				"Employee", self.employee, ["date_of_joining", "relieving_date"], as_dict=True
+			)
+			or {}
+		)
 		date_of_joining = employee_details.get("date_of_joining")
 		relieving_date = employee_details.get("relieving_date")
 
@@ -258,9 +258,7 @@ class CustomAdditionalSalary(AdditionalSalary):
 
 		if overlapping_salaries:
 			frappe.throw(
-				_(
-					"Additional Salary: {0} already exist for Salary Component: {1}."
-				).format(
+				_("Additional Salary: {0} already exist for Salary Component: {1}.").format(
 					bold(comma_and(overlapping_salaries)),
 					bold(self.salary_component),
 				)
@@ -270,7 +268,9 @@ class CustomAdditionalSalary(AdditionalSalary):
 		if self.is_recurring and self.custom_duration_of_additional_salary:
 			if self.to_date and getdate(sal_start_date) <= getdate(self.to_date) <= getdate(sal_end_date):
 				if not is_recurring_additional_salary_due(self, sal_start_date, sal_end_date):
-					return calculate_concluding_recurring_additional_salary_amount(self, sal_start_date, sal_end_date)
+					return calculate_concluding_recurring_additional_salary_amount(
+						self, sal_start_date, sal_end_date
+					)
 			return self.amount
 		return super().get_amount(sal_start_date, sal_end_date)
 
@@ -559,4 +559,3 @@ def get_custom_additional_salaries(employee, start_date, end_date, component_typ
 		additional_salaries.append(d)
 
 	return additional_salaries
-

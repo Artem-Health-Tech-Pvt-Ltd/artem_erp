@@ -29,4 +29,3 @@ def check_additional_salary_review_completed(doc):
 
 def before_submit(doc, method=None):
 	check_additional_salary_review_completed(doc)
-

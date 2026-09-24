@@ -94,19 +94,25 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 		doc.payroll_to_date = "2026-10-31"
 		doc.status = "Draft"
 
-		doc.append("additional_salary_payment_details", {
-			"employee": self.employee,
-			"bonus_type": self.salary_component,
-			"total_amount": 15000,
-			"is_reviewed": 0,
-		})
+		doc.append(
+			"additional_salary_payment_details",
+			{
+				"employee": self.employee,
+				"bonus_type": self.salary_component,
+				"total_amount": 15000,
+				"is_reviewed": 0,
+			},
+		)
 
-		doc.append("previous_pending_additional_salary", {
-			"employee": self.employee,
-			"bonus_type": self.salary_component,
-			"total_amount": 5000,
-			"is_reviewed": 1,
-		})
+		doc.append(
+			"previous_pending_additional_salary",
+			{
+				"employee": self.employee,
+				"bonus_type": self.salary_component,
+				"total_amount": 5000,
+				"is_reviewed": 1,
+			},
+		)
 
 		# 1. Setting Status to Completed when a row is unreviewed throws ValidationError
 		doc.status = "Completed"
@@ -138,11 +144,14 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 		expected_name = f"{abbr}-Feb-2027"
 
 		# Clean up any existing review for this test period
-		frappe.db.delete("Employee Additional Salary Payroll Review", {
-			"company": ahpl_company,
-			"payroll_from_date": start_date,
-			"payroll_to_date": end_date,
-		})
+		frappe.db.delete(
+			"Employee Additional Salary Payroll Review",
+			{
+				"company": ahpl_company,
+				"payroll_from_date": start_date,
+				"payroll_to_date": end_date,
+			},
+		)
 		cancel_and_delete("Employee Additional Salary Payroll Review", expected_name)
 
 		# 1. When NO additional salary exists for this month: review should NOT be created
@@ -166,12 +175,15 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 
 			# 3. Idempotent: running again does not duplicate the review
 			create_monthly_payroll_reviews(test_date)
-			review_count = frappe.db.count("Employee Additional Salary Payroll Review", {
-				"company": ahpl_company,
-				"payroll_from_date": start_date,
-				"payroll_to_date": end_date,
-				"docstatus": ["!=", 2],
-			})
+			review_count = frappe.db.count(
+				"Employee Additional Salary Payroll Review",
+				{
+					"company": ahpl_company,
+					"payroll_from_date": start_date,
+					"payroll_to_date": end_date,
+					"docstatus": ["!=", 2],
+				},
+			)
 			self.assertEqual(review_count, 1)
 
 		finally:
@@ -218,7 +230,9 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			self.assertIn(as_doc.name, ads_names)
 
 			# Verify attributes
-			row = next(r for r in review_doc.additional_salary_payment_details if r.additional_salary == as_doc.name)
+			row = next(
+				r for r in review_doc.additional_salary_payment_details if r.additional_salary == as_doc.name
+			)
 			self.assertEqual(row.total_amount, 25000)
 			self.assertEqual(row.is_reviewed, 0)
 			self.assertEqual(str(row.payout_date), "2026-10-15")
@@ -226,7 +240,9 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			# Run weekly cron again: must NOT duplicate child row
 			sync_weekly_payroll_reviews(test_date)
 			review_doc.reload()
-			matching_rows = [r for r in review_doc.additional_salary_payment_details if r.additional_salary == as_doc.name]
+			matching_rows = [
+				r for r in review_doc.additional_salary_payment_details if r.additional_salary == as_doc.name
+			]
 			self.assertEqual(len(matching_rows), 1)
 
 		finally:
@@ -265,7 +281,9 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			ads_names = [r.additional_salary for r in review_doc.additional_salary_payment_details]
 			self.assertIn(as_doc.name, ads_names)
 
-			row = next(r for r in review_doc.additional_salary_payment_details if r.additional_salary == as_doc.name)
+			row = next(
+				r for r in review_doc.additional_salary_payment_details if r.additional_salary == as_doc.name
+			)
 			self.assertEqual(row.total_amount, 40000)
 			self.assertEqual(str(row.payout_date), "2026-11-13")
 
@@ -284,17 +302,20 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 		review_doc.status = "Draft"
 
 		as_name = "TEST-ADS-HR-MOD"
-		review_doc.append("additional_salary_payment_details", {
-			"additional_salary": as_name,
-			"employee": self.employee,
-			"bonus_type": self.salary_component,
-			"total_amount": 50000,
-			"pay_action": "On Hold",
-			"paid_amount": 0,
-			"remaining_amount": 50000,
-			"comment": "HR put on hold pending appraisal",
-			"is_reviewed": 1,
-		})
+		review_doc.append(
+			"additional_salary_payment_details",
+			{
+				"additional_salary": as_name,
+				"employee": self.employee,
+				"bonus_type": self.salary_component,
+				"total_amount": 50000,
+				"pay_action": "On Hold",
+				"paid_amount": 0,
+				"remaining_amount": 50000,
+				"comment": "HR put on hold pending appraisal",
+				"is_reviewed": 1,
+			},
+		)
 
 		# Run sync
 		sync_additional_salaries_for_review(review_doc)
@@ -345,16 +366,18 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			r1.insert()
 
 			# Mark all rows in r1 as reviewed
-			for row in (r1.additional_salary_payment_details or []):
+			for row in r1.additional_salary_payment_details or []:
 				if row.additional_salary != as_doc.name:
 					row.pay_action = "On Hold"
 				row.is_reviewed = 1
-			for row in (r1.previous_pending_additional_salary or []):
+			for row in r1.previous_pending_additional_salary or []:
 				row.pay_action = "On Hold"
 				row.is_reviewed = 1
 
 			# HR marks as On Hold
-			r1_row = next(r for r in r1.additional_salary_payment_details if r.additional_salary == as_doc.name)
+			r1_row = next(
+				r for r in r1.additional_salary_payment_details if r.additional_salary == as_doc.name
+			)
 			r1_row.pay_action = "On Hold"
 			r1.submit()
 
@@ -371,18 +394,20 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			pending_ads_r2 = [r.additional_salary for r in r2.previous_pending_additional_salary]
 			self.assertIn(as_doc.name, pending_ads_r2)
 
-			r2_row = next(r for r in r2.previous_pending_additional_salary if r.additional_salary == as_doc.name)
+			r2_row = next(
+				r for r in r2.previous_pending_additional_salary if r.additional_salary == as_doc.name
+			)
 			self.assertEqual(r2_row.total_amount, 35000)
 			self.assertEqual(r2_row.pay_action, "On Hold")
 			self.assertEqual(r2_row.previous_pay_action, "On Hold")
 			self.assertEqual(r2_row.is_reviewed, 0)  # Needs HR review for Nov
 
 			# HR reviews all rows in r2 and leaves as_doc On Hold again
-			for row in (r2.additional_salary_payment_details or []):
+			for row in r2.additional_salary_payment_details or []:
 				if row.additional_salary != as_doc.name:
 					row.pay_action = "On Hold"
 				row.is_reviewed = 1
-			for row in (r2.previous_pending_additional_salary or []):
+			for row in r2.previous_pending_additional_salary or []:
 				if row.additional_salary != as_doc.name:
 					row.pay_action = "On Hold"
 				row.is_reviewed = 1
@@ -402,15 +427,17 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			self.assertIn(as_doc.name, pending_ads_r3)
 
 			# Now HR finalizes it: marks as Pay
-			for row in (r3.additional_salary_payment_details or []):
+			for row in r3.additional_salary_payment_details or []:
 				if row.additional_salary != as_doc.name:
 					row.pay_action = "On Hold"
 				row.is_reviewed = 1
-			for row in (r3.previous_pending_additional_salary or []):
+			for row in r3.previous_pending_additional_salary or []:
 				if row.additional_salary != as_doc.name:
 					row.pay_action = "On Hold"
 				row.is_reviewed = 1
-			r3_row = next(r for r in r3.previous_pending_additional_salary if r.additional_salary == as_doc.name)
+			r3_row = next(
+				r for r in r3.previous_pending_additional_salary if r.additional_salary == as_doc.name
+			)
 			r3_row.pay_action = "Pay"
 			r3_row.paid_amount = 35000
 			r3_row.remaining_amount = 0
@@ -466,15 +493,17 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			sync_additional_salaries_for_review(r1)
 			r1.insert()
 
-			for row in (r1.additional_salary_payment_details or []):
+			for row in r1.additional_salary_payment_details or []:
 				if row.additional_salary != as_doc.name:
 					row.pay_action = "On Hold"
 				row.is_reviewed = 1
-			for row in (r1.previous_pending_additional_salary or []):
+			for row in r1.previous_pending_additional_salary or []:
 				row.pay_action = "On Hold"
 				row.is_reviewed = 1
 
-			r1_row = next(r for r in r1.additional_salary_payment_details if r.additional_salary == as_doc.name)
+			r1_row = next(
+				r for r in r1.additional_salary_payment_details if r.additional_salary == as_doc.name
+			)
 			r1_row.pay_action = "Partially Paid"
 			r1_row.paid_amount = 20000
 			r1_row.remaining_amount = 30000
@@ -504,7 +533,9 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			pending_ads_r2 = [r.additional_salary for r in r2.previous_pending_additional_salary]
 			self.assertIn(as_doc.name, pending_ads_r2)
 
-			r2_row = next(r for r in r2.previous_pending_additional_salary if r.additional_salary == as_doc.name)
+			r2_row = next(
+				r for r in r2.previous_pending_additional_salary if r.additional_salary == as_doc.name
+			)
 			self.assertEqual(r2_row.previous_pay_action, "Partially Paid")
 			self.assertEqual(r2_row.pay_action, "Partially Paid")
 			self.assertEqual(r2_row.previous_additional_salary_total_amount, 50000)
@@ -534,16 +565,19 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 		review.status = "Draft"
 
 		# Add row with pay_action = "Pay" but paid_amount = 0
-		review.append("additional_salary_payment_details", {
-			"employee": self.employee,
-			"bonus_type": self.salary_component,
-			"total_amount": 5000,
-			"paid_amount": 0,
-			"remaining_amount": 5000,
-			"pay_action": "Pay",
-			"is_reviewed": 1,
-			"payout_date": "2027-02-01",
-		})
+		review.append(
+			"additional_salary_payment_details",
+			{
+				"employee": self.employee,
+				"bonus_type": self.salary_component,
+				"total_amount": 5000,
+				"paid_amount": 0,
+				"remaining_amount": 5000,
+				"pay_action": "Pay",
+				"is_reviewed": 1,
+				"payout_date": "2027-02-01",
+			},
+		)
 		review.insert()
 
 		try:
@@ -580,16 +614,19 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 		review.status = "Draft"
 
 		# Exceed in Current Month table: total 5000, paid 6000
-		review.append("additional_salary_payment_details", {
-			"employee": self.employee,
-			"bonus_type": self.salary_component,
-			"total_amount": 5000,
-			"paid_amount": 6000,
-			"remaining_amount": 0,
-			"pay_action": "Partially Paid",
-			"is_reviewed": 0,
-			"payout_date": "2027-03-01",
-		})
+		review.append(
+			"additional_salary_payment_details",
+			{
+				"employee": self.employee,
+				"bonus_type": self.salary_component,
+				"total_amount": 5000,
+				"paid_amount": 6000,
+				"remaining_amount": 0,
+				"pay_action": "Partially Paid",
+				"is_reviewed": 0,
+				"payout_date": "2027-03-01",
+			},
+		)
 
 		try:
 			with self.assertRaises(frappe.ValidationError):
@@ -598,16 +635,19 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			# Fix current month row, but exceed in previous pending table: total 4000, paid 4500
 			review.additional_salary_payment_details[0].paid_amount = 3000
 			review.additional_salary_payment_details[0].remaining_amount = 2000
-			review.append("previous_pending_additional_salary", {
-				"employee": self.employee,
-				"bonus_type": self.salary_component,
-				"total_amount": 4000,
-				"paid_amount": 4500,
-				"remaining_amount": 0,
-				"pay_action": "Partially Paid",
-				"is_reviewed": 0,
-				"payout_date": "2027-03-01",
-			})
+			review.append(
+				"previous_pending_additional_salary",
+				{
+					"employee": self.employee,
+					"bonus_type": self.salary_component,
+					"total_amount": 4000,
+					"paid_amount": 4500,
+					"remaining_amount": 0,
+					"pay_action": "Partially Paid",
+					"is_reviewed": 0,
+					"payout_date": "2027-03-01",
+				},
+			)
 
 			with self.assertRaises(frappe.ValidationError):
 				review.insert()
@@ -639,16 +679,19 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 		self.assertEqual(res["message"], "No Additional Salary records found.")
 
 		# Add an in-memory row and run sync again: must indicate no NEW records found
-		review.append("additional_salary_payment_details", {
-			"employee": self.employee,
-			"bonus_type": self.salary_component,
-			"total_amount": 5000,
-			"paid_amount": 5000,
-			"remaining_amount": 0,
-			"pay_action": "Pay",
-			"is_reviewed": 1,
-			"payout_date": "2025-05-01",
-		})
+		review.append(
+			"additional_salary_payment_details",
+			{
+				"employee": self.employee,
+				"bonus_type": self.salary_component,
+				"total_amount": 5000,
+				"paid_amount": 5000,
+				"remaining_amount": 0,
+				"pay_action": "Pay",
+				"is_reviewed": 1,
+				"payout_date": "2025-05-01",
+			},
+		)
 		res2 = sync_additional_salaries_for_review(review)
 		self.assertEqual(res2["added_current"], 0)
 		self.assertEqual(res2["added_pending"], 0)
@@ -707,9 +750,9 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			sync_additional_salaries_for_review(oct_review)
 
 			oct_old_rows = [
-				r for r in (oct_review.additional_salary_payment_details or [])
-				if r.employee == self.employee
-				and r.additional_salary == as_old.name
+				r
+				for r in (oct_review.additional_salary_payment_details or [])
+				if r.employee == self.employee and r.additional_salary == as_old.name
 			]
 			self.assertEqual(len(oct_old_rows), 1)
 
@@ -733,9 +776,9 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			sync_additional_salaries_for_review(nov_review)
 
 			nov_new_rows = [
-				r for r in (nov_review.additional_salary_payment_details or [])
-				if r.employee == self.employee
-				and r.additional_salary == as_new.name
+				r
+				for r in (nov_review.additional_salary_payment_details or [])
+				if r.employee == self.employee and r.additional_salary == as_new.name
 			]
 			self.assertEqual(len(nov_new_rows), 1)
 
@@ -753,4 +796,3 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 				cancel_and_delete("Additional Salary", as_new.name)
 			if as_old:
 				cancel_and_delete("Additional Salary", as_old.name)
-

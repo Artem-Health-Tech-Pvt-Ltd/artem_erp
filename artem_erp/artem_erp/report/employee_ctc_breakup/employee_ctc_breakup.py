@@ -324,7 +324,7 @@ class SalaryBreakupReport:
 				"income_tax_slab": self.income_tax_slab,
 			}
 		)
-		employee_profile_card = render_template(path, context=context, is_path=True) # nosemgrep
+		employee_profile_card = render_template(path, context=context, is_path=True)  # nosemgrep
 		return employee_profile_card
 
 

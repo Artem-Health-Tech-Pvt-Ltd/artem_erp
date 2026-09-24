@@ -25,7 +25,7 @@ CUSTOM_FIELDS = {
 			"insert_after": "department",
 			"fetch_from": "employee.date_of_joining",
 			"read_only": 1,
-			"system_generated": 0,	
+			"system_generated": 0,
 		},
 		{
 			"fieldname": "custom_annual_gross_earning",
@@ -49,7 +49,7 @@ CUSTOM_FIELDS = {
 			"fieldtype": "Select",
 			"options": "\nQuarterly\nHalf Yearly\nYearly",
 			"insert_after": "is_recurring",
-			"depends_on" : "eval:doc.is_recurring",
+			"depends_on": "eval:doc.is_recurring",
 			"mandatory_depends_on": "eval:doc.is_recurring",
 			"system_generated": 0,
 		},
@@ -57,7 +57,7 @@ CUSTOM_FIELDS = {
 			"fieldname": "custom_additional_salary_payment_history_section_break",
 			"fieldtype": "Section Break",
 			"insert_after": "ref_docname",
-			"system_generated": 0,			
+			"system_generated": 0,
 		},
 		{
 			"fieldname": "custom_additional_salary_payment_history",
@@ -67,7 +67,7 @@ CUSTOM_FIELDS = {
 			"insert_after": "custom_additional_salary_payment_history_section_break",
 			"read_only": 1,
 			"allow_on_submit": 1,
-			"system_generated": 0,			
+			"system_generated": 0,
 		},
-	]
+	],
 }

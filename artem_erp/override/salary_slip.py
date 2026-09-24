@@ -1,17 +1,15 @@
 import math
-import frappe
-from frappe.utils import add_days, add_months, flt, getdate
 
+import frappe
+from frappe import _
+from frappe.utils import add_days, add_months, flt, get_link_to_form, getdate
 from hrms.payroll.doctype.salary_slip.salary_slip import SalarySlip, get_salary_component_data
+
 from artem_erp.override.additional_salary import (
 	get_custom_additional_salaries,
 	get_employee_joining_date,
 	is_recurring_additional_salary_due,
 )
-
-
-from frappe import _
-from frappe.utils import get_link_to_form
 
 
 def get_additional_salaries_from_reviews(review_names, employee, start_date, end_date, component_type):
@@ -22,9 +20,8 @@ def get_additional_salaries_from_reviews(review_names, employee, start_date, end
 
 	for r_name in review_names:
 		review_doc = frappe.get_doc("Employee Additional Salary Payroll Review", r_name)
-		all_rows = (
-			(review_doc.additional_salary_payment_details or [])
-			+ (review_doc.previous_pending_additional_salary or [])
+		all_rows = (review_doc.additional_salary_payment_details or []) + (
+			review_doc.previous_pending_additional_salary or []
 		)
 
 		for row in all_rows:
@@ -69,29 +66,37 @@ def get_additional_salaries_from_reviews(review_names, employee, start_date, end
 			seen_salaries.add(row.additional_salary)
 
 			# Fetch Additional Salary document properties
-			as_info = frappe.db.get_value(
-				"Additional Salary",
-				row.additional_salary,
-				[
-					"overwrite_salary_structure_amount",
-					"is_recurring",
-					"ref_doctype",
-					"ref_docname",
-					"deduct_full_tax_on_selected_payroll_date",
-				],
-				as_dict=True,
-			) or frappe._dict()
+			as_info = (
+				frappe.db.get_value(
+					"Additional Salary",
+					row.additional_salary,
+					[
+						"overwrite_salary_structure_amount",
+						"is_recurring",
+						"ref_doctype",
+						"ref_docname",
+						"deduct_full_tax_on_selected_payroll_date",
+					],
+					as_dict=True,
+				)
+				or frappe._dict()
+			)
 
-			item = frappe._dict({
-				"name": row.additional_salary,
-				"component": row.bonus_type,
-				"amount": paid_amount,
-				"overwrite": as_info.get("overwrite_salary_structure_amount") or 0,
-				"is_recurring": as_info.get("is_recurring") or 0,
-				"ref_doctype": as_info.get("ref_doctype"),
-				"ref_docname": as_info.get("ref_docname"),
-				"deduct_full_tax_on_selected_payroll_date": as_info.get("deduct_full_tax_on_selected_payroll_date") or 0,
-			})
+			item = frappe._dict(
+				{
+					"name": row.additional_salary,
+					"component": row.bonus_type,
+					"amount": paid_amount,
+					"overwrite": as_info.get("overwrite_salary_structure_amount") or 0,
+					"is_recurring": as_info.get("is_recurring") or 0,
+					"ref_doctype": as_info.get("ref_doctype"),
+					"ref_docname": as_info.get("ref_docname"),
+					"deduct_full_tax_on_selected_payroll_date": as_info.get(
+						"deduct_full_tax_on_selected_payroll_date"
+					)
+					or 0,
+				}
+			)
 
 			if item.overwrite:
 				if item.component in components_to_overwrite:
@@ -132,7 +137,10 @@ class CustomSalarySlip(SalarySlip):
 			frappe.throw(
 				_(
 					"Cannot process Salary Slip for {0}: Employee Additional Salary Payroll Review {1} is still in Draft. Please complete and submit the review first."
-				).format(self.employee, get_link_to_form("Employee Additional Salary Payroll Review", draft_reviews[0].name)),
+				).format(
+					self.employee,
+					get_link_to_form("Employee Additional Salary Payroll Review", draft_reviews[0].name),
+				),
 				title=_("Additional Salary Review Required"),
 			)
 
@@ -254,7 +262,9 @@ class CustomSalarySlip(SalarySlip):
 
 		# Standard monthly recurrence fallback with null-safe to_date
 		try:
-			return super().get_future_recurring_additional_amount(additional_salary, monthly_additional_amount)
+			return super().get_future_recurring_additional_amount(
+				additional_salary, monthly_additional_amount
+			)
 		except Exception:
 			to_date = as_doc.get("to_date") or self.payroll_period.end_date
 			from_date = getdate(self.start_date)
@@ -270,7 +280,6 @@ class CustomSalarySlip(SalarySlip):
 	def on_cancel(self):
 		super().on_cancel()
 		update_additional_salary_payment_history(self, cancel=True)
-  
 
 
 def update_additional_salary_payment_history(salary_slip, cancel=False):
@@ -321,4 +330,3 @@ def update_additional_salary_payment_history(salary_slip, cancel=False):
 				as_doc.flags.ignore_validate = True
 				as_doc.flags.ignore_mandatory = True
 				as_doc.save(ignore_permissions=True)
-

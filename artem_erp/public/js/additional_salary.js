@@ -1,6 +1,11 @@
 frappe.ui.form.on("Additional Salary", {
 	refresh: function (frm) {
-		if (frm.is_new() && frm.doc.employee && !frm.doc.custom_annual_gross_earning && !frm.doc.custom_ctc) {
+		if (
+			frm.is_new() &&
+			frm.doc.employee &&
+			!frm.doc.custom_annual_gross_earning &&
+			!frm.doc.custom_ctc
+		) {
 			frm.trigger("fetch_salary_structure_assignment_details");
 		}
 	},
@@ -49,7 +54,10 @@ frappe.ui.form.on("Additional Salary", {
 			},
 			callback: function (r) {
 				if (r && r.message) {
-					frm.set_value("custom_annual_gross_earning", r.message.annual_gross_earning || 0);
+					frm.set_value(
+						"custom_annual_gross_earning",
+						r.message.annual_gross_earning || 0
+					);
 					frm.set_value("custom_ctc", r.message.ctc || 0);
 				} else {
 					frm.set_value("custom_annual_gross_earning", 0);
@@ -59,4 +67,3 @@ frappe.ui.form.on("Additional Salary", {
 		});
 	},
 });
-
