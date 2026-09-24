@@ -423,21 +423,43 @@ def check_payroll_review_status(
 	start_date = getdate(start_date)
 	end_date = getdate(end_date)
 
-	reviews = frappe.get_all(
+	# Check for draft review first
+	draft_reviews = frappe.get_all(
 		"Employee Additional Salary Payroll Review",
 		filters={
 			"company": company,
 			"payroll_from_date": ["<=", end_date],
 			"payroll_to_date": [">=", start_date],
-			"docstatus": ["!=", 2],
+			"docstatus": 0,
 		},
 		fields=["name", "docstatus", "status"],
-		order_by="payroll_to_date desc",
+		order_by="creation desc",
 		limit=1,
 	)
+	if draft_reviews:
+		r = draft_reviews[0]
+		return {
+			"exists": True,
+			"name": r.name,
+			"docstatus": r.docstatus,
+			"status": r.status,
+		}
 
-	if reviews:
-		r = reviews[0]
+	# Then check for submitted review
+	submitted_reviews = frappe.get_all(
+		"Employee Additional Salary Payroll Review",
+		filters={
+			"company": company,
+			"payroll_from_date": ["<=", end_date],
+			"payroll_to_date": [">=", start_date],
+			"docstatus": 1,
+		},
+		fields=["name", "docstatus", "status"],
+		order_by="creation desc",
+		limit=1,
+	)
+	if submitted_reviews:
+		r = submitted_reviews[0]
 		return {
 			"exists": True,
 			"name": r.name,
