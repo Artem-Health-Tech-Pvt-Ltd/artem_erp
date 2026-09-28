@@ -353,8 +353,11 @@ def create_monthly_payroll_reviews(date=None):
 			review_doc.is_system_generated = 1
 			sync_additional_salaries_for_review(review_doc)
 
-			has_current_month_salaries = bool(review_doc.additional_salary_payment_details)
-			if has_current_month_salaries:
+			has_review_items = bool(
+				review_doc.additional_salary_payment_details
+				or review_doc.previous_pending_additional_salary
+			)
+			if has_review_items:
 				review_doc.insert(ignore_permissions=True)
 				created_reviews.append(review_doc.name)
 		else:
