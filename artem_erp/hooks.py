@@ -89,7 +89,7 @@ doctype_js = {
 
 # Migration
 # ------------------
-after_migrate = "artem_erp.install.after_migrate"
+# after_migrate = "artem_erp.install.after_migrate"
 
 # Installation
 # ------------
