@@ -1,0 +1,69 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-09-15 11:52:42.876250",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "salary_slip",
+  "payroll_duration_from_date",
+  "payroll_duration_to_date",
+  "column_break_qkyg",
+  "additional_salary_amount",
+  "total_net_pay"
+ ],
+ "fields": [
+  {
+   "fieldname": "salary_slip",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Salary Slip",
+   "options": "Salary Slip"
+  },
+  {
+   "fieldname": "payroll_duration_from_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Payroll Duration From Date"
+  },
+  {
+   "fieldname": "payroll_duration_to_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Payroll Duration To Date"
+  },
+  {
+   "fieldname": "column_break_qkyg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "additional_salary_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Additional Salary Amount"
+  },
+  {
+   "fieldname": "total_net_pay",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Net Pay"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-15 11:55:10.028452",
+ "modified_by": "Administrator",
+ "module": "Artem ERP",
+ "name": "Additional Salary Payment History",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -46,6 +46,8 @@ app_license = "mit"
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_js = {
 	"Shift Assignment": "public/js/shift_assignment.js",
+	"Additional Salary": "public/js/additional_salary.js",
+	"Payroll Entry": "public/js/payroll_entry.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -145,34 +147,31 @@ after_install = "artem_erp.install.after_install"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Salary Slip": {
+		"on_submit": "artem_erp.doc_events.salary_slip.on_submit",
+		"on_cancel": "artem_erp.doc_events.salary_slip.on_cancel",
+	},
+	"Payroll Entry": {
+		"before_submit": "artem_erp.doc_events.payroll_entry.before_submit",
+	},
+}
 
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"artem_erp.tasks.all"
-# 	],
-# 	"daily": [
-# 		"artem_erp.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"artem_erp.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"artem_erp.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"artem_erp.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"cron": {
+		# Monthly: Run on the 1st day of every month at 9:00 AM (0 9 1 * *)
+		"0 9 1 * *": [
+			"artem_erp.artem_erp.doctype.employee_additional_salary_payroll_review.monthly_weekly_payroll_review.create_monthly_payroll_reviews",
+		],
+		# Weekly: Run every Monday at 9:00 AM (0 9 * * 1)
+		"0 9 * * 1": [
+			"artem_erp.artem_erp.doctype.employee_additional_salary_payroll_review.monthly_weekly_payroll_review.sync_weekly_payroll_reviews",
+		],
+	},
+}
 
 # Testing
 # -------
@@ -183,7 +182,11 @@ after_install = "artem_erp.install.after_install"
 # ------------------------------
 #
 # Specify custom mixins to extend the standard doctype controller.
-extend_doctype_class = {"Employee Checkin": "artem_erp.override.employee_checkin.CustomEmployeeCheckin"}
+extend_doctype_class = {
+	"Employee Checkin": "artem_erp.override.employee_checkin.CustomEmployeeCheckin",
+	"Additional Salary": "artem_erp.override.additional_salary.CustomAdditionalSalary",
+	"Salary Slip": "artem_erp.override.salary_slip.CustomSalarySlip",
+}
 
 # Overriding Methods
 # ------------------------------
