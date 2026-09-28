@@ -56,7 +56,7 @@ class CustomAdditionalSalary(AdditionalSalary):
 		super().before_validate()
 		if self.employee and not self.custom_date_of_joining:
 			self.custom_date_of_joining = get_employee_joining_date(self.employee)
-		if self.employee and (not self.custom_annual_gross_earning or not self.custom_ctc):
+		if self.employee:
 			ssa = frappe.db.get_value(
 				"Salary Structure Assignment",
 				{"employee": self.employee, "docstatus": 1},
@@ -64,11 +64,8 @@ class CustomAdditionalSalary(AdditionalSalary):
 				order_by="from_date desc",
 				as_dict=True,
 			)
-			if ssa:
-				if not self.custom_annual_gross_earning:
-					self.custom_annual_gross_earning = ssa.annual_gross_earning
-				if not self.custom_ctc:
-					self.custom_ctc = ssa.ctc
+			self.custom_annual_gross_earning = ssa.annual_gross_earning if ssa else 0
+			self.custom_ctc = ssa.ctc if ssa else 0
 
 	def get_start_date(self):
 		"""
