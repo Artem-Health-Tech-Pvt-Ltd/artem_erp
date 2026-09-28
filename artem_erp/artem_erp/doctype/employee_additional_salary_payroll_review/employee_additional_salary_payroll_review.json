@@ -100,7 +100,7 @@
   {
    "fieldname": "current_additonal_salary_details_tab",
    "fieldtype": "Tab Break",
-   "label": "Current Month Additonal Salary Details"
+   "label": "Current Month Additional Salary Details"
   }
  ],
  "grid_page_length": 50,
