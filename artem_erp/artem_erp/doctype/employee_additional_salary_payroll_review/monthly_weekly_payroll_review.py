@@ -364,7 +364,11 @@ def create_monthly_payroll_reviews(date=None):
 			# Idempotent: if already exists and is editable (Draft / In Review), sync missing records
 			if review_doc.docstatus == 0:
 				res = sync_additional_salaries_for_review(review_doc)
-				if not review_doc.additional_salary_payment_details and review_doc.is_system_generated:
+				if (
+					not review_doc.additional_salary_payment_details
+					and not review_doc.previous_pending_additional_salary
+					and review_doc.is_system_generated
+				):
 					# Clean up empty system-generated review if no current month additional salaries exist
 					review_doc.delete(ignore_permissions=True)
 				elif res["added_current"] > 0 or res["added_pending"] > 0:
