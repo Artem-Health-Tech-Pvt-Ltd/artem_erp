@@ -119,10 +119,23 @@ def get_pending_additional_salaries_to_carry_forward(review_doc):
 	2. Submitted past Additional Salaries that never appeared in any prior review.
 	"""
 	company = review_doc.company
-	payroll_from_date = getdate(review_doc.payroll_from_date)
+	payroll_from_date = getdate(review_doc.payroll_from_date) if review_doc.payroll_from_date else None
+	if not company or not payroll_from_date:
+		return []
 
 	pending_items = []
 	processed_ads_keys = set()
+	processed_ads_names = set()
+
+	# Also record any additional salaries already on the current review doc to avoid duplicates
+	for row in (getattr(review_doc, "additional_salary_payment_details", None) or []):
+		if row.additional_salary:
+			processed_ads_keys.add((row.employee, row.additional_salary))
+			processed_ads_names.add(row.additional_salary)
+	for row in (getattr(review_doc, "previous_pending_additional_salary", None) or []):
+		if row.additional_salary:
+			processed_ads_keys.add((row.employee, row.additional_salary))
+			processed_ads_names.add(row.additional_salary)
 
 	# 1. Query prior reviews for the same company in reverse chronological order
 	prior_review_names = frappe.get_all(
@@ -191,6 +204,67 @@ def get_pending_additional_salaries_to_carry_forward(review_doc):
 
 			# Mark as processed so older reviews don't override or duplicate
 			processed_ads_keys.add((row.employee, row.additional_salary))
+			processed_ads_names.add(row.additional_salary)
+
+	# 2. Query submitted past Additional Salaries that never appeared in any prior review
+	additional_sal = frappe.qb.DocType("Additional Salary")
+	missed_salaries = (
+		frappe.qb.from_(additional_sal)
+		.select(
+			additional_sal.name,
+			additional_sal.employee,
+			additional_sal.employee_name,
+			additional_sal.salary_component,
+			additional_sal.amount,
+			additional_sal.payroll_date,
+		)
+		.where(
+			(additional_sal.company == company)
+			& (additional_sal.docstatus == 1)
+			& (additional_sal.disabled == 0)
+			& (additional_sal.is_recurring == 0)
+			& (additional_sal.payroll_date < payroll_from_date)
+		)
+		.orderby(additional_sal.payroll_date)
+	).run(as_dict=True)
+
+	for rec in missed_salaries:
+		key = (rec.employee, rec.name)
+		if key in processed_ads_keys or rec.name in processed_ads_names:
+			continue
+
+		if not rec.payroll_date or getdate(rec.payroll_date) >= payroll_from_date:
+			continue
+
+		employee_name = rec.employee_name
+		if not employee_name and rec.employee:
+			employee_name = frappe.db.get_value("Employee", rec.employee, "employee_name")
+
+		amt = flt(rec.amount)
+		payout_date = getdate(rec.payroll_date)
+
+		pending_items.append(
+			{
+				"additional_salary": rec.name,
+				"employee": rec.employee,
+				"employee_name": employee_name,
+				"bonus_type": rec.salary_component,
+				"previous_pay_action": "",
+				"previous_additional_salary_total_amount": amt,
+				"previous_additional_salary_paid_percentage": 0.0,
+				"previous_additional_salary_paid_amount": 0.0,
+				"previous_additional_salary_remaining_amount": amt,
+				"total_amount": amt,
+				"remaining_amount": amt,
+				"paid_percentage": 0.0,
+				"paid_amount": 0.0,
+				"payout_date": payout_date,
+				"pay_action": "On Hold",
+				"comment": "",
+			}
+		)
+		processed_ads_keys.add(key)
+		processed_ads_names.add(rec.name)
 
 	return pending_items
 
@@ -270,7 +344,9 @@ def sync_additional_salaries_for_review(review_doc):
 				"employee": pend["employee"],
 				"employee_name": pend["employee_name"],
 				"bonus_type": pend["bonus_type"],
-				"previous_pay_action": pend.get("previous_pay_action") or pend.get("pay_action") or "",
+				"previous_pay_action": pend.get("previous_pay_action")
+				if pend.get("previous_pay_action") is not None
+				else (pend.get("pay_action") or ""),
 				"previous_additional_salary_total_amount": prev_total,
 				"previous_additional_salary_paid_percentage": prev_pct,
 				"previous_additional_salary_paid_amount": prev_paid,
