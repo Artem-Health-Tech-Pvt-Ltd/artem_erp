@@ -4,28 +4,35 @@
 frappe.ui.form.on("Payroll Entry", {
 	refresh(frm) {
 		update_payroll_entry_actions(frm);
+		update_payroll_entry_actions(frm);
 	},
 
 	onload_post_render(frm) {
+		update_payroll_entry_actions(frm);
 		update_payroll_entry_actions(frm);
 	},
 
 	company(frm) {
 		update_payroll_entry_actions(frm);
+		update_payroll_entry_actions(frm);
 	},
 
 	start_date(frm) {
+		update_payroll_entry_actions(frm);
 		update_payroll_entry_actions(frm);
 	},
 
 	end_date(frm) {
 		update_payroll_entry_actions(frm);
+		update_payroll_entry_actions(frm);
 	},
 });
 
 function update_payroll_entry_actions(frm) {
+function update_payroll_entry_actions(frm) {
 	if (frm.is_new() || frm.doc.docstatus !== 0) {
 		frm.remove_custom_button(__("Review Employee Additional Salary"));
+		frm._additional_salary_review_in_draft = false;
 		frm._additional_salary_review_in_draft = false;
 		return;
 	}
@@ -33,7 +40,13 @@ function update_payroll_entry_actions(frm) {
 	if (!frm.doc.company || !frm.doc.start_date || !frm.doc.end_date) {
 		frm.remove_custom_button(__("Review Employee Additional Salary"));
 		frm._additional_salary_review_in_draft = false;
+		frm._additional_salary_review_in_draft = false;
 		return;
+	}
+
+	// If review was already detected as draft in this session, keep Create Salary Slips hidden and provide Save immediately
+	if (frm._additional_salary_review_in_draft) {
+		apply_draft_review_actions(frm, frm._review_doc_name);
 	}
 
 	// If review was already detected as draft in this session, keep Create Salary Slips hidden and provide Save immediately
@@ -114,7 +127,11 @@ function apply_draft_review_actions(frm, review_name) {
 					}
 				);
 			} else {
-				frappe.set_route("Form", "Employee Additional Salary Payroll Review", review_name);
+				frappe.set_route(
+					"Form",
+					"Employee Additional Salary Payroll Review",
+					review_name
+				);
 			}
 		});
 	}

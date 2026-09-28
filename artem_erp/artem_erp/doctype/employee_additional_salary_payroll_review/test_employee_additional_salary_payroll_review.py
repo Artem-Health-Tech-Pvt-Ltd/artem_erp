@@ -1,7 +1,6 @@
 # Copyright (c) 2026, Artem Healthtech and Contributors
 # See license.txt
 
-import os
 import unittest
 
 import frappe
@@ -25,17 +24,6 @@ def cancel_and_delete(doctype, name):
 
 
 class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
-	@classmethod
-	def setUpClass(cls):
-		if os.path.exists("/workspace/development/frappe-bench/sites"):
-			os.chdir("/workspace/development/frappe-bench/sites")
-		frappe.init(site="release.artemhrms")
-		frappe.connect()
-
-	@classmethod
-	def tearDownClass(cls):
-		frappe.destroy()
-
 	def setUp(self):
 		super().setUp()
 		ssa = frappe.db.get_value(
@@ -136,18 +124,26 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 		Monthly cron ONLY creates review for the company IF an employee has an Additional Salary.
 		If no employee has Additional Salary in that month, no review is generated.
 		"""
-		ahpl_company = "Artem HealthTech Private Limited"
-		ahpl_emp = "AHPL0178"
+		test_company = (
+			"Artem HealthTech Private Limited"
+			if frappe.db.exists("Company", "Artem HealthTech Private Limited")
+			else self.company
+		)
+		test_emp = (
+			"AHPL0178"
+			if frappe.db.exists("Employee", "AHPL0178")
+			else self.employee
+		)
 		test_date = "2027-02-01"
 		start_date, end_date = get_target_payroll_month(test_date)
-		abbr = frappe.db.get_value("Company", ahpl_company, "abbr") or "AHPL"
+		abbr = frappe.db.get_value("Company", test_company, "abbr") or "AHPL"
 		expected_name = f"{abbr}-Feb-2027"
 
 		# Clean up any existing review for this test period
 		frappe.db.delete(
 			"Employee Additional Salary Payroll Review",
 			{
-				"company": ahpl_company,
+				"company": test_company,
 				"payroll_from_date": start_date,
 				"payroll_to_date": end_date,
 			},
@@ -160,8 +156,8 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 
 		# 2. When an Additional Salary DOES exist for this month: review SHOULD be created
 		as_doc = frappe.new_doc("Additional Salary")
-		as_doc.company = ahpl_company
-		as_doc.employee = ahpl_emp
+		as_doc.company = test_company
+		as_doc.employee = test_emp
 		as_doc.salary_component = self.salary_component
 		as_doc.amount = 20000
 		as_doc.payroll_date = "2027-02-15"
@@ -178,7 +174,7 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			review_count = frappe.db.count(
 				"Employee Additional Salary Payroll Review",
 				{
-					"company": ahpl_company,
+					"company": test_company,
 					"payroll_from_date": start_date,
 					"payroll_to_date": end_date,
 					"docstatus": ["!=", 2],
@@ -796,3 +792,106 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 				cancel_and_delete("Additional Salary", as_new.name)
 			if as_old:
 				cancel_and_delete("Additional Salary", as_old.name)
+
+	def test_missed_past_additional_salary_carry_forward(self):
+		"""
+		Tests that submitted one-time Additional Salaries for past months that missed every prior review
+		(e.g., created after that payroll month's review was submitted) are carried forward
+		into previous_pending_additional_salary of the current review.
+		"""
+		abbr = frappe.db.get_value("Company", self.company, "abbr")
+		oct_review_name = f"{abbr}-Oct-2026"
+		nov_review_name = f"{abbr}-Nov-2026"
+
+		cancel_and_delete("Employee Additional Salary Payroll Review", oct_review_name)
+		cancel_and_delete("Employee Additional Salary Payroll Review", nov_review_name)
+
+		as_oct = None
+		as_missed = None
+		oct_review = None
+		nov_review = None
+
+		try:
+			# 1. Create and submit an Additional Salary for October
+			as_oct = frappe.new_doc("Additional Salary")
+			as_oct.company = self.company
+			as_oct.employee = self.employee
+			as_oct.salary_component = self.salary_component
+			as_oct.amount = 10000
+			as_oct.payroll_date = "2026-10-05"
+			as_oct.is_recurring = 0
+			as_oct.insert()
+			as_oct.submit()
+
+			# 2. Create and submit October 2026 review (marking as_oct as Pay)
+			oct_review = frappe.new_doc("Employee Additional Salary Payroll Review")
+			oct_review.company = self.company
+			oct_review.payroll_from_date = "2026-10-01"
+			oct_review.payroll_to_date = "2026-10-31"
+			oct_review.status = "Draft"
+			sync_additional_salaries_for_review(oct_review)
+			oct_review.insert()
+
+			for row in oct_review.additional_salary_payment_details or []:
+				row.pay_action = "Pay"
+				row.paid_amount = row.total_amount
+				row.is_reviewed = 1
+			for row in oct_review.previous_pending_additional_salary or []:
+				row.pay_action = "On Hold"
+				row.is_reviewed = 1
+			oct_review.submit()
+
+			# 3. Create a one-time Additional Salary for October created AFTER Oct review was submitted
+			as_missed = frappe.new_doc("Additional Salary")
+			as_missed.company = self.company
+			as_missed.employee = self.employee
+			as_missed.salary_component = self.salary_component
+			as_missed.amount = 15000
+			as_missed.payroll_date = "2026-10-20"
+			as_missed.is_recurring = 0
+			as_missed.insert()
+			as_missed.submit()
+
+			# 4. Create November 2026 review
+			nov_review = frappe.new_doc("Employee Additional Salary Payroll Review")
+			nov_review.company = self.company
+			nov_review.payroll_from_date = "2026-11-01"
+			nov_review.payroll_to_date = "2026-11-30"
+			nov_review.status = "Draft"
+			sync_additional_salaries_for_review(nov_review)
+
+			# 5. Verify as_oct (Paid) is NOT carried forward
+			pending_as_names = [r.additional_salary for r in (nov_review.previous_pending_additional_salary or [])]
+			self.assertNotIn(as_oct.name, pending_as_names)
+
+			# 6. Verify as_missed IS carried forward into previous_pending_additional_salary
+			self.assertIn(as_missed.name, pending_as_names)
+
+			row = next(r for r in nov_review.previous_pending_additional_salary if r.additional_salary == as_missed.name)
+			self.assertEqual(row.employee, self.employee)
+			self.assertEqual(row.total_amount, 15000)
+			self.assertEqual(row.remaining_amount, 15000)
+			self.assertEqual(row.paid_amount, 0)
+			self.assertEqual(row.paid_percentage, 0)
+			self.assertEqual(str(row.payout_date), "2026-10-20")
+			self.assertEqual(row.pay_action, "On Hold")
+			self.assertEqual(row.previous_pay_action, "")
+			self.assertEqual(row.is_reviewed, 0)
+
+			# 7. Test Idempotency: syncing again must not duplicate as_missed
+			sync_additional_salaries_for_review(nov_review)
+			matching_rows = [r for r in nov_review.previous_pending_additional_salary if r.additional_salary == as_missed.name]
+			self.assertEqual(len(matching_rows), 1)
+
+		finally:
+			if oct_review:
+				cancel_and_delete("Employee Additional Salary Payroll Review", oct_review.name)
+			if nov_review:
+				cancel_and_delete("Employee Additional Salary Payroll Review", nov_review.name)
+			cancel_and_delete("Employee Additional Salary Payroll Review", oct_review_name)
+			cancel_and_delete("Employee Additional Salary Payroll Review", nov_review_name)
+			if as_oct:
+				cancel_and_delete("Additional Salary", as_oct.name)
+			if as_missed:
+				cancel_and_delete("Additional Salary", as_missed.name)
+
