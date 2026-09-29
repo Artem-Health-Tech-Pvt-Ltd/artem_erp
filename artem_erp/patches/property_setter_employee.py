@@ -1,6 +1,4 @@
 import frappe
-from artem_erp.custom_fields_and_property_setter.property_setter import get_property_setters
-
 
 
 def execute():

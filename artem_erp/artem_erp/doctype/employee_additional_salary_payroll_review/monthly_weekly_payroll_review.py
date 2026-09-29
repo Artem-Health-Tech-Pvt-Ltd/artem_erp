@@ -128,11 +128,11 @@ def get_pending_additional_salaries_to_carry_forward(review_doc):
 	processed_ads_names = set()
 
 	# Also record any additional salaries already on the current review doc to avoid duplicates
-	for row in (getattr(review_doc, "additional_salary_payment_details", None) or []):
+	for row in getattr(review_doc, "additional_salary_payment_details", None) or []:
 		if row.additional_salary:
 			processed_ads_keys.add((row.employee, row.additional_salary))
 			processed_ads_names.add(row.additional_salary)
-	for row in (getattr(review_doc, "previous_pending_additional_salary", None) or []):
+	for row in getattr(review_doc, "previous_pending_additional_salary", None) or []:
 		if row.additional_salary:
 			processed_ads_keys.add((row.employee, row.additional_salary))
 			processed_ads_names.add(row.additional_salary)
@@ -430,8 +430,7 @@ def create_monthly_payroll_reviews(date=None):
 			sync_additional_salaries_for_review(review_doc)
 
 			has_review_items = bool(
-				review_doc.additional_salary_payment_details
-				or review_doc.previous_pending_additional_salary
+				review_doc.additional_salary_payment_details or review_doc.previous_pending_additional_salary
 			)
 			if has_review_items:
 				review_doc.insert(ignore_permissions=True)
