@@ -100,7 +100,6 @@ def _validate_employees(employee_ids):
 		frappe.throw(message, title=_("Missing Employee Bank Details"))
 
 
-
 def before_submit(doc, method=None):
 	check_additional_salary_review_completed(doc)
 	validate_employee_bank_details(doc)

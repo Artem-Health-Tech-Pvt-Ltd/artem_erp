@@ -42,7 +42,6 @@ def get_property_setters():
 			"property_type": "Check",
 			"value": 1,
 		},
-  
 		# Employee
 		{
 			"doctype": "Employee",

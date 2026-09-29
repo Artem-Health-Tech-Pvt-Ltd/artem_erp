@@ -1,7 +1,6 @@
 // Copyright (c) 2026, Artem Healthtech and contributors
 // For license information, please see license.txt
 
-
 frappe.query_reports["Employee Monthly Attendance Details"] = {
 	filters: [
 		{
@@ -106,14 +105,19 @@ frappe.query_reports["Employee Monthly Attendance Details"] = {
 				}
 				if (!companies.length) return [];
 
-				return frappe.call({
-					method: "artem_erp.artem_erp.report.employee_monthly_attendance_details.employee_monthly_attendance_details.get_departments_for_companies",
-					args: {
-						companies: companies,
-						include_descendants: frappe.query_report.get_filter_value("include_company_descendants") || 0,
-						txt: txt || "",
-					},
-				}).then((r) => r.message || []);
+				return frappe
+					.call({
+						method: "artem_erp.artem_erp.report.employee_monthly_attendance_details.employee_monthly_attendance_details.get_departments_for_companies",
+						args: {
+							companies: companies,
+							include_descendants:
+								frappe.query_report.get_filter_value(
+									"include_company_descendants"
+								) || 0,
+							txt: txt || "",
+						},
+					})
+					.then((r) => r.message || []);
 			},
 		},
 		{
@@ -175,7 +179,8 @@ frappe.query_reports["Employee Monthly Attendance Details"] = {
 			default: 0,
 			on_change: function (report) {
 				if (frappe.query_report.get_filter_value("summarized_view")) {
-					const detailed_with_summary = frappe.query_report.get_filter("detailed_with_summary");
+					const detailed_with_summary =
+						frappe.query_report.get_filter("detailed_with_summary");
 					if (detailed_with_summary && detailed_with_summary.get_value()) {
 						detailed_with_summary.set_input(0);
 					}
@@ -261,4 +266,3 @@ function validate_date_range(report) {
 	}
 	report.refresh();
 }
-
