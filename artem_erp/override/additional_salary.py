@@ -136,7 +136,7 @@ class CustomAdditionalSalary(AdditionalSalary):
 			)
 			or {}
 		)
-		date_of_joining = employee_details.get("date_of_joining")
+		# date_of_joining = employee_details.get("date_of_joining")
 		relieving_date = employee_details.get("relieving_date")
 
 		if self.from_date and self.to_date:
