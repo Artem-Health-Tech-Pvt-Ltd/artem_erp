@@ -151,6 +151,9 @@ doc_events = {
 		"before_validate": "artem_erp.doc_events.attendance_request.validate_attendance_request",
 		"validate": "artem_erp.doc_events.attendance_request.validate_attendance_request",
 	},
+	"Employee": {
+		"validate": "artem_erp.doc_events.employee.validate_aadhaar_number",
+	},
 }
 
 # Scheduled Tasks
