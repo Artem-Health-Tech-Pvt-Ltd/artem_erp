@@ -7,3 +7,4 @@
 
 
 artem_erp.patches.property_setter_employee 28/09/2026
+artem_erp.patches.custom_field_employee 05/10/2026

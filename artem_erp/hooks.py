@@ -155,6 +155,9 @@ doc_events = {
 	"Payroll Entry": {
 		"before_submit": "artem_erp.doc_events.payroll_entry.before_submit",
 	},
+	"Employee": {
+		"validate": "artem_erp.doc_events.employee.validate_aadhaar_number",
+	},
 }
 
 # Scheduled Tasks
