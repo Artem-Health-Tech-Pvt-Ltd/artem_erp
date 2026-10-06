@@ -114,11 +114,7 @@ function apply_draft_review_actions(frm, review_name) {
 					}
 				);
 			} else {
-				frappe.set_route(
-					"Form",
-					"Employee Additional Salary Payroll Review",
-					review_name
-				);
+				frappe.set_route("Form", "Employee Additional Salary Payroll Review", review_name);
 			}
 		});
 	}

@@ -6,4 +6,5 @@
 # Patches added in this section will be executed after doctypes are migrated\
 
 
-#artem_erp.patches.ctc_breackup_workspace_shortcut 16/09/2026 #4
+artem_erp.patches.property_setter_employee 28/09/2026
+artem_erp.patches.custom_field_employee 05/10/2026

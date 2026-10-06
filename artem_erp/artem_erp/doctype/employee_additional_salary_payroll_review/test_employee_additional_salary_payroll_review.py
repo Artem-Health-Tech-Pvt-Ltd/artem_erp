@@ -129,11 +129,7 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			if frappe.db.exists("Company", "Artem HealthTech Private Limited")
 			else self.company
 		)
-		test_emp = (
-			"AHPL0178"
-			if frappe.db.exists("Employee", "AHPL0178")
-			else self.employee
-		)
+		test_emp = "AHPL0178" if frappe.db.exists("Employee", "AHPL0178") else self.employee
 		test_date = "2027-02-01"
 		start_date, end_date = get_target_payroll_month(test_date)
 		abbr = frappe.db.get_value("Company", test_company, "abbr") or "AHPL"
@@ -861,13 +857,19 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 			sync_additional_salaries_for_review(nov_review)
 
 			# 5. Verify as_oct (Paid) is NOT carried forward
-			pending_as_names = [r.additional_salary for r in (nov_review.previous_pending_additional_salary or [])]
+			pending_as_names = [
+				r.additional_salary for r in (nov_review.previous_pending_additional_salary or [])
+			]
 			self.assertNotIn(as_oct.name, pending_as_names)
 
 			# 6. Verify as_missed IS carried forward into previous_pending_additional_salary
 			self.assertIn(as_missed.name, pending_as_names)
 
-			row = next(r for r in nov_review.previous_pending_additional_salary if r.additional_salary == as_missed.name)
+			row = next(
+				r
+				for r in nov_review.previous_pending_additional_salary
+				if r.additional_salary == as_missed.name
+			)
 			self.assertEqual(row.employee, self.employee)
 			self.assertEqual(row.total_amount, 15000)
 			self.assertEqual(row.remaining_amount, 15000)
@@ -880,7 +882,11 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 
 			# 7. Test Idempotency: syncing again must not duplicate as_missed
 			sync_additional_salaries_for_review(nov_review)
-			matching_rows = [r for r in nov_review.previous_pending_additional_salary if r.additional_salary == as_missed.name]
+			matching_rows = [
+				r
+				for r in nov_review.previous_pending_additional_salary
+				if r.additional_salary == as_missed.name
+			]
 			self.assertEqual(len(matching_rows), 1)
 
 		finally:
@@ -894,4 +900,3 @@ class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
 				cancel_and_delete("Additional Salary", as_oct.name)
 			if as_missed:
 				cancel_and_delete("Additional Salary", as_missed.name)
-
