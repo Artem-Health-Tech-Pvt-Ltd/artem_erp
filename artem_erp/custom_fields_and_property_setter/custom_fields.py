@@ -70,4 +70,62 @@ CUSTOM_FIELDS = {
 			"system_generated": 0,
 		},
 	],
+	"Employee": [
+		{
+			"fieldname": "custom_aadhaar_number",
+			"label": "Aadhaar Number",
+			"fieldtype": "Data",
+			"insert_after": "provident_fund_account",
+			"reqd": 1,
+			"length": 12,
+			"default": "",
+			"unique": 1,
+			"system_generated": 0,
+		}
+	],
+	"Attendance": [
+		{
+			"fieldname": "custom_penalty",
+			"label": "Penalty",
+			"fieldtype": "Check",
+			"insert_after": "early_exit",
+			"read_only": 1,
+			"allow_on_submit": 1,
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_half_day_type",
+			"label": "Half Day Type",
+			"fieldtype": "Select",
+			"insert_after": "total_leave_days",
+			"options": "First Half\nSecond Half",
+			"depends_on": "eval:doc.half_day",
+			"mandatory_depends_on": "eval:doc.half_day",
+			"system_generated": 0,
+		},
+	],
+	"Attendance Request": [
+		{
+			"fieldname": "custom_half_day_type",
+			"label": "Half Day Type",
+			"fieldtype": "Select",
+			"insert_after": "half_day_date",
+			"options": "First Half\nSecond Half",
+			"depends_on": "eval:doc.half_day",
+			"mandatory_depends_on": "eval:doc.half_day",
+			"system_generated": 0,
+		}
+	],
+	"Leave Application": [
+		{
+			"fieldname": "custom_half_day_type",
+			"label": "Half Day Type",
+			"fieldtype": "Select",
+			"insert_after": "total_leave_days",
+			"options": "First Half\nSecond Half",
+			"depends_on": "eval:doc.half_day",
+			"mandatory_depends_on": "eval:doc.half_day",
+			"system_generated": 0,
+		}
+	],
 }
