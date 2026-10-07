@@ -45,10 +45,13 @@ app_license = "mit"
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_js = {
+	"Attendance": "public/js/attendance.js",
 	"Shift Assignment": "public/js/shift_assignment.js",
 	"Attendance Request": "public/js/attendance_request.js",
 }
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+doctype_list_js = {
+	"Attendance": "public/js/attendance_list.js",
+}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -154,28 +157,29 @@ doc_events = {
 	"Employee": {
 		"validate": "artem_erp.doc_events.employee.validate_aadhaar_number",
 	},
+	"Attendance Request": {
+		"on_submit": "artem_erp.doc_events.attendance_request.remove_penalty_from_attendance",
+	},
 }
 
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"artem_erp.tasks.all"
-# 	],
-# 	"daily": [
-# 		"artem_erp.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"artem_erp.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"artem_erp.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"artem_erp.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"hourly_long": [
+		"artem_erp.scheduler_events.attendance_penalty.process_attendance_penalties",
+	],
+	"cron": {
+		# Monthly: Run on the 1st day of every month at 9:00 AM (0 9 1 * *)
+		"0 9 1 * *": [
+			"artem_erp.artem_erp.doctype.employee_additional_salary_payroll_review.monthly_weekly_payroll_review.create_monthly_payroll_reviews",
+		],
+		# Weekly: Run every Monday at 9:00 AM (0 9 * * 1)
+		"0 9 * * 1": [
+			"artem_erp.artem_erp.doctype.employee_additional_salary_payroll_review.monthly_weekly_payroll_review.sync_weekly_payroll_reviews",
+		],
+	},
+}
 
 # Testing
 # -------
