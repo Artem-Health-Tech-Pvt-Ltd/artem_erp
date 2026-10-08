@@ -93,16 +93,6 @@ CUSTOM_FIELDS = {
 			"allow_on_submit": 1,
 			"system_generated": 0,
 		},
-		{
-			"fieldname": "custom_half_day_type",
-			"label": "Half Day Type",
-			"fieldtype": "Select",
-			"insert_after": "total_leave_days",
-			"options": "First Half\nSecond Half",
-			"depends_on": "eval:doc.half_day",
-			"mandatory_depends_on": "eval:doc.half_day",
-			"system_generated": 0,
-		},
 	],
 	"Attendance Request": [
 		{
