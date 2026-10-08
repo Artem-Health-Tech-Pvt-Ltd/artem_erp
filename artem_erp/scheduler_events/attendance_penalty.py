@@ -204,7 +204,7 @@ def process_attendance_penalties(up_to_date=None, **kwargs):
 
 	apply_attendance_penalty = cint(settings.get("apply_attendance_penalty"))
 	apply_late_entry_penalty = cint(settings.get("apply_late_entry_penalty"))
-	allowed_late_entries_per_month = cint(settings.get("allowed_late_entries_per_month")) or 2
+	allowed_late_entries_per_month = cint(settings.get("allowed_late_entries_per_month"))
 
 	# If neither penalty is enabled, exit early
 	if not apply_attendance_penalty and not apply_late_entry_penalty:
