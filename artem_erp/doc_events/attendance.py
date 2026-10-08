@@ -37,14 +37,26 @@ def can_create_attendance_request(
 			"from_date": ["<=", attendance_date],
 			"to_date": [">=", attendance_date],
 		},
-		fields=["name", "half_day", "total_leave_days", "from_date", "to_date", "status", "docstatus"],
+		fields=[
+			"name",
+			"half_day",
+			"half_day_date",
+			"total_leave_days",
+			"from_date",
+			"to_date",
+			"status",
+			"docstatus",
+		],
 	)
 
 	has_full_day_leave = False
 	has_half_day_leave = False
 
 	for la in leave_applications:
-		if la.half_day or flt(la.total_leave_days) == 0.5:
+		is_half_day_on_date = flt(la.total_leave_days) == 0.5 or (
+			la.half_day and la.half_day_date and getdate(la.half_day_date) == attendance_date
+		)
+		if is_half_day_on_date:
 			has_half_day_leave = True
 		else:
 			has_full_day_leave = True
