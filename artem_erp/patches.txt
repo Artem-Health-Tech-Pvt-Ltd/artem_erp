@@ -8,3 +8,7 @@
 
 artem_erp.patches.property_setter_employee 28/09/2026
 artem_erp.patches.custom_field_employee 05/10/2026
+artem_erp.patches.custom_field_in_attendance 06/10/2026
+artem_erp.patches.property_setter_attendance_request 06/10/2026
+artem_erp.patches.custom_field_half_day_type 06/10/2026
+artem_erp.patches.custom_field_partial_day_leave 08/10/2026
