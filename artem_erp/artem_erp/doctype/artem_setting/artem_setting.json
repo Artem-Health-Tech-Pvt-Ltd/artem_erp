@@ -11,34 +11,13 @@
   "apply_attendance_penalty",
   "late_entry_penalty_settings_section",
   "apply_late_entry_penalty",
-  "allowed_late_entries_per_month",
-  "partial_day_leave_tab",
-  "partial_day_settings_section",
-  "partial_day_allowed_duration_minutes",
-  "maximum_partial_day_requests_per_month"
+  "allowed_late_entries_per_month"
  ],
  "fields": [
   {
    "fieldname": "attendance_settings_section",
    "fieldtype": "Section Break",
    "label": "Attendance Settings"
-  },
-  {
-   "fieldname": "partial_day_settings_section",
-   "fieldtype": "Section Break",
-   "label": "Partial Day Settings"
-  },
-  {
-   "description": "Maximum allowed duration in minutes for a Partial Day request.",
-   "fieldname": "partial_day_allowed_duration_minutes",
-   "fieldtype": "Int",
-   "label": "Partial Day Allowed Duration (Minutes)"
-  },
-  {
-   "description": "Maximum number of Partial Day requests an employee can submit per month.",
-   "fieldname": "maximum_partial_day_requests_per_month",
-   "fieldtype": "Int",
-   "label": "Maximum Partial Day Requests Per Month"
   },
   {
    "depends_on": "eval: doc.apply_late_entry_penalty",
@@ -58,11 +37,6 @@
    "label": "Attendance Penalty"
   },
   {
-   "fieldname": "partial_day_leave_tab",
-   "fieldtype": "Tab Break",
-   "label": "Partial Day Leave"
-  },
-  {
    "default": "0",
    "description": "When enabled , Apply penalty when required working hours are not completed.\n",
    "fieldname": "apply_attendance_penalty",
@@ -80,7 +54,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-07 11:23:21.158757",
+ "modified": "2026-10-08 14:30:00.000000",
  "modified_by": "Administrator",
  "module": "Artem ERP",
  "name": "Artem Setting",

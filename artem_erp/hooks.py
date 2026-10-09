@@ -49,6 +49,7 @@ doctype_js = {
 	"Shift Assignment": "public/js/shift_assignment.js",
 	"Additional Salary": "public/js/additional_salary.js",
 	"Payroll Entry": "public/js/payroll_entry.js",
+	"Leave Application": "public/js/leave_application.js",
 }
 doctype_list_js = {
 	"Attendance": "public/js/attendance_list.js",
@@ -164,6 +165,14 @@ doc_events = {
 	"Attendance Request": {
 		"on_submit": "artem_erp.doc_events.attendance_request.remove_penalty_from_attendance",
 	},
+	"Attendance": {
+		"validate": "artem_erp.doc_events.attendance.apply_partial_day_to_attendance",
+	},
+	"Leave Application": {
+		"validate": "artem_erp.doc_events.leave_application.validate",
+		"on_submit": "artem_erp.doc_events.leave_application.on_submit",
+		"on_cancel": "artem_erp.doc_events.leave_application.on_cancel",
+	},
 }
 
 # Scheduled Tasks
@@ -198,7 +207,9 @@ extend_doctype_class = {
 	"Employee Checkin": "artem_erp.override.employee_checkin.CustomEmployeeCheckin",
 	"Additional Salary": "artem_erp.override.additional_salary.CustomAdditionalSalary",
 	"Salary Slip": "artem_erp.override.salary_slip.CustomSalarySlip",
+	"Attendance Request": "artem_erp.override.attendance_request.CustomAttendanceRequest",
 }
+
 
 # Overriding Methods
 # ------------------------------

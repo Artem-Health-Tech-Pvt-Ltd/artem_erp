@@ -6,7 +6,15 @@ frappe.listview_settings["Attendance"] = frappe.listview_settings["Attendance"] 
 frappe.listview_settings["Attendance"].hide_name_column = true;
 
 // Ensure required fields are always fetched in list view
-const required_fields = ["status", "attendance_date", "custom_penalty", "attendance_request"];
+const required_fields = [
+	"status",
+	"attendance_date",
+	"custom_penalty",
+	"attendance_request",
+	"custom_is_partial_day",
+	"custom_partial_day_type",
+	"custom_partial_day_duration",
+];
 if (!frappe.listview_settings["Attendance"].add_fields) {
 	frappe.listview_settings["Attendance"].add_fields = required_fields;
 } else {
@@ -18,9 +26,9 @@ if (!frappe.listview_settings["Attendance"].add_fields) {
 }
 
 // Global cache for Attendance Request reasons
-window.artem_od_requests_cache = window.artem_od_requests_cache || {};
+window.artem_attendance_requests_cache = window.artem_attendance_requests_cache || {};
 
-// Add penalty indicator badge and OD badge on the row
+// Add penalty indicator badge, OD badge, RG badge, and Partial Day badge on the row
 const existing_attendance_refresh = frappe.listview_settings["Attendance"].refresh;
 frappe.listview_settings["Attendance"].refresh = function (list_view) {
 	if (existing_attendance_refresh) {
@@ -36,7 +44,7 @@ frappe.listview_settings["Attendance"].refresh = function (list_view) {
 		list_view.apply_column_widths();
 	}
 
-	// Inject custom CSS styling for penalty & OD badges and column widths
+	// Inject custom CSS styling for badges and column widths
 	if (!$("#attendance-badges-list-style").length) {
 		$(`<style id="attendance-badges-list-style">
 			/* Give Employee Name column ample space so badges never hide under Status column */
@@ -109,6 +117,48 @@ frappe.listview_settings["Attendance"].refresh = function (list_view) {
 			.attendance-od-badge * {
 				color: #000000 !important;
 			}
+
+			.attendance-rg-badge {
+				background-color: #82c7e5e0 !important;
+				color: #133946 !important;
+				font-size: 11px;
+				font-weight: 700;
+				padding: 2px 8px;
+				border-radius: 10px;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				margin-right: 6px;
+				margin-left: 2px;
+				vertical-align: middle;
+				line-height: 1.3;
+				white-space: nowrap;
+				flex-shrink: 0;
+			}
+			.attendance-rg-badge * {
+				color: #134644 !important;
+			}
+
+			.attendance-pd-badge {
+				background-color: #f6a2f2de !important;
+				color: #000000 !important;
+				font-size: 11px;
+				font-weight: 600;
+				padding: 3px 8px;
+				border-radius: 10px;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				margin-right: 6px;
+				margin-left: 2px;
+				vertical-align: middle;
+				line-height: 1.3;
+				white-space: nowrap;
+				flex-shrink: 0;
+			}
+			.attendance-pd-badge * {
+				color: #ffffff !important;
+			}
 		</style>`).appendTo("head");
 	}
 
@@ -121,7 +171,7 @@ frappe.listview_settings["Attendance"].refresh = function (list_view) {
 	list_view.data.forEach((doc) => {
 		if (
 			doc.attendance_request &&
-			window.artem_od_requests_cache[doc.attendance_request] === undefined
+			window.artem_attendance_requests_cache[doc.attendance_request] === undefined
 		) {
 			missing_request_ids.push(doc.attendance_request);
 		}
@@ -141,11 +191,11 @@ frappe.listview_settings["Attendance"].refresh = function (list_view) {
 			})
 			.then((records) => {
 				(records || []).forEach((r) => {
-					window.artem_od_requests_cache[r.name] = r.reason === "On Duty";
+					window.artem_attendance_requests_cache[r.name] = r.reason || null;
 				});
 				unique_ids.forEach((id) => {
-					if (window.artem_od_requests_cache[id] === undefined) {
-						window.artem_od_requests_cache[id] = false;
+					if (window.artem_attendance_requests_cache[id] === undefined) {
+						window.artem_attendance_requests_cache[id] = null;
 					}
 				});
 				render_attendance_badges(list_view);
@@ -180,23 +230,42 @@ function render_attendance_badges(list_view) {
 			$row_container.find(".list-row").removeClass("attendance-penalty-row");
 		}
 
-		// Clean up existing badges to cleanly render on the left of Employee Name
-		$row_container.find(".attendance-penalty-badge, .attendance-od-badge").remove();
+		// Clean up existing badges
+		$row_container
+			.find(
+				".attendance-penalty-badge, .attendance-od-badge, .attendance-rg-badge, .attendance-pd-badge"
+			)
+			.remove();
 
-		// Build badges to place on the left side of Employee Name
+		// Build badges to place next to Employee Name
 		const badges_html = [];
 		if (doc.custom_penalty) {
 			badges_html.push(`<span class="attendance-penalty-badge">${__("Penalty")}</span>`);
 		}
 
-		const is_od =
-			doc.attendance_request &&
-			window.artem_od_requests_cache[doc.attendance_request] === true;
-		if (is_od) {
+		const req_reason = doc.attendance_request
+			? window.artem_attendance_requests_cache[doc.attendance_request]
+			: null;
+
+		if (req_reason === "On Duty") {
 			badges_html.push(
 				`<span class="attendance-od-badge" title="${__("On Duty")}">${__(
 					"On Duty"
 				)}</span>`
+			);
+		} else if (req_reason === "Regularization") {
+			badges_html.push(
+				`<span class="attendance-rg-badge" title="${__("Regularization")}">${__(
+					"REG"
+				)}</span>`
+			);
+		}
+
+		if (doc.custom_is_partial_day) {
+			badges_html.push(
+				`<span class="attendance-pd-badge" title="${__("Partial Day")}: ${
+					doc.custom_partial_day_type || ""
+				} (${doc.custom_partial_day_duration || 0} mins)">${__("Partial Day")}</span>`
 			);
 		}
 
