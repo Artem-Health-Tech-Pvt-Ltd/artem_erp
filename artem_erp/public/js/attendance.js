@@ -1,6 +1,7 @@
 frappe.ui.form.on("Attendance", {
 	refresh(frm) {
 		update_attendance_request_button(frm);
+		show_partial_day_indicator(frm);
 	},
 	employee(frm) {
 		update_attendance_request_button(frm);
@@ -12,6 +13,22 @@ frappe.ui.form.on("Attendance", {
 		update_attendance_request_button(frm);
 	},
 });
+
+function show_partial_day_indicator(frm) {
+	if (frm.doc.custom_is_partial_day) {
+		frm.dashboard.set_headline_alert(
+			__(
+				"Approved Partial Day Leave ({0}): {1} mins allowance. Adjusted Required Hours: {2}",
+				[
+					frm.doc.custom_partial_day_type || "",
+					frm.doc.custom_partial_day_duration || 0,
+					frm.doc.custom_adjusted_required_hours || 0,
+				]
+			),
+			"purple"
+		);
+	}
+}
 
 function update_attendance_request_button(frm) {
 	if (!frm.doc.employee || !frm.doc.attendance_date) {
