@@ -32,7 +32,9 @@ def can_create_attendance_request(
 		return {"can_create": False, "half_day": False}
 
 	# Enforce read permission so callers cannot probe arbitrary employees' attendance and leaves
-	if not (frappe.has_permission("Employee", "read", employee) or frappe.has_permission("Attendance", "read")):
+	if not (
+		frappe.has_permission("Employee", "read", employee) or frappe.has_permission("Attendance", "read")
+	):
 		frappe.throw(frappe._("Not permitted"), frappe.PermissionError)
 
 	attendance_date = getdate(attendance_date)
