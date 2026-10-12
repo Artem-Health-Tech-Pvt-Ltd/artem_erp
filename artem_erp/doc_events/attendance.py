@@ -13,7 +13,7 @@ from frappe.utils import (
 )
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=False)
 def can_create_attendance_request(
 	employee: str | None = None,
 	attendance_date: str | None = None,
@@ -30,6 +30,10 @@ def can_create_attendance_request(
 	"""
 	if not employee or not attendance_date:
 		return {"can_create": False, "half_day": False}
+
+	# Enforce read permission so callers cannot probe arbitrary employees' attendance and leaves
+	if not (frappe.has_permission("Employee", "read", employee) or frappe.has_permission("Attendance", "read")):
+		frappe.throw(frappe._("Not permitted"), frappe.PermissionError)
 
 	attendance_date = getdate(attendance_date)
 	is_new = frappe.parse_json(is_new) if isinstance(is_new, str) else bool(is_new)
