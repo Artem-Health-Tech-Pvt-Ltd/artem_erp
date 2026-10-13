@@ -91,4 +91,30 @@ def get_property_setters():
 			"property_type": "Check",
 			"value": 1,
 		},
+		# Attendance Request
+		{
+			"doctype": "Attendance Request",
+			"doctype_or_field": "DocField",
+			"fieldname": "reason",
+			"property": "options",
+			"property_type": "Text",
+			"value": "Work From Home\nOn Duty\nRegularization",
+		},
+		{
+			"doctype": "Attendance Request",
+			"doctype_or_field": "DocField",
+			"fieldname": "explanation",
+			"property": "reqd",
+			"property_type": "Check",
+			"value": 1,
+		},
+		# Leave Application
+		{
+			"doctype": "Leave Application",
+			"doctype_or_field": "DocField",
+			"fieldname": "description",
+			"property": "reqd",
+			"property_type": "Check",
+			"value": 1,
+		},
 	]

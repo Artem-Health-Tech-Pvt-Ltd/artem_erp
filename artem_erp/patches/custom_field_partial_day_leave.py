@@ -1,0 +1,153 @@
+import frappe
+from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+
+def execute():
+	create_custom_fields(CUSTOM_FIELDS, update=True, ignore_validate=True)
+
+
+CUSTOM_FIELDS = {
+	"Attendance": [
+		{
+			"fieldname": "custom_partial_day_section",
+			"fieldtype": "Section Break",
+			"label": "Partial Day",
+			"insert_after": "custom_half_day_type",
+			"collapsible": 1,
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_is_partial_day",
+			"label": "Partial Day",
+			"fieldtype": "Check",
+			"insert_after": "custom_partial_day_section",
+			"read_only": 1,
+			"allow_on_submit": 1,
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_partial_day_type",
+			"label": "Partial Day Type",
+			"fieldtype": "Select",
+			"options": "\nLate Arrival\nEarly Exit",
+			"insert_after": "custom_is_partial_day",
+			"read_only": 1,
+			"allow_on_submit": 1,
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_partial_day_duration",
+			"label": "Partial Day Duration (Minutes)",
+			"fieldtype": "Int",
+			"insert_after": "custom_partial_day_type",
+			"read_only": 1,
+			"allow_on_submit": 1,
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_partial_day_col_break",
+			"fieldtype": "Column Break",
+			"insert_after": "custom_partial_day_duration",
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_adjusted_required_hours",
+			"label": "Adjusted Required Working Hours",
+			"fieldtype": "Float",
+			"insert_after": "custom_partial_day_col_break",
+			"read_only": 1,
+			"allow_on_submit": 1,
+			"system_generated": 0,
+		},
+	],
+	"Leave Application": [
+		{
+			"fieldname": "custom_partial_day_section",
+			"fieldtype": "Section Break",
+			"label": "Partial Day Details",
+			"insert_after": "leave_balance",
+			"depends_on": "eval:doc.custom_is_partial_day_leave",
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_is_partial_day_leave",
+			"label": "Is Partial Day Leave",
+			"fieldtype": "Check",
+			"insert_after": "custom_partial_day_section",
+			"read_only": 1,
+			"hidden": 1,
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_partial_day_type",
+			"label": "Partial Day Type",
+			"fieldtype": "Select",
+			"options": "\nLate Arrival\nEarly Exit",
+			"insert_after": "custom_is_partial_day_leave",
+			"depends_on": "eval:doc.custom_is_partial_day_leave",
+			"mandatory_depends_on": "eval:doc.custom_is_partial_day_leave",
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_partial_day_duration",
+			"label": "Partial Day Duration (Minutes)",
+			"fieldtype": "Int",
+			"insert_after": "custom_partial_day_type",
+			"depends_on": "eval:doc.custom_is_partial_day_leave",
+			"mandatory_depends_on": "eval:doc.custom_is_partial_day_leave",
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_partial_day_col_break",
+			"fieldtype": "Column Break",
+			"insert_after": "custom_partial_day_duration",
+			"depends_on": "eval:doc.custom_is_partial_day_leave",
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_shift",
+			"label": "Shift",
+			"fieldtype": "Link",
+			"options": "Shift Type",
+			"insert_after": "custom_partial_day_col_break",
+			"read_only": 1,
+			"depends_on": "eval:doc.custom_is_partial_day_leave",
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_adjusted_time",
+			"label": "Adjusted Time",
+			"fieldtype": "Time",
+			"insert_after": "custom_shift",
+			"read_only": 1,
+			"depends_on": "eval:doc.custom_is_partial_day_leave",
+			"system_generated": 0,
+		},
+	],
+	"Leave Type": [
+		{
+			"fieldname": "custom_partial_day_section",
+			"fieldtype": "Section Break",
+			"label": "Partial Day Configuration",
+			"insert_after": "is_compensatory",
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_is_partial_day",
+			"label": "Partial Day",
+			"fieldtype": "Check",
+			"default": "0",
+			"insert_after": "custom_partial_day_section",
+			"system_generated": 0,
+		},
+		{
+			"fieldname": "custom_partial_day_max_duration",
+			"label": "Partial Day Max Duration (Minutes)",
+			"fieldtype": "Int",
+			"insert_after": "custom_is_partial_day",
+			"depends_on": "eval:doc.custom_is_partial_day",
+			"mandatory_depends_on": "eval:doc.custom_is_partial_day",
+			"system_generated": 0,
+		},
+	],
+}

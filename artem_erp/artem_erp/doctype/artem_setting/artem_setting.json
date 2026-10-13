@@ -1,0 +1,79 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-10-06 11:25:05.811102",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "attendance_tab",
+  "attendance_settings_section",
+  "apply_attendance_penalty",
+  "late_entry_penalty_settings_section",
+  "apply_late_entry_penalty",
+  "allowed_late_entries_per_month"
+ ],
+ "fields": [
+  {
+   "fieldname": "attendance_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Attendance Settings"
+  },
+  {
+   "depends_on": "eval: doc.apply_late_entry_penalty",
+   "description": "Number of late entries an employee is allowed per calendar month before a penalty is applied.",
+   "fieldname": "allowed_late_entries_per_month",
+   "fieldtype": "Int",
+   "label": "Allowed Late Entries Per Month"
+  },
+  {
+   "fieldname": "late_entry_penalty_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Late Entry Penalty Settings"
+  },
+  {
+   "fieldname": "attendance_tab",
+   "fieldtype": "Tab Break",
+   "label": "Attendance Penalty"
+  },
+  {
+   "default": "0",
+   "description": "When enabled , Apply penalty when required working hours are not completed.\n",
+   "fieldname": "apply_attendance_penalty",
+   "fieldtype": "Check",
+   "label": "Apply Attendance Penalty"
+  },
+  {
+   "default": "0",
+   "fieldname": "apply_late_entry_penalty",
+   "fieldtype": "Check",
+   "label": "Apply Late Entry Penalty"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-08 14:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Artem ERP",
+ "name": "Artem Setting",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
