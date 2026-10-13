@@ -374,17 +374,19 @@ def get_data_and_summary(filters: dict):
 			continue
 
 		filtered_employees.append(emp)
-		data.append({
-			"employee": emp.name,
-			"employee_name": emp.employee_name,
-			"company": emp.company,
-			"department": emp.department,
-			"shift": shift,
-			"work_status": status,
-			"checkin_time": checkin_time,
-			"leave_type": leave_type,
-			"explanation": explanation,
-		})
+		data.append(
+			{
+				"employee": emp.name,
+				"employee_name": emp.employee_name,
+				"company": emp.company,
+				"department": emp.department,
+				"shift": shift,
+				"work_status": status,
+				"checkin_time": checkin_time,
+				"leave_type": leave_type,
+				"explanation": explanation,
+			}
+		)
 
 	# 7. Summary Cards Calculation
 	count_office_checkin = sum(1 for row in data if row["work_status"] == STATUS_OFFICE_CHECKIN)
@@ -575,7 +577,9 @@ def get_holiday_and_weekly_off_message(
 			if not shifts_str:
 				msg_text = _("The selected date falls on a weekly off and a holiday.")
 			else:
-				label = _("shift: {0}").format(shifts_str) if is_single else _("shifts: {0}").format(shifts_str)
+				label = (
+					_("shift: {0}").format(shifts_str) if is_single else _("shifts: {0}").format(shifts_str)
+				)
 				msg_text = _("The selected date falls on a weekly off and a holiday for {0}.").format(label)
 		else:
 			wo_str, wo_single = get_shift_desc(shift_weekly_off)
@@ -638,4 +642,3 @@ def get_holiday_and_weekly_off_message(
 		</div>"""
 
 	return None
-

@@ -88,7 +88,10 @@ frappe.query_reports["Daily Employee Work Status"] = {
 	onload: function (report) {
 		let date_filter = report.get_filter("date");
 		if (date_filter && date_filter.datepicker) {
-			date_filter.datepicker.update("maxDate", frappe.datetime.str_to_obj(frappe.datetime.get_today()));
+			date_filter.datepicker.update(
+				"maxDate",
+				frappe.datetime.str_to_obj(frappe.datetime.get_today())
+			);
 		}
 		if (report.$report_message) {
 			report.$report_message.removeClass("text-muted small");
