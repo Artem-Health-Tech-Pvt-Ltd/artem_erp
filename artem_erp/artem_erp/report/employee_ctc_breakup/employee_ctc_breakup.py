@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import flt, get_link_to_form, has_common
+from frappe.utils import flt, get_link_to_form, getdate, has_common, nowdate
 from frappe.utils.formatters import fmt_money
 from frappe.utils.jinja import render_template
 from hrms.payroll.doctype.salary_structure.salary_structure import _make_salary_slip
@@ -21,6 +21,7 @@ class SalaryBreakupReport:
 				["salary_structure", "currency", "from_date", "income_tax_slab", "ctc"],
 			)
 		)
+		self.base_ctc = flt(self.ctc)
 		self.validate_ctc()
 		self.salary_slip = _make_salary_slip(
 			self.salary_structure,
@@ -39,7 +40,7 @@ class SalaryBreakupReport:
 			"Bimonthly": 6,
 			"Weekly": 52,
 			"Daily": 365,
-		}.get(self.payroll_frequency, 12)
+		}.get(self.payroll_frequency)
 		self.salary_components = []
 		self.earning_components = []
 		self.deduction_components = []
@@ -47,7 +48,7 @@ class SalaryBreakupReport:
 		self.employer_contribution_components = []
 		self.total_net_earnings = []
 		self.total_gross_earnings = []
-		self.total_ctc = []
+		self.ctc_row = []
 
 	def validate_ctc(self):
 		if not self.ctc:
@@ -72,6 +73,7 @@ class SalaryBreakupReport:
 		self.set_abbr_type_and_formula()
 		self.set_totals_row_for_component_types()
 		self.set_net_and_gross_earning_rows()
+		self.set_ctc_row()
 
 		return (
 			self.earning_components
@@ -80,14 +82,67 @@ class SalaryBreakupReport:
 			+ self.employer_contribution_components
 			+ self.total_net_earnings
 			+ self.total_gross_earnings
-			+ self.total_ctc
+			+ self.ctc_row
 		)
+
+	def get_latest_valid_additional_salary(self, salary_component: str):
+		records = frappe.get_all(
+			"Additional Salary",
+			filters={
+				"employee": self.employee,
+				"salary_component": salary_component,
+				"docstatus": 1,
+				"disabled": 0,
+			},
+			fields=[
+				"name",
+				"salary_component",
+				"amount",
+				"custom_duration_of_additional_salary",
+				"from_date",
+				"to_date",
+				"custom_date_of_joining",
+				"is_recurring",
+				"disabled",
+				"creation",
+			],
+			order_by="from_date desc, creation desc",
+		)
+
+		if not records:
+			return None
+
+		ref_date = getdate(frappe.flags.posting_date) if frappe.flags.posting_date else getdate(nowdate())
+
+		def is_valid(rec, date):
+			if not date:
+				return False
+			start = rec.from_date or rec.custom_date_of_joining
+			if start and getdate(start) > getdate(date):
+				return False
+			if rec.to_date and getdate(rec.to_date) < getdate(date):
+				return False
+			return True
+
+		# First check against ref_date (posting_date / today)
+		for rec in records:
+			if is_valid(rec, ref_date):
+				return rec
+
+		# If not valid for today, check against assignment_date
+		if self.assignment_date and getdate(self.assignment_date) != ref_date:
+			assignment_date = getdate(self.assignment_date)
+			for rec in records:
+				if is_valid(rec, assignment_date):
+					return rec
+
+		return None
 
 	def set_salary_component_details(self):
 		salary_component_details = frappe.db.get_all(
 			"Salary Detail",
 			filters={"parent": self.salary_structure},
-			fields=["salary_component", "amount_based_on_formula", "formula"],
+			fields=["salary_component", "amount_based_on_formula", "formula", "parentfield", "abbr"],
 		)
 
 		self.salary_components = [
@@ -112,6 +167,47 @@ class SalaryBreakupReport:
 			)
 			component.update(component_details)
 
+		# Handle Additional Salary components defined in Salary Structure
+		for detail in salary_component_details:
+			rec = self.get_latest_valid_additional_salary(detail.salary_component)
+			if not rec:
+				continue
+
+			matching_comp = next(
+				(c for c in self.salary_components if c.get("salary_component") == detail.salary_component),
+				None,
+			)
+			if matching_comp:
+				matching_comp["is_additional_salary"] = True
+				matching_comp["additional_salary_doc"] = rec
+				matching_comp["per_cycle"] = None
+			else:
+				self.salary_components.append(
+					{
+						"salary_component": detail.salary_component,
+						"per_cycle": None,
+						"abbr": detail.abbr
+						or frappe.get_cached_value(
+							"Salary Component", detail.salary_component, "salary_component_abbr"
+						),
+						"is_tax_component": 0,
+						"component_type": detail.parentfield or "earnings",
+						"amount_based_on_formula": detail.amount_based_on_formula,
+						"formula": detail.formula,
+						"is_additional_salary": True,
+						"additional_salary_doc": rec,
+					}
+				)
+
+		# Also ensure any additional salary component pulled into salary_slip is marked
+		for component in self.salary_components:
+			if not component.get("is_additional_salary"):
+				rec = self.get_latest_valid_additional_salary(component.get("salary_component"))
+				if rec:
+					component["is_additional_salary"] = True
+					component["additional_salary_doc"] = rec
+					component["per_cycle"] = None
+
 	def set_employer_contribution_details(self):
 		evaluated_components = getattr(self.salary_slip, "_evaluated_components", None)
 		if evaluated_components is None:
@@ -133,14 +229,29 @@ class SalaryBreakupReport:
 		]
 
 	def calculate_yearly_amounts_and_percent_of_ctc(self):
+		duration_multiplier_map = {
+			"quarterly": 4,
+			"half yearly": 2,
+			"yearly": 1,
+		}
 		for component in self.salary_components:
-			annual_amount = component.get("per_cycle", 0) * self.cycle_multiplier
-			component.update(
-				{
-					"annual": flt(annual_amount, 2),
-					"percent_of_ctc": self.calculate_percent_of_ctc(annual_amount),
-				}
-			)
+			if component.get("is_additional_salary"):
+				rec = component.get("additional_salary_doc")
+				duration = (rec.get("custom_duration_of_additional_salary") or "").strip().lower()
+				multiplier = duration_multiplier_map.get(duration, 1)
+				annual_amount = flt(rec.get("amount")) * multiplier
+				component["annual"] = flt(annual_amount, 2)
+			else:
+				annual_amount = flt(component.get("per_cycle", 0)) * self.cycle_multiplier
+				component["annual"] = flt(annual_amount, 2)
+
+		additional_salary_total = sum(
+			flt(c.get("annual") or 0) for c in self.salary_components if c.get("is_additional_salary")
+		)
+		self.ctc = flt(self.base_ctc) + additional_salary_total
+
+		for component in self.salary_components:
+			component["percent_of_ctc"] = self.calculate_percent_of_ctc(component.get("annual", 0))
 
 	def separate_salary_components_by_type(self):
 		self.earning_components = [
@@ -165,18 +276,23 @@ class SalaryBreakupReport:
 			self.earning_components + self.deduction_components + self.employer_contribution_components
 		):
 			component["salary_component"] = f"{component.get('salary_component')} ({component.get('abbr')})"
-			component["type"] = "Formula" if component.get("amount_based_on_formula") else "Fixed"
-			component["formula"] = (
-				component.get("formula") or "-"
-				if component.get("amount_based_on_formula")
-				else component.get("per_cycle") or "-"
-			)
+			if component.get("is_additional_salary"):
+				component["type"] = "Fixed"
+				rec = component.get("additional_salary_doc")
+				component["formula"] = rec.get("amount") if rec else "-"
+			else:
+				component["type"] = "Formula" if component.get("amount_based_on_formula") else "Fixed"
+				component["formula"] = (
+					component.get("formula") or "-"
+					if component.get("amount_based_on_formula")
+					else component.get("per_cycle") or "-"
+				)
 
 	def set_totals_row_for_component_types(self):
 		def calculate_total(period, components):
 			total = 0
 			for component in components:
-				total += component.get(period, 0)
+				total += flt(component.get(period) or 0)
 			return total
 
 		def set_totals_row(component_type):
@@ -201,14 +317,31 @@ class SalaryBreakupReport:
 			set_totals_row(component_type)
 
 	def set_net_and_gross_earning_rows(self):
+		has_additional_salary = any(c.get("is_additional_salary") for c in self.salary_components)
+		if has_additional_salary:
+			earning_rows = [c for c in self.earning_components if not c.get("bold")]
+			deduction_rows = [c for c in self.deduction_components if not c.get("bold")]
+			tax_rows = [c for c in self.tax_components if not c.get("bold")]
+
+			self.gross_pay = sum(flt(c.get("per_cycle") or 0) for c in earning_rows)
+			total_deductions = sum(flt(c.get("per_cycle") or 0) for c in deduction_rows + tax_rows)
+			self.net_pay = self.gross_pay - total_deductions
+
+			total_gross_annual = sum(flt(c.get("annual") or 0) for c in earning_rows)
+			total_deductions_annual = sum(flt(c.get("annual") or 0) for c in deduction_rows + tax_rows)
+			total_net_annual = total_gross_annual - total_deductions_annual
+		else:
+			total_gross_annual = self.gross_pay * self.cycle_multiplier
+			total_net_annual = self.net_pay * self.cycle_multiplier
+
 		self.total_net_earnings = [
 			{
 				"salary_component": "Total Net Earnings",
 				"type": "",
 				"formula": "",
 				"per_cycle": self.net_pay,
-				"annual": self.net_pay * self.cycle_multiplier,
-				"percent_of_ctc": self.calculate_percent_of_ctc(self.net_pay * self.cycle_multiplier),
+				"annual": total_net_annual,
+				"percent_of_ctc": self.calculate_percent_of_ctc(total_net_annual),
 				"bold": True,
 			}
 		]
@@ -218,19 +351,32 @@ class SalaryBreakupReport:
 				"type": "",
 				"formula": "",
 				"per_cycle": self.gross_pay,
-				"annual": self.gross_pay * self.cycle_multiplier,
-				"percent_of_ctc": self.calculate_percent_of_ctc(self.gross_pay * self.cycle_multiplier),
+				"annual": total_gross_annual,
+				"percent_of_ctc": self.calculate_percent_of_ctc(total_gross_annual),
 				"bold": True,
 			}
 		]
-		self.total_ctc = [
+
+	def set_ctc_row(self):
+		employer_rows = [c for c in self.employer_contribution_components if not c.get("bold")]
+		employer_per_cycle = sum(flt(c.get("per_cycle") or 0) for c in employer_rows)
+		employer_annual = sum(flt(c.get("annual") or 0) for c in employer_rows)
+
+		gross_row = self.total_gross_earnings[0] if self.total_gross_earnings else {}
+		gross_per_cycle = flt(gross_row.get("per_cycle") or 0)
+		gross_annual = flt(gross_row.get("annual") or 0)
+
+		ctc_per_cycle = gross_per_cycle + employer_per_cycle
+		ctc_annual = gross_annual + employer_annual
+
+		self.ctc_row = [
 			{
-				"salary_component": "Total CTC (Gross + Employer Contributions)",
+				"salary_component": "CTC = Gross Salary + (Employer PF + ESI)",
 				"type": "",
-				"formula": "",
-				"per_cycle": self.get_per_cycle_ctc(),
-				"annual": self.ctc,
-				"percent_of_ctc": 100.0,
+				"formula": "Gross salary + (Employer PF+ ESI)",
+				"per_cycle": ctc_per_cycle,
+				"annual": ctc_annual,
+				"percent_of_ctc": self.calculate_percent_of_ctc(ctc_annual),
 				"bold": True,
 			}
 		]
@@ -239,7 +385,7 @@ class SalaryBreakupReport:
 		return flt(amount * 100 / self.ctc, 2) if self.ctc else 0.0
 
 	def get_per_cycle_ctc(self):
-		return flt(self.ctc / self.cycle_multiplier, 2) if self.cycle_multiplier else 0.0
+		return flt(self.base_ctc / self.cycle_multiplier, 2) if self.cycle_multiplier else 0.0
 
 	def indent_salary_components(self):
 		for component in self.salary_components:
@@ -249,12 +395,16 @@ class SalaryBreakupReport:
 		return fmt_money(amount, precision=2, currency=self.currency)
 
 	def get_columns(self) -> list[dict]:
+		"""Return columns for the report.
+
+		One field definition per column, just like a DocType field definition.
+		"""
 		return [
 			{
 				"label": _("Component"),
 				"fieldname": "salary_component",
 				"fieldtype": "Data",
-				"width": 320,
+				"width": 300,
 				"fixed": 1,
 			},
 			{
@@ -305,7 +455,7 @@ class SalaryBreakupReport:
 		]
 
 	def get_message(self):
-		path = "artem_erp/artem_erp/report/employee_ctc_breakup/employee_profile_card.html"
+		path = "hrms/payroll/report/employee_ctc_break_up/employee_profile_card.html"
 		employee_name, designation, image = frappe.get_value(
 			"Employee", self.employee, ["employee_name", "designation", "image"]
 		)
@@ -324,11 +474,18 @@ class SalaryBreakupReport:
 				"income_tax_slab": self.income_tax_slab,
 			}
 		)
-		employee_profile_card = render_template(path, context=context, is_path=True)  # nosemgrep
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		employee_profile_card = render_template(path, context=context, is_path=True)
 		return employee_profile_card
 
 
 def execute(filters: dict | None = None):
+	"""Return columns and data for the report.
+
+	This is the main entry point for the report. It accepts the filters as a
+	dictionary and should return columns and data. It is called by the framework
+	every time the report is refreshed or a filter is updated.
+	"""
 	employee = filters.get("employee")
 	salary_structure_assignment = filters.get("salary_structure_assignment")
 
