@@ -169,8 +169,8 @@ def get_data_and_summary(filters: dict):
 		else:
 			selected_work_statuses_normalized.add(s_clean)
 
-	# 1. Fetch eligible employees
-	emp_filters = [["status", "=", "Active"]]
+	# 1. Fetch eligible employees (include Active and Left for historical dates)
+	emp_filters = [["status", "in", ["Active", "Left"]]]
 	if selected_employee:
 		emp_filters.append(["name", "=", selected_employee])
 	if selected_companies:

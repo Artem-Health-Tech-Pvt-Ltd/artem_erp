@@ -39,7 +39,7 @@ frappe.query_reports["Daily Employee Work Status"] = {
 			fieldtype: "Link",
 			options: "Employee",
 			get_query: function () {
-				let filters = { status: "Active" };
+				let filters = { status: ["in", ["Active", "Left"]] };
 				let company = frappe.query_report.get_filter_value("company");
 				let department = frappe.query_report.get_filter_value("department");
 
