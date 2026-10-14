@@ -68,14 +68,14 @@ frappe.query_reports["Employee CTC Breakup"] = {
 	onload: async function (report) {
 		if (report.get_filter_value("employee")) return;
 
-		const employee =
-			typeof hrms !== "undefined" && hrms.get_current_employee
-				? await hrms.get_current_employee()
-				: frappe.session.user;
+		const employee = await hrms.get_current_employee();
 		if (!employee) return;
 		report.set_filter_value("employee", employee);
 	},
 	formatter: function (value, row, column, data, default_formatter) {
+		if (column.fieldname === "per_cycle" && data?.is_additional_salary) {
+			return "";
+		}
 		value = default_formatter(value, row, column, data);
 		if (data?.bold && value) value = `<strong>${value}</strong>`;
 		if (column.fieldname == "type" && value) {
