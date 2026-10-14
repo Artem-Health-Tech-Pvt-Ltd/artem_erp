@@ -85,12 +85,11 @@ class SalaryBreakupReport:
 			+ self.ctc_row
 		)
 
-	def get_latest_valid_additional_salary(self, salary_component: str):
+	def load_additional_salaries(self):
 		records = frappe.get_all(
 			"Additional Salary",
 			filters={
 				"employee": self.employee,
-				"salary_component": salary_component,
 				"docstatus": 1,
 				"disabled": 0,
 			},
@@ -101,14 +100,23 @@ class SalaryBreakupReport:
 				"custom_duration_of_additional_salary",
 				"from_date",
 				"to_date",
+				"payroll_date",
 				"custom_date_of_joining",
 				"is_recurring",
 				"disabled",
 				"creation",
 			],
-			order_by="from_date desc, creation desc",
+			order_by="from_date desc, payroll_date desc, creation desc",
 		)
+		self.additional_salaries_by_component = {}
+		for rec in records:
+			self.additional_salaries_by_component.setdefault(rec.salary_component, []).append(rec)
 
+	def get_latest_valid_additional_salary(self, salary_component: str):
+		if getattr(self, "additional_salaries_by_component", None) is None:
+			self.load_additional_salaries()
+
+		records = self.additional_salaries_by_component.get(salary_component, [])
 		if not records:
 			return None
 
@@ -117,12 +125,30 @@ class SalaryBreakupReport:
 		def is_valid(rec, date):
 			if not date:
 				return False
-			start = rec.from_date or rec.custom_date_of_joining
-			if start and getdate(start) > getdate(date):
+
+			target_date = getdate(date)
+
+			# Recurring Additional Salary has from_date / to_date range
+			if rec.get("is_recurring"):
+				start = rec.from_date or rec.custom_date_of_joining
+				if start and getdate(start) > target_date:
+					return False
+				if rec.to_date and getdate(rec.to_date) < target_date:
+					return False
+				return True
+
+			# Non-recurring (one-time) Additional Salary has a payroll_date
+			payroll_date = rec.get("payroll_date")
+			if not payroll_date:
 				return False
-			if rec.to_date and getdate(rec.to_date) < getdate(date):
-				return False
-			return True
+
+			p_date = getdate(payroll_date)
+			slip = getattr(self, "salary_slip", None)
+			if slip and getattr(slip, "start_date", None) and getattr(slip, "end_date", None):
+				if getdate(slip.start_date) <= target_date <= getdate(slip.end_date):
+					return getdate(slip.start_date) <= p_date <= getdate(slip.end_date)
+
+			return p_date.year == target_date.year and p_date.month == target_date.month
 
 		# First check against ref_date (posting_date / today)
 		for rec in records:
