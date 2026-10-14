@@ -464,7 +464,7 @@ def get_holiday_and_weekly_off_message(
 			"from_date": ["<=", selected_date],
 			"to_date": [">=", selected_date],
 		},
-		fields=["assigned_to", "holiday_list", "from_date"],
+		fields=["assigned_to", "holiday_list", "from_date", "to_date"],
 		order_by="from_date desc",
 	)
 
