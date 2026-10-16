@@ -139,22 +139,28 @@ after_install = "artem_erp.install.after_install"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
-#
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+permission_query_conditions = {
+	"Device Login Authorization": "artem_erp.artem_erp.doctype.device_login_authorization.device_login_authorization.get_permission_query_conditions",
+}
+
+has_permission = {
+	"Device Login Authorization": "artem_erp.artem_erp.doctype.device_login_authorization.device_login_authorization.has_permission",
+}
 
 # Document Events
 # ---------------
 # Hook on document methods and events
 
 doc_events = {
-	"Attendance Request": {
-		"before_validate": "artem_erp.doc_events.attendance_request.validate_attendance_request",
-		"validate": "artem_erp.doc_events.attendance_request.validate_attendance_request",
+	"User": {
+		"validate": "artem_erp.artem_erp.device_login.validate_user",
+	},
+	"Salary Slip": {
+		"on_submit": "artem_erp.doc_events.salary_slip.on_submit",
+		"on_cancel": "artem_erp.doc_events.salary_slip.on_cancel",
+	},
+	"Payroll Entry": {
+		"before_submit": "artem_erp.doc_events.payroll_entry.before_submit",
 	},
 	"Employee": {
 		"validate": "artem_erp.doc_events.employee.validate_aadhaar_number",
@@ -233,7 +239,7 @@ extend_doctype_class = {
 
 # Request Events
 # ----------------
-# before_request = ["artem_erp.utils.before_request"]
+before_request = ["artem_erp.artem_erp.device_login.before_request"]
 # after_request = ["artem_erp.utils.after_request"]
 
 # Job Events
@@ -267,6 +273,7 @@ extend_doctype_class = {
 
 # Authentication and authorization
 # --------------------------------
+on_login = "artem_erp.artem_erp.device_login.on_login"
 
 # auth_hooks = [
 # 	"artem_erp.auth.validate"
@@ -283,3 +290,6 @@ extend_doctype_class = {
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
+
+
+fixtures = [{"dt": "Workflow"}, {"dt": "Workflow State"}, {"dt": "Workflow Action Master"}]

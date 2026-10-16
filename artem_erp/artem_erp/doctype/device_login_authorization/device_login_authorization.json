@@ -1,0 +1,214 @@
+{
+ "actions": [],
+ "autoname": "DLA-.#####",
+ "creation": "2026-10-15 18:38:37.783706",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "user_id",
+  "employee",
+  "employee_name",
+  "column_break_main",
+  "status",
+  "request_date",
+  "last_login_time",
+  "section_break_device",
+  "token_string",
+  "device_information",
+  "column_break_auth",
+  "authorized_by",
+  "authorization_date",
+  "section_break_remarks",
+  "remarks",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "description": "ERPNext user account attempting to log in.",
+   "fieldname": "user_id",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User ID",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "description": "Employee associated with the user account.",
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee ID",
+   "options": "Employee"
+  },
+  {
+   "description": "Employee's full name, fetched from the Employee record.",
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "Pending Onboarding",
+   "description": "Current authorization status of the device.",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Pending Onboarding\nAuthorized\nBlocked",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "description": "Date and time when the device authorization request was created.",
+   "fieldname": "request_date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Request Date",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Date and time when the user last logged in from this device.",
+   "fieldname": "last_login_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Last Login Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_device",
+   "fieldtype": "Section Break",
+   "label": "Device & Token Information"
+  },
+  {
+   "description": "Unique UUID generated for the browser or device.",
+   "fieldname": "token_string",
+   "fieldtype": "Data",
+   "label": "Token String",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "description": "Browser, device, or platform information, where available.",
+   "fieldname": "device_information",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Device Information",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_auth",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Reporting Manager who authorized or blocked the device.",
+   "fieldname": "authorized_by",
+   "fieldtype": "Link",
+   "label": "Authorized By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Date and time of the authorization decision.",
+   "fieldname": "authorization_date",
+   "fieldtype": "Datetime",
+   "label": "Authorization Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_remarks",
+   "fieldtype": "Section Break",
+   "label": "Remarks"
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Reason for authorization or blocking.",
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Device Login Authorization",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-16 10:40:52.625529",
+ "modified_by": "Administrator",
+ "module": "Artem ERP",
+ "name": "Device Login Authorization",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Employee",
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
