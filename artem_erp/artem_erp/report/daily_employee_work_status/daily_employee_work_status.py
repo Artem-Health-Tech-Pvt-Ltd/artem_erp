@@ -462,7 +462,6 @@ def get_holiday_and_weekly_off_message(
 			"assigned_to": ["in", assigned_to_list],
 			"docstatus": 1,
 			"from_date": ["<=", selected_date],
-			"to_date": [">=", selected_date],
 		},
 		fields=["assigned_to", "holiday_list", "from_date"],
 		order_by="from_date desc",
