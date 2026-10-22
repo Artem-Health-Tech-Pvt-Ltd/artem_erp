@@ -234,7 +234,7 @@ CUSTOM_FIELDS = {
 			"fieldname": "custom_sandwich_section",
 			"fieldtype": "Section Break",
 			"label": "Sandwich Leave Details",
-			"insert_after": "workflow_state",
+			"insert_after": "department",
 			"system_generated": 0,
 		},
 		{
