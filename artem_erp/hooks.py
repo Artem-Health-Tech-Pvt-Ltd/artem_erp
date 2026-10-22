@@ -173,6 +173,7 @@ doc_events = {
 	},
 	"Leave Application": {
 		"validate": "artem_erp.doc_events.leave_application.validate",
+		"before_submit": "artem_erp.doc_events.leave_application.before_submit",
 		"on_submit": "artem_erp.doc_events.leave_application.on_submit",
 		"on_cancel": "artem_erp.doc_events.leave_application.on_cancel",
 	},
@@ -211,6 +212,7 @@ extend_doctype_class = {
 	"Additional Salary": "artem_erp.override.additional_salary.CustomAdditionalSalary",
 	"Salary Slip": "artem_erp.override.salary_slip.CustomSalarySlip",
 	"Attendance Request": "artem_erp.override.attendance_request.CustomAttendanceRequest",
+	"Leave Application": "artem_erp.override.leave_application.CustomLeaveApplication",
 }
 
 
