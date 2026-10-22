@@ -2,7 +2,7 @@
  "actions": [],
  "allow_bulk_edit": 1,
  "allow_rename": 1,
- "creation": "2026-10-06 11:25:05.811102",
+ "creation": "2026-10-21 14:29:52.842144",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -11,7 +11,11 @@
   "apply_attendance_penalty",
   "late_entry_penalty_settings_section",
   "apply_late_entry_penalty",
-  "allowed_late_entries_per_month"
+  "allowed_late_entries_per_month",
+  "sandwich_leave_configuration_section",
+  "apply_sandwich_leave_rule_on_leave",
+  "maximum_employee_exemptions",
+  "sandwich_leave_deduction_type"
  ],
  "fields": [
   {
@@ -48,13 +52,37 @@
    "fieldname": "apply_late_entry_penalty",
    "fieldtype": "Check",
    "label": "Apply Late Entry Penalty"
+  },
+  {
+   "fieldname": "sandwich_leave_configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Sandwich Leave Configuration"
+  },
+  {
+   "default": "0",
+   "fieldname": "apply_sandwich_leave_rule_on_leave",
+   "fieldtype": "Check",
+   "label": "Apply Sandwich Leave Rule on Leave"
+  },
+  {
+   "description": "Defines the maximum number of sandwich leave exemptions an employee can use during the configured leave year.",
+   "fieldname": "maximum_employee_exemptions",
+   "fieldtype": "Int",
+   "label": "Maximum Employee Exemptions "
+  },
+  {
+   "description": "Define priority-wise Leave Types for Sandwich Leave deduction based on available balance.",
+   "fieldname": "sandwich_leave_deduction_type",
+   "fieldtype": "Table",
+   "label": "Sandwich Leave Deduction Type",
+   "options": "Sandwich Leave Deduction Type"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-08 14:30:00.000000",
+ "modified": "2026-10-21 17:53:08.727431",
  "modified_by": "Administrator",
  "module": "Artem ERP",
  "name": "Artem Setting",
