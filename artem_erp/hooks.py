@@ -170,6 +170,7 @@ doc_events = {
 	},
 	"Attendance": {
 		"validate": "artem_erp.doc_events.attendance.apply_partial_day_to_attendance",
+		"on_cancel": "artem_erp.doc_events.attendance.on_cancel",
 	},
 	"Leave Application": {
 		"validate": "artem_erp.doc_events.leave_application.validate",

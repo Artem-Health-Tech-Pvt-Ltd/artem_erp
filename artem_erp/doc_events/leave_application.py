@@ -268,16 +268,51 @@ def on_submit(doc, method=None):
 	"""
 	When Leave Application is approved / submitted:
 	1. If Partial Day Leave, update linked Attendance records.
-	2. Generate auto-approved Sandwich Leave records if condition applies.
+	2. Remove attendance penalty from covered Attendance records.
+	3. Generate auto-approved Sandwich Leave records if condition applies.
 	"""
 	if doc.custom_is_partial_day_leave:
 		from artem_erp.doc_events.attendance import sync_partial_day_attendance_for_leave
 
 		sync_partial_day_attendance_for_leave(doc)
 
+	remove_penalty_from_attendance_for_leave(doc)
+
 	from artem_erp.doc_events.sandwich_leave import generate_sandwich_leave_records
 
 	generate_sandwich_leave_records(doc)
+
+
+def remove_penalty_from_attendance_for_leave(doc):
+	"""
+	When a Leave Application is approved / submitted, remove the penalty checkbox
+	(custom_penalty = 0) from Attendance records within the leave period.
+	"""
+	if not doc.employee or not doc.from_date or not doc.to_date:
+		return
+
+	if not frappe.get_meta("Attendance").has_field("custom_penalty"):
+		return
+
+	attendance_records = frappe.get_all(
+		"Attendance",
+		filters={
+			"employee": doc.employee,
+			"attendance_date": ["between", [doc.from_date, doc.to_date]],
+			"docstatus": ["<", 2],
+			"custom_penalty": 1,
+		},
+		pluck="name",
+	)
+
+	for attendance_name in attendance_records:
+		frappe.db.set_value(
+			"Attendance",
+			attendance_name,
+			"custom_penalty",
+			0,
+			update_modified=False,
+		)
 
 
 def on_cancel(doc, method=None):

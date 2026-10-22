@@ -392,3 +392,18 @@ def clear_partial_day_attendance_for_leave(leave_doc):
 		att_doc.flags.ignore_permissions = True
 		att_doc.flags.ignore_validate = True
 		att_doc.save()
+
+
+def on_cancel(doc, method=None):
+	"""
+	When an Attendance record is cancelled:
+	Remove the attendance penalty (custom_penalty = 0).
+	"""
+	if getattr(doc, "custom_penalty", 0):
+		frappe.db.set_value(
+			"Attendance",
+			doc.name,
+			"custom_penalty",
+			0,
+			update_modified=False,
+		)
