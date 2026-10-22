@@ -33,7 +33,8 @@ class CustomLeaveApplication(LeaveApplication):
 				if (
 					self.status != "Rejected"
 					and leave_balance
-					and self.total_leave_days > flt(leave_balance.get("leave_balance_for_consumption", 0), precision)
+					and self.total_leave_days
+					> flt(leave_balance.get("leave_balance_for_consumption", 0), precision)
 				):
 					self.show_insufficient_balance_message(
 						flt(leave_balance.get("leave_balance_for_consumption", 0), precision)
