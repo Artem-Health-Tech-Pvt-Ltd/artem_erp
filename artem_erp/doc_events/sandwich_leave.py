@@ -5,6 +5,7 @@ import datetime
 import json
 
 import frappe
+from erpnext.accounts.utils import get_fiscal_year
 from frappe import _
 from frappe.model.workflow import apply_workflow
 from frappe.utils import (
@@ -23,7 +24,6 @@ from hrms.hr.utils import (
 	get_holidays_for_employee,
 	get_leave_period,
 )
-from erpnext.accounts.utils import get_fiscal_year
 
 
 def get_sandwich_settings() -> dict:
@@ -73,7 +73,9 @@ def get_leave_year_for_employee(employee: str, date) -> tuple:
 	Checks Leave Period, then Fiscal Year, then calendar year.
 	"""
 	date = getdate(date)
-	company = frappe.db.get_value("Employee", employee, "company") or frappe.defaults.get_user_default("Company")
+	company = frappe.db.get_value("Employee", employee, "company") or frappe.defaults.get_user_default(
+		"Company"
+	)
 
 	if company:
 		leave_periods = get_leave_period(date, date, company)
@@ -84,12 +86,13 @@ def get_leave_year_for_employee(employee: str, date) -> tuple:
 		if fy:
 			return getdate(fy.year_start_date), getdate(fy.year_end_date)
 
-
 	# Fallback to calendar year
 	return getdate(f"{date.year}-01-01"), getdate(f"{date.year}-12-31")
 
 
-def get_sandwich_exemptions_consumed(employee: str, year_start, year_end, exclude_name: str | None = None) -> int:
+def get_sandwich_exemptions_consumed(
+	employee: str, year_start, year_end, exclude_name: str | None = None
+) -> int:
 	"""
 	Count how many sandwich leave exemptions have been used by the employee
 	in the given leave year. Excludes cancelled and rejected applications.
@@ -231,7 +234,9 @@ def check_sandwich_condition(
 			)
 
 		if not (prior_half_day or prior_is_partial):
-			is_prior_optional = bool(frappe.db.get_value("Leave Type", prior_leave.leave_type, "is_optional_leave"))
+			is_prior_optional = bool(
+				frappe.db.get_value("Leave Type", prior_leave.leave_type, "is_optional_leave")
+			)
 			is_current_optional = bool(frappe.db.get_value("Leave Type", leave_type, "is_optional_leave"))
 			if not (is_prior_optional or is_current_optional):
 				prior_to_date = getdate(prior_leave.to_date)
@@ -242,7 +247,9 @@ def check_sandwich_condition(
 					curr = add_days(curr, 1)
 
 				if intervening_dates:
-					employee_holidays = get_all_holiday_dates_for_employee(employee, intervening_dates[0], intervening_dates[-1])
+					employee_holidays = get_all_holiday_dates_for_employee(
+						employee, intervening_dates[0], intervening_dates[-1]
+					)
 					if all(d in employee_holidays for d in intervening_dates):
 						existing = frappe.get_all(
 							"Leave Application",
@@ -270,7 +277,9 @@ def check_sandwich_condition(
 		# Calculate exemption allowance
 		year_start, year_end = get_leave_year_for_employee(employee, from_date)
 		max_exemptions = settings.get("maximum_employee_exemptions") or 0
-		consumed_exemptions = get_sandwich_exemptions_consumed(employee, year_start, year_end, exclude_name=target_name)
+		consumed_exemptions = get_sandwich_exemptions_consumed(
+			employee, year_start, year_end, exclude_name=target_name
+		)
 		remaining_exemptions = max(0, max_exemptions - consumed_exemptions)
 
 		return {
@@ -624,9 +633,9 @@ def generate_sandwich_leave_records(doc):
 	# If employee validly selected an exemption, skip sandwich generation
 	if doc.custom_apply_sandwich_exemption:
 		frappe.msgprint(
-			_("Sandwich Leave generation skipped for Leave Application {0} due to Employee Exemption.").format(
-				doc.name
-			),
+			_(
+				"Sandwich Leave generation skipped for Leave Application {0} due to Employee Exemption."
+			).format(doc.name),
 			alert=True,
 		)
 		return
@@ -704,7 +713,9 @@ def generate_sandwich_leave_records(doc):
 
 		if not allocated_lt:
 			frappe.throw(
-				_("No Leave Type with available balance or Unpaid Leave Type found for Sandwich Leave allocation.")
+				_(
+					"No Leave Type with available balance or Unpaid Leave Type found for Sandwich Leave allocation."
+				)
 			)
 
 		allocations.append((d, allocated_lt))
@@ -876,13 +887,11 @@ def cancel_sandwich_leave_records(doc):
 				except Exception:
 					pass
 
-		except Exception as e:
+		except Exception:
 			frappe.log_error(title="Sandwich Leave Cancellation Error", message=frappe.get_traceback())
 
 	if cancelled_records:
 		frappe.msgprint(
-			_("Associated Sandwich Leave record(s) cancelled: {0}").format(
-				", ".join(cancelled_records)
-			),
+			_("Associated Sandwich Leave record(s) cancelled: {0}").format(", ".join(cancelled_records)),
 			alert=True,
 		)
