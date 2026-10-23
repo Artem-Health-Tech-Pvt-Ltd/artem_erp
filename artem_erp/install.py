@@ -1,4 +1,5 @@
 import importlib
+
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
@@ -97,37 +98,35 @@ def add_workspace_shortcut(
 
 
 def create_workflow():
-    fixture_folder_name = [
-        "workflow.device_login_authorization_workflow"
-    ]
+	fixture_folder_name = ["workflow.device_login_authorization_workflow"]
 
-    suffix_mapping = {
-        "workflow_action_master": "Workflow Action Master",
-        "workflow_state": "Workflow State",
-        "workflow": "Workflow",
-    }
+	suffix_mapping = {
+		"workflow_action_master": "Workflow Action Master",
+		"workflow_state": "Workflow State",
+		"workflow": "Workflow",
+	}
 
-    for file_path in fixture_folder_name:
-        for suffix, doctype in suffix_mapping.items():
-            make_workflow(
-                f"artem_erp.{file_path}.{suffix}",
-                f"get_{suffix}",
-                doctype,
-            )
+	for file_path in fixture_folder_name:
+		for suffix, doctype in suffix_mapping.items():
+			make_workflow(
+				f"artem_erp.{file_path}.{suffix}",
+				f"get_{suffix}",
+				doctype,
+			)
 
 
 def make_workflow(file_path, module_name, doctype):
-    module = importlib.import_module(file_path)
-    workflow_function = getattr(module, module_name)
+	module = importlib.import_module(file_path)
+	workflow_function = getattr(module, module_name)
 
-    for workflow in workflow_function():
-        name = workflow.get("name")
+	for workflow in workflow_function():
+		name = workflow.get("name")
 
-        if frappe.db.exists(doctype, name):
-            doc = frappe.get_doc(doctype, name)
-            doc.update(workflow)
-            doc.save()
-        else:
-            doc = frappe.new_doc(doctype)
-            doc.update(workflow)
-            doc.insert()
+		if frappe.db.exists(doctype, name):
+			doc = frappe.get_doc(doctype, name)
+			doc.update(workflow)
+			doc.save()
+		else:
+			doc = frappe.new_doc(doctype)
+			doc.update(workflow)
+			doc.insert()

@@ -1,8 +1,6 @@
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
-from artem_erp.custom_fields_and_property_setter.custom_fields import CUSTOM_FIELDS
-
 
 def execute():
 	create_custom_fields(CUSTOM_FIELDS, update=True, ignore_validate=True)

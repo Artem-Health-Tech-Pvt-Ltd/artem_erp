@@ -158,8 +158,33 @@ def calculate_adjusted_time_str(
 
 def validate(doc, method=None):
 	"""
-	Validate Partial Day fields on Leave Application.
+	Validate Partial Day and Sandwich Leave fields on Leave Application.
 	"""
+	validate_partial_day_leave(doc)
+
+	# Stage 2: When approving, ensure earlier relevant applications are approved first
+	if doc.status == "Approved" or doc.docstatus == 1 or getattr(doc, "workflow_state", None) == "Approved":
+		from artem_erp.doc_events.sandwich_leave import validate_earlier_pending_applications
+
+		validate_earlier_pending_applications(doc)
+
+	# Stage 1: Record sandwich condition and validate exemption limits
+	from artem_erp.doc_events.sandwich_leave import validate_sandwich_leave_on_save
+
+	validate_sandwich_leave_on_save(doc)
+
+
+def before_submit(doc, method=None):
+	"""
+	When Leave Application is submitted (including via Workflow approval):
+	Ensure earlier relevant applications are approved first.
+	"""
+	from artem_erp.doc_events.sandwich_leave import validate_earlier_pending_applications
+
+	validate_earlier_pending_applications(doc)
+
+
+def validate_partial_day_leave(doc):
 	if not doc.leave_type:
 		doc.custom_is_partial_day_leave = 0
 		return
@@ -242,25 +267,65 @@ def validate(doc, method=None):
 def on_submit(doc, method=None):
 	"""
 	When Leave Application is approved / submitted:
-	If Partial Day Leave, update linked Attendance records so they reflect
-	adjusted required hours and do not stay marked as 'On Leave'.
+	1. If Partial Day Leave, update linked Attendance records.
+	2. Remove attendance penalty from covered Attendance records.
+	3. Generate auto-approved Sandwich Leave records if condition applies.
 	"""
-	if not doc.custom_is_partial_day_leave:
+	if doc.custom_is_partial_day_leave:
+		from artem_erp.doc_events.attendance import sync_partial_day_attendance_for_leave
+
+		sync_partial_day_attendance_for_leave(doc)
+
+	remove_penalty_from_attendance_for_leave(doc)
+
+	from artem_erp.doc_events.sandwich_leave import generate_sandwich_leave_records
+
+	generate_sandwich_leave_records(doc)
+
+
+def remove_penalty_from_attendance_for_leave(doc):
+	"""
+	When a Leave Application is approved / submitted, remove the penalty checkbox
+	(custom_penalty = 0) from Attendance records within the leave period.
+	"""
+	if not doc.employee or not doc.from_date or not doc.to_date:
 		return
 
-	from artem_erp.doc_events.attendance import sync_partial_day_attendance_for_leave
+	if not frappe.get_meta("Attendance").has_field("custom_penalty"):
+		return
 
-	sync_partial_day_attendance_for_leave(doc)
+	attendance_records = frappe.get_all(
+		"Attendance",
+		filters={
+			"employee": doc.employee,
+			"attendance_date": ["between", [doc.from_date, doc.to_date]],
+			"docstatus": ["<", 2],
+			"custom_penalty": 1,
+		},
+		pluck="name",
+	)
+
+	for attendance_name in attendance_records:
+		frappe.db.set_value(
+			"Attendance",
+			attendance_name,
+			"custom_penalty",
+			0,
+			update_modified=False,
+		)
 
 
 def on_cancel(doc, method=None):
 	"""
 	When Leave Application is cancelled:
-	Remove partial day allowances from linked Attendance.
+	1. Remove partial day allowances from linked Attendance.
+	2. Cancel any linked Sandwich Leave applications.
 	"""
-	if not doc.custom_is_partial_day_leave:
-		return
+	if doc.custom_is_partial_day_leave:
+		from artem_erp.doc_events.attendance import clear_partial_day_attendance_for_leave
 
-	from artem_erp.doc_events.attendance import clear_partial_day_attendance_for_leave
+		clear_partial_day_attendance_for_leave(doc)
 
-	clear_partial_day_attendance_for_leave(doc)
+	from artem_erp.doc_events.sandwich_leave import cancel_sandwich_leave_records
+
+	cancel_sandwich_leave_records(doc)
