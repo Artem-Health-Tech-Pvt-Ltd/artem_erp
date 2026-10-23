@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.utils import (
 	cint,
 	flt,
@@ -402,6 +403,19 @@ def get_eligible_attendance_records(up_to_date=None, **kwargs):
 	)
 
 
+def add_attendance_penalty_comment(attendance_name: str, reason: str):
+	"""Add a comment explaining why the attendance penalty was applied."""
+	frappe.get_doc(
+		{
+			"doctype": "Comment",
+			"comment_type": "Comment",
+			"reference_doctype": "Attendance",
+			"reference_name": attendance_name,
+			"content": reason,
+		}
+	).insert(ignore_permissions=True)
+
+
 def process_attendance_penalties(up_to_date=None, **kwargs):
 	"""
 	Daily scheduler job to process attendance penalties according to Priority Order:
@@ -468,6 +482,12 @@ def process_attendance_penalties(up_to_date=None, **kwargs):
 						att.name,
 						{"custom_penalty": 1, "status": "Absent"},
 					)
+					add_attendance_penalty_comment(
+						att.name,
+						_(
+							"Attendance penalty applied: Working hours not completed for Half Day Leave; marked as Absent."
+						),
+					)
 					processed_records.append(att.name)
 			continue
 
@@ -487,6 +507,12 @@ def process_attendance_penalties(up_to_date=None, **kwargs):
 						"Attendance",
 						att.name,
 						{"custom_penalty": 1, "status": penalty_status},
+					)
+					add_attendance_penalty_comment(
+						att.name,
+						_(
+							"Attendance penalty applied: Adjusted working hours not completed after Partial Day Leave ({0} mins); marked as {1}."
+						).format(partial_duration, penalty_status),
 					)
 					processed_records.append(att.name)
 			else:
@@ -520,6 +546,12 @@ def process_attendance_penalties(up_to_date=None, **kwargs):
 								att.name,
 								{"custom_penalty": 1, "status": penalty_status},
 							)
+							add_attendance_penalty_comment(
+								att.name,
+								_(
+									"Attendance penalty applied: Late entry exceeded Partial Day allowance and monthly allowed limit of {0}; marked as {1}."
+								).format(allowed_late_entries_per_month, penalty_status),
+							)
 							processed_records.append(att.name)
 			continue
 
@@ -538,6 +570,15 @@ def process_attendance_penalties(up_to_date=None, **kwargs):
 					att.name,
 					{"custom_penalty": 1, "status": penalty_status},
 				)
+				if flt(att.working_hours) <= 0:
+					comment_text = _(
+						"Attendance penalty applied: No Punch records or missing punch-in/ punch-out; 0 working hours; marked as {0}."
+					).format(penalty_status)
+				else:
+					comment_text = _(
+						"Attendance penalty applied: Minimum required working hours not completed (you have worked {0} hrs); marked as {1}."
+					).format(flt(att.working_hours), penalty_status)
+				add_attendance_penalty_comment(att.name, comment_text)
 				processed_records.append(att.name)
 		else:
 			if cint(att.late_entry) and apply_late_entry_penalty:
@@ -560,6 +601,12 @@ def process_attendance_penalties(up_to_date=None, **kwargs):
 						"Attendance",
 						att.name,
 						{"custom_penalty": 1, "status": penalty_status},
+					)
+					add_attendance_penalty_comment(
+						att.name,
+						_(
+							"Attendance penalty applied: Late entry exceeded monthly allowed limit of {0}; marked as {1}."
+						).format(allowed_late_entries_per_month, penalty_status),
 					)
 					processed_records.append(att.name)
 
