@@ -790,6 +790,8 @@ def generate_sandwich_leave_records(doc):
 		sandwich_doc.flags.ignore_permissions = True
 		sandwich_doc.flags.is_sandwich_leave = True
 		sandwich_doc.insert()
+		sandwich_doc.flags.pop("in_print", None)
+		sandwich_doc.flags.pop("print_settings", None)
 
 		has_workflow = frappe.get_all(
 			"Workflow", filters={"document_type": "Leave Application", "is_active": 1}
