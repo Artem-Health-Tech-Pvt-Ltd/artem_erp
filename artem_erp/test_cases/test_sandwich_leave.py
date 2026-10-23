@@ -128,9 +128,7 @@ class TestSandwichLeave(IntegrationTestCase):
 		"""Helper to transition document to Approved state."""
 		doc.flags.pop("in_print", None)
 		doc.flags.pop("print_settings", None)
-		has_wf = frappe.get_all(
-			"Workflow", filters={"document_type": doc.doctype, "is_active": 1}
-		)
+		has_wf = frappe.get_all("Workflow", filters={"document_type": doc.doctype, "is_active": 1})
 		if has_wf:
 			apply_workflow(doc, "Approve")
 			doc.reload()
@@ -144,9 +142,7 @@ class TestSandwichLeave(IntegrationTestCase):
 		"""Helper to transition document to Cancelled state."""
 		doc.flags.pop("in_print", None)
 		doc.flags.pop("print_settings", None)
-		has_wf = frappe.get_all(
-			"Workflow", filters={"document_type": doc.doctype, "is_active": 1}
-		)
+		has_wf = frappe.get_all("Workflow", filters={"document_type": doc.doctype, "is_active": 1})
 		if has_wf:
 			apply_workflow(doc, "Cancel")
 			doc.reload()
@@ -406,7 +402,7 @@ class TestSandwichLeave(IntegrationTestCase):
 	def test_14_sequential_approval_blocks_subsequent_leave(self):
 		"""Approving a subsequent leave is blocked if the earlier relevant leave application is pending."""
 		# Leave 1 (Friday) is created and left in Pending status
-		l1 = self._create_leave_application("Casual Leave", "2026-11-06", "2026-11-06", "Friday Pending")
+		self._create_leave_application("Casual Leave", "2026-11-06", "2026-11-06", "Friday Pending")
 
 		# Leave 2 (Monday) is created
 		l2 = self._create_leave_application(
