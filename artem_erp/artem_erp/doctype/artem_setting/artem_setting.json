@@ -82,7 +82,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-21 17:53:08.727431",
+ "modified": "2026-10-26 12:06:14.685418",
  "modified_by": "Administrator",
  "module": "Artem ERP",
  "name": "Artem Setting",
@@ -95,6 +95,16 @@
    "print": 1,
    "read": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "HR Manager",
    "share": 1,
    "write": 1
   }
