@@ -21,9 +21,11 @@ def after_install():
 
 
 def setup_workspace_shortcuts():
+	from artem_erp.patches.create_role_based_hrms_workspaces import execute as setup_hrms_workspaces
 	from artem_erp.patches.payroll_shortcut import execute as setup_payroll_shortcuts
 
 	setup_payroll_shortcuts()
+	setup_hrms_workspaces()
 
 
 def make_property_setter():
