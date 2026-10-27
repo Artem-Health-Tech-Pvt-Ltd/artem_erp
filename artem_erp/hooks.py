@@ -27,10 +27,11 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/artem_erp/css/artem_erp.css"
 # app_include_js = "/assets/artem_erp/js/artem_erp.js"
+app_include_js = "/assets/artem_erp/js/artem_erp.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/artem_erp/css/artem_erp.css"
-# web_include_js = "/assets/artem_erp/js/artem_erp.js"
+web_include_js = "/assets/artem_erp/js/artem_erp.js"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "artem_erp/public/scss/website"
@@ -69,9 +70,10 @@ doctype_list_js = {
 # home_page = "login"
 
 # website user home page (by Role)
-# role_home_page = {
-# 	"Role": "home_page"
-# }
+role_home_page = {
+	"Employee": "desk/employee-dashboard",
+	"Manager": "desk/employee-dashboard",
+}
 
 # Generators
 # ----------
@@ -276,7 +278,10 @@ before_request = ["artem_erp.artem_erp.device_login.before_request"]
 
 # Authentication and authorization
 # --------------------------------
-on_login = "artem_erp.artem_erp.device_login.on_login"
+on_login = [
+	"artem_erp.artem_erp.device_login.on_login",
+	"artem_erp.auth.redirect_employee_on_login",
+]
 
 # auth_hooks = [
 # 	"artem_erp.auth.validate"
