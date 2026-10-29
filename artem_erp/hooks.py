@@ -203,6 +203,10 @@ scheduler_events = {
 		"30 9 * * *": [
 			"artem_erp.auto_email.birthday_and_work_anniversary.send_birthday_and_anniversary_wishes",
 		],
+		# Daily: Run every day at 9:35 AM (35 9 * * *) to send monthly attendance lock reminder on configured day
+		"35 9 * * *": [
+			"artem_erp.auto_email.monthly_attendance_lock_email.send_monthly_attendance_lock_reminder",
+		],
 		# Monthly: Run on the 1st day of every month at 9:00 AM (0 9 1 * *)
 		"0 9 1 * *": [
 			"artem_erp.artem_erp.doctype.employee_additional_salary_payroll_review.monthly_weekly_payroll_review.create_monthly_payroll_reviews",

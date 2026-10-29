@@ -38,7 +38,7 @@ class TestTeamAvailability(IntegrationTestCase):
 		self.assertIsNone(get_employee_recipient_email(emp3))
 
 	def test_get_initials(self):
-		self.assertEqual(get_initials("Patoliya Anjali"), "AP")
+		self.assertEqual(get_initials("Patoliya Anjali"), "PA")
 		self.assertEqual(get_initials("Twisha Bhaveshkumar"), "TB")
 		self.assertEqual(get_initials("Kishan"), "KI")
 		self.assertEqual(get_initials(""), "EM")
@@ -76,7 +76,7 @@ class TestTeamAvailability(IntegrationTestCase):
 		self.assertIn("Patoliya Anjali", html)
 		self.assertIn("Sick Leave", html)
 		self.assertIn("🤒", html)
-		self.assertIn("AP", html)
+		self.assertIn("PA", html)
 		self.assertIn("Working Remotely", html)
 		self.assertIn("Twisha Bhaveshkumar", html)
 		self.assertIn("TB", html)

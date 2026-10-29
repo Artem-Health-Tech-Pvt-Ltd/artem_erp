@@ -24,7 +24,9 @@
   "column_break_gqys",
   "team_availability_notification_email_template",
   "employee_attendance_penalty_notification_email_template",
-  "attendance_request_notification_email_template"
+  "attendance_request_notification_email_template",
+  "attendance_lock_notification_template",
+  "attendance_lock_reminder_day"
  ],
  "fields": [
   {
@@ -97,10 +99,10 @@
    "options": "Email Template"
   },
   {
-   "description": "Configure company team email addresses or Email Groups to include in CC for employee birthday and work anniversary notifications.",
+   "description": "Configure company team Email Groups to receive employee birthday, work anniversary, and Attendance Lock Notification emails.",
    "fieldname": "company_team_emails",
    "fieldtype": "Table MultiSelect",
-   "label": "Company Team CC Emails",
+   "label": "Company Team Emails",
    "options": "Email Group Table"
   },
   {
@@ -135,13 +137,27 @@
    "fieldtype": "Link",
    "label": "Employee Birthday Email Template",
    "options": "Email Template"
+  },
+  {
+   "description": "Select the email template used to send monthly attendance regularization and attendance lock reminders on the configured reminder day.",
+   "fieldname": "attendance_lock_notification_template",
+   "fieldtype": "Link",
+   "label": "Attendance Lock Notification Template",
+   "options": "Email Template"
+  },
+  {
+   "default": "24",
+   "description": "Specify the day of the month (1-31) to automatically send the monthly attendance lock reminder email.",
+   "fieldname": "attendance_lock_reminder_day",
+   "fieldtype": "Int",
+   "label": "Attendance Lock Reminder Day"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-27 16:06:25.226275",
+ "modified": "2026-10-29 13:14:05.577668",
  "modified_by": "Administrator",
  "module": "Artem ERP",
  "name": "Artem Setting",
