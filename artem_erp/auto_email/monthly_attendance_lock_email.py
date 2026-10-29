@@ -59,9 +59,7 @@ def get_hr_manager_cc_recipients(
 	# Users who should receive the in-app Notification Log
 	notification_users = [u.name for u in active_users]
 
-	active_user_map = {
-		u.name: u for u in active_users if u.name.lower() != "administrator"
-	}
+	active_user_map = {u.name: u for u in active_users if u.name.lower() != "administrator"}
 
 	# 3. Check active employees matching user_id in active_user_map or designation 'HR Manager'
 	active_employees = frappe.get_all(
@@ -107,9 +105,7 @@ def get_hr_manager_cc_recipients(
 	return cc_emails, notification_users
 
 
-def is_attendance_lock_reminder_already_sent(
-	current_date, template_name: str | None = None
-) -> bool:
+def is_attendance_lock_reminder_already_sent(current_date, template_name: str | None = None) -> bool:
 	"""
 	Check if the reminder was already sent for the current calendar month.
 	"""
@@ -324,19 +320,21 @@ def send_monthly_attendance_lock_reminder(target_date=None, force: bool = False)
 	comm_name = None
 	try:
 		comm = frappe.new_doc("Communication")
-		comm.update({
-			"communication_type": "Communication",
-			"communication_medium": "Email",
-			"sent_or_received": "Sent",
-			"subject": subject,
-			"content": message,
-			"recipients": ", ".join(to_recipients),
-			"cc": ", ".join(cc_recipients) if cc_recipients else None,
-			"email_template": template_name,
-			"communication_date": current_date,
-			"reference_doctype": "Email Template",
-			"reference_name": template_name,
-		})
+		comm.update(
+			{
+				"communication_type": "Communication",
+				"communication_medium": "Email",
+				"sent_or_received": "Sent",
+				"subject": subject,
+				"content": message,
+				"recipients": ", ".join(to_recipients),
+				"cc": ", ".join(cc_recipients) if cc_recipients else None,
+				"email_template": template_name,
+				"communication_date": current_date,
+				"reference_doctype": "Email Template",
+				"reference_name": template_name,
+			}
+		)
 		comm.insert(ignore_permissions=True)
 		comm_name = comm.name
 

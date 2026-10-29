@@ -22,7 +22,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 		if frappe.db.exists("Email Account", "Artem HealthTech"):
 			frappe.db.set_value("Email Account", "Artem HealthTech", "default_outgoing", 1)
 			frappe.db.set_value("Email Account", "Artem HealthTech", "enable_outgoing", 1)
-			frappe.db.commit() # nosemgrep
+			frappe.db.commit()  # nosemgrep
 
 	def tearDown(self):
 		for doctype, name in self.cleanup_records:
@@ -31,7 +31,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 					frappe.db.delete(doctype, {"name": name})
 			except Exception:
 				pass
-		frappe.db.commit() # nosemgrep
+		frappe.db.commit()  # nosemgrep
 		super().tearDown()
 
 	def test_get_company_team_recipients(self):
@@ -67,7 +67,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 		orig_day = frappe.db.get_single_value("Artem Setting", "attendance_lock_reminder_day")
 		try:
 			frappe.db.set_single_value("Artem Setting", "attendance_lock_reminder_day", 29)
-			frappe.db.commit() # nosemgrep
+			frappe.db.commit()  # nosemgrep
 
 			# Running on 24th should now skip
 			res_24 = send_monthly_attendance_lock_reminder(target_date="2026-10-24", force=False)
@@ -81,7 +81,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 				self.cleanup_records.append(("Communication", res_29.get("communication")))
 		finally:
 			frappe.db.set_single_value("Artem Setting", "attendance_lock_reminder_day", orig_day)
-			frappe.db.commit() # nosemgrep
+			frappe.db.commit()  # nosemgrep
 
 	def test_validate_attendance_lock_reminder_day(self):
 		# Invalid day (0 or 32) should raise ValidationError
@@ -140,7 +140,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 			limit=10,
 		)
 		self.assertGreater(len(logs), 0)
-		for l in logs[:res1.get("notification_logs_count", 0)]:
+		for l in logs[: res1.get("notification_logs_count", 0)]:
 			self.cleanup_records.append(("Notification Log", l.name))
 
 		# 2. Second invocation on same month without force should skip due to duplicate check
@@ -173,7 +173,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 		orig_val = frappe.db.get_single_value("Artem Setting", "attendance_lock_notification_template")
 		try:
 			frappe.db.set_single_value("Artem Setting", "attendance_lock_notification_template", "")
-			frappe.db.commit() # nosemgrep
+			frappe.db.commit()  # nosemgrep
 
 			res = send_monthly_attendance_lock_reminder(target_date="2026-10-24", force=True)
 			self.assertEqual(res.get("status"), "error")
@@ -188,7 +188,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 			self.cleanup_records.append(("Error Log", err_log[0].name))
 		finally:
 			frappe.db.set_single_value("Artem Setting", "attendance_lock_notification_template", orig_val)
-			frappe.db.commit() # nosemgrep
+			frappe.db.commit()  # nosemgrep
 
 	def test_nonexistent_email_template_logs_error(self):
 		orig_val = frappe.db.get_single_value("Artem Setting", "attendance_lock_notification_template")
@@ -198,7 +198,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 				"attendance_lock_notification_template",
 				"Nonexistent Fake Template Name 123",
 			)
-			frappe.db.commit() # nosemgrep
+			frappe.db.commit()  # nosemgrep
 
 			res = send_monthly_attendance_lock_reminder(target_date="2026-10-24", force=True)
 			self.assertEqual(res.get("status"), "error")
@@ -212,13 +212,13 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 			self.cleanup_records.append(("Error Log", err_log[0].name))
 		finally:
 			frappe.db.set_single_value("Artem Setting", "attendance_lock_notification_template", orig_val)
-			frappe.db.commit() # nosemgrep
+			frappe.db.commit()  # nosemgrep
 
 	def test_missing_reminder_day_configuration_logs_error(self):
 		orig_val = frappe.db.get_single_value("Artem Setting", "attendance_lock_reminder_day")
 		try:
 			frappe.db.set_single_value("Artem Setting", "attendance_lock_reminder_day", "")
-			frappe.db.commit() # nosemgrep
+			frappe.db.commit()  # nosemgrep
 
 			res = send_monthly_attendance_lock_reminder(target_date="2026-10-24", force=True)
 			self.assertEqual(res.get("status"), "error")
@@ -233,4 +233,4 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 			self.cleanup_records.append(("Error Log", err_log[0].name))
 		finally:
 			frappe.db.set_single_value("Artem Setting", "attendance_lock_reminder_day", orig_val)
-			frappe.db.commit() # nosemgrep
+			frappe.db.commit()  # nosemgrep
