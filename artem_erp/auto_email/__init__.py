@@ -9,6 +9,9 @@ from artem_erp.auto_email.birthday_and_work_anniversary import (
 	send_birthday_wishes,
 	send_work_anniversary_wishes,
 )
+from artem_erp.auto_email.monthly_attendance_lock_email import (
+	send_monthly_attendance_lock_reminder,
+)
 from artem_erp.auto_email.team_availability_email import (
 	send_daily_team_availability_notifications,
 )
@@ -38,5 +41,6 @@ __all__ = [
 	"send_birthday_and_anniversary_wishes",
 	"send_birthday_wishes",
 	"send_daily_team_availability_notifications",
+	"send_monthly_attendance_lock_reminder",
 	"send_work_anniversary_wishes",
 ]
