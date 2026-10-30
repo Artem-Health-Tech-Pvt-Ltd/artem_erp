@@ -13,7 +13,7 @@ CUSTOM_FIELDS = {
 			"label": "Aadhaar Number",
 			"fieldtype": "Data",
 			"insert_after": "provident_fund_account",
-			"reqd": 1,
+			# "reqd": 1,
 			"length": 12,
 			"default": "",
 			"unique": 1,
