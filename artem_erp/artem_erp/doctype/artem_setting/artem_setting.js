@@ -6,8 +6,7 @@ frappe.ui.form.on("Artem Setting", {
 		if (frm.doc.attendance_lock_reminder_day) {
 			let day = cint(frm.doc.attendance_lock_reminder_day);
 			if (day < 1 || day > 31) {
-				frappe.msgprint(__("Attendance Lock Reminder Day must be between 1 and 31."));
-				frappe.validated = false;
+				frappe.throw(__("Attendance Lock Reminder Day must be between 1 and 31."));
 			}
 		}
 	},
@@ -15,8 +14,8 @@ frappe.ui.form.on("Artem Setting", {
 		if (frm.doc.attendance_lock_reminder_day) {
 			let day = cint(frm.doc.attendance_lock_reminder_day);
 			if (day < 1 || day > 31) {
-				frappe.msgprint(__("Attendance Lock Reminder Day must be between 1 and 31."));
 				frm.set_value("attendance_lock_reminder_day", "");
+				frappe.msgprint(__("Attendance Lock Reminder Day must be between 1 and 31."));
 			}
 		}
 	},

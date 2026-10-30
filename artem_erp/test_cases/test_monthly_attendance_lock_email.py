@@ -7,7 +7,6 @@ from frappe.tests import IntegrationTestCase
 from artem_erp.auto_email.monthly_attendance_lock_email import (
 	create_attendance_lock_notification_logs,
 	get_company_team_recipients,
-	get_hr_manager_cc_recipients,
 	is_attendance_lock_reminder_already_sent,
 	send_monthly_attendance_lock_reminder,
 )
@@ -43,18 +42,6 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 		self.assertGreater(len(recipients), 0)
 		for email in recipients:
 			self.assertIn("@", email)
-
-	def test_get_hr_manager_cc_recipients(self):
-		cc_recipients, hr_users = get_hr_manager_cc_recipients()
-		self.assertIsInstance(cc_recipients, list)
-		self.assertIsInstance(hr_users, list)
-		self.assertGreater(len(cc_recipients), 0)
-		self.assertGreater(len(hr_users), 0)
-
-		# Ensure exclusion works
-		excluded_email = cc_recipients[0]
-		filtered_cc, _ = get_hr_manager_cc_recipients(exclude_emails=[excluded_email])
-		self.assertNotIn(excluded_email, filtered_cc)
 
 	def test_skip_when_not_configured_day(self):
 		# Default reminder day is 24. Run for 23rd of month without force -> should skip
@@ -126,6 +113,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 		self.assertEqual(comm_doc.reference_doctype, "Email Template")
 		self.assertEqual(comm_doc.reference_name, template_name)
 		self.assertIn("Reminder", comm_doc.subject)
+		self.assertFalse(comm_doc.cc)
 
 		# Verify Notification Log was created
 		logs = frappe.get_all(
@@ -159,7 +147,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 		logs = create_attendance_lock_notification_logs(
 			subject="Test Lock Reminder",
 			message="<p>Test body</p>",
-			hr_users=test_users,
+			recipients=test_users,
 		)
 		self.assertEqual(len(logs), 1)
 		self.cleanup_records.append(("Notification Log", logs[0]))

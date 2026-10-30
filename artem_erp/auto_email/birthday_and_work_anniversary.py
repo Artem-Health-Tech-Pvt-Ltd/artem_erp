@@ -184,11 +184,11 @@ def is_already_sent_today(
 def record_email_communication(
 	emp_id: str,
 	recipient_email: str,
-	cc_recipients: list[str],
 	subject: str,
 	message: str,
 	template_name: str,
-	target_date,
+	target_date=None,
+	cc_recipients: list[str] | None = None,
 ):
 	"""
 	Create a permanent Communication record for the sent email to prevent duplicate sends
@@ -422,7 +422,7 @@ def send_birthday_wishes(date=None) -> dict:
 def send_work_anniversary_wishes(date=None) -> dict:
 	"""
 	Send work anniversary wishes to employees celebrating work anniversaries on the given date (default today).
-	Emails are sent to the employee with configured company team in CC.
+	Emails are sent only to the employee whose work anniversary falls on that particular day (no CC).
 	Subject and body are fetched dynamically from the Email Template configured in Artem Setting.
 	Generates Error Log for any missing template, email, or configuration.
 	Ensures only one work anniversary email is sent per employee per day.
@@ -478,19 +478,6 @@ def send_work_anniversary_wishes(date=None) -> dict:
 			reference_name=template_name,
 		)
 		return {"sent": 0, "skipped": 0, "errors": 1, "message": f"Could not load template '{template_name}'"}
-
-	# Retrieve CC recipients
-	cc_recipients = get_configured_cc(artem_setting)
-	if not cc_recipients:
-		frappe.log_error(
-			title="Company Team CC Emails Missing in Artem Setting",
-			message=(
-				"Required configuration 'Company Team CC Emails' is missing or not configured "
-				"in Artem Setting under Auto Email Configuration. Work anniversary emails must include company team in CC."
-			),
-			reference_doctype="Artem Setting",
-			reference_name="Artem Setting",
-		)
 
 	employees = get_work_anniversary_employees(target_date)
 	sent_count = 0
@@ -575,19 +562,6 @@ def send_work_anniversary_wishes(date=None) -> dict:
 			)
 			continue
 
-		# Exclude celebrating employee's emails from CC list so they never appear in CC
-		clean_recip = recipient_email.lower().strip()
-		emp_all_emails = {
-			clean_recip,
-			(emp.get("company_email") or "").lower().strip(),
-			(emp.get("personal_email") or "").lower().strip(),
-			(emp.get("user_id") or "").lower().strip(),
-			(emp.get("prefered_email") or "").lower().strip(),
-		}
-		emp_all_emails.discard("")
-
-		filtered_ccs = [cc for cc in cc_recipients if clean_email(cc) not in emp_all_emails]
-
 		formatted_recipient = f'"{emp_name}" <{recipient_email}>' if emp_name else recipient_email
 
 		comm_name = None
@@ -595,7 +569,6 @@ def send_work_anniversary_wishes(date=None) -> dict:
 			comm_name = record_email_communication(
 				emp_id=emp_id,
 				recipient_email=formatted_recipient,
-				cc_recipients=filtered_ccs,
 				subject=rendered_subject,
 				message=rendered_message,
 				template_name=template_name,
@@ -604,7 +577,6 @@ def send_work_anniversary_wishes(date=None) -> dict:
 
 			frappe.sendmail(
 				recipients=[formatted_recipient],
-				cc=filtered_ccs,
 				expose_recipients="header",
 				subject=rendered_subject,
 				message=rendered_message,

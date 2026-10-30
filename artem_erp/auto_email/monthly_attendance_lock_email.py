@@ -8,7 +8,6 @@ from artem_erp.auto_email.utils import (
 	clean_email,
 	get_artem_settings,
 	get_configured_cc,
-	get_employee_recipient_email,
 )
 
 
@@ -21,88 +20,6 @@ def get_company_team_recipients(settings) -> list[str]:
 	if not settings:
 		return []
 	return get_configured_cc(settings)
-
-
-def get_hr_manager_cc_recipients(
-	exclude_emails: list[str] | set[str] | None = None,
-) -> tuple[list[str], list[str]]:
-	"""
-	Find email addresses of employees and users with the 'HR Manager' role.
-	Only considers prefered_email or company_email for Employee records.
-
-	Returns:
-	        (cc_emails, active_hr_users)
-	"""
-	excluded = set()
-	if exclude_emails:
-		for e in exclude_emails:
-			c = clean_email(e)
-			if c:
-				excluded.add(c)
-
-	# 1. Fetch all users with role 'HR Manager'
-	hr_users = frappe.get_all(
-		"Has Role",
-		filters={"role": "HR Manager", "parenttype": "User"},
-		pluck="parent",
-	)
-	if not hr_users:
-		return [], []
-
-	# 2. Get active users among them
-	active_users = frappe.get_all(
-		"User",
-		filters={"name": ["in", hr_users], "enabled": 1},
-		fields=["name", "email", "full_name"],
-	)
-
-	# Users who should receive the in-app Notification Log
-	notification_users = [u.name for u in active_users]
-
-	active_user_map = {u.name: u for u in active_users if u.name.lower() != "administrator"}
-
-	# 3. Check active employees matching user_id in active_user_map or designation 'HR Manager'
-	active_employees = frappe.get_all(
-		"Employee",
-		filters={"status": "Active"},
-		fields=[
-			"name",
-			"employee_name",
-			"user_id",
-			"prefered_email",
-			"company_email",
-			"designation",
-		],
-	)
-
-	cc_emails: list[str] = []
-	seen = set()
-	matched_user_ids = set()
-
-	for emp in active_employees:
-		is_hr_role = emp.user_id in active_user_map
-		is_hr_desig = (emp.designation or "").strip().lower() == "hr manager"
-		if is_hr_role or is_hr_desig:
-			email = get_employee_recipient_email(emp)
-			if email:
-				c = clean_email(email)
-				if c and c not in seen and c not in excluded:
-					seen.add(c)
-					name = (emp.employee_name or "").strip()
-					cc_emails.append(f'"{name}" <{c}>' if name else c)
-			if emp.user_id:
-				matched_user_ids.add(emp.user_id)
-
-	# Fallback for active HR Manager users who do not have an active Employee record with email
-	for u_id, u_doc in active_user_map.items():
-		if u_id not in matched_user_ids:
-			c = clean_email(u_doc.email or u_id)
-			if c and c not in seen and c not in excluded and "@" in c:
-				seen.add(c)
-				name = (u_doc.full_name or u_doc.name or "").strip()
-				cc_emails.append(f'"{name}" <{c}>' if name else c)
-
-	return cc_emails, notification_users
 
 
 def is_attendance_lock_reminder_already_sent(current_date, template_name: str | None = None) -> bool:
@@ -124,15 +41,32 @@ def is_attendance_lock_reminder_already_sent(current_date, template_name: str | 
 
 
 def create_attendance_lock_notification_logs(
-	subject: str, message: str, hr_users: list[str], template_name: str | None = None
+	subject: str, message: str, recipients: list[str], template_name: str | None = None
 ) -> list[str]:
 	"""
-	Create a Notification Log entry for HR Manager users after sending the reminder successfully.
+	Create Notification Log entries for recipient users after sending the reminder successfully.
 	"""
+	if not recipients:
+		return []
+
+	clean_recipients = [clean_email(r) for r in recipients if clean_email(r)]
+	if not clean_recipients:
+		return []
+
+	users = frappe.get_all(
+		"User",
+		filters={"name": ["in", clean_recipients], "enabled": 1},
+		pluck="name",
+	)
+	by_email = frappe.get_all(
+		"User",
+		filters={"email": ["in", clean_recipients], "enabled": 1},
+		pluck="name",
+	)
+	recipient_users = list(dict.fromkeys(users + by_email))
+
 	created_logs: list[str] = []
-	for user in hr_users:
-		if not user or not frappe.db.exists("User", user):
-			continue
+	for user in recipient_users:
 		try:
 			doc = frappe.new_doc("Notification Log")
 			doc.type = "Alert"
@@ -162,7 +96,6 @@ def send_monthly_attendance_lock_reminder(target_date=None, force: bool = False)
 	- Send email using the template linked in Artem Settings (attendance_lock_notification_template).
 	- Reminder day fetched dynamically from Artem Setting (attendance_lock_reminder_day).
 	- Recipients (To): Email groups configured in Artem Setting.company_team_emails.
-	- CC: Active employees/users who have the role of HR Manager (prefered_email or company_email).
 	- Log errors if template or email configuration is missing.
 	- Create a Notification Log entry after sending the reminder successfully.
 	"""
@@ -283,17 +216,7 @@ def send_monthly_attendance_lock_reminder(target_date=None, force: bool = False)
 			"message": "No recipients resolved from Artem Setting company_team_emails",
 		}
 
-	# 4. Fetch CC recipients (HR Managers)
-	cc_recipients, hr_users = get_hr_manager_cc_recipients(exclude_emails=to_recipients)
-	if not cc_recipients:
-		frappe.log_error(
-			title="Monthly Attendance Lock Reminder: HR Manager Not Found",
-			message="No HR Manager users or employees found with valid prefered_email or company_email.",
-			reference_doctype="Artem Setting",
-			reference_name="Artem Setting",
-		)
-
-	# 5. Render Subject and Message dynamically
+	# 4. Render Subject and Message dynamically
 	context = {
 		"month_name": current_date.strftime("%B"),
 		"year": current_date.year,
@@ -316,7 +239,7 @@ def send_monthly_attendance_lock_reminder(target_date=None, force: bool = False)
 		)
 		return {"status": "error", "message": f"Failed to render template: {e}"}
 
-	# 6. Send Email and create Communication record
+	# 5. Send Email and create Communication record (Only Recipients, No CC)
 	comm_name = None
 	try:
 		comm = frappe.new_doc("Communication")
@@ -328,7 +251,6 @@ def send_monthly_attendance_lock_reminder(target_date=None, force: bool = False)
 				"subject": subject,
 				"content": message,
 				"recipients": ", ".join(to_recipients),
-				"cc": ", ".join(cc_recipients) if cc_recipients else None,
 				"email_template": template_name,
 				"communication_date": current_date,
 				"reference_doctype": "Email Template",
@@ -340,7 +262,6 @@ def send_monthly_attendance_lock_reminder(target_date=None, force: bool = False)
 
 		frappe.sendmail(
 			recipients=to_recipients,
-			cc=cc_recipients,
 			expose_recipients="header",
 			subject=subject,
 			message=message,
@@ -362,15 +283,14 @@ def send_monthly_attendance_lock_reminder(target_date=None, force: bool = False)
 		)
 		return {"status": "error", "message": f"Email sending failed: {e}"}
 
-	# 7. Create Notification Log entry after sending reminder successfully
+	# 6. Create Notification Log entry after sending reminder successfully
 	notification_logs = create_attendance_lock_notification_logs(
-		subject, message, hr_users, template_name=template_name
+		subject, message, to_recipients, template_name=template_name
 	)
 
 	return {
 		"status": "success",
 		"recipients_count": len(to_recipients),
-		"cc_count": len(cc_recipients),
 		"notification_logs_count": len(notification_logs),
 		"communication": comm_name,
 	}
