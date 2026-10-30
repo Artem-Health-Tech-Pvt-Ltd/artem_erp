@@ -8,6 +8,7 @@ from artem_erp.auto_email.birthday_and_work_anniversary import (
 	get_birthday_employees,
 	get_work_anniversary_employees,
 	send_birthday_wishes,
+	send_work_anniversary_wishes,
 )
 from artem_erp.auto_email.utils import (
 	get_employee_recipient_email,
@@ -20,6 +21,8 @@ class TestBirthdayAnniversary(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.set_value("Employee", "12079883", "date_of_joining", "2024-08-12")
 		frappe.db.set_value("Employee", "12079883", "date_of_birth", "2004-05-30")
+		frappe.db.delete("Communication", {"reference_name": "12079883"})
+		frappe.db.delete("Email Queue", {"reference_name": "12079883"})
 
 	def test_get_ordinal(self):
 		self.assertEqual(get_ordinal(1), "1st")
@@ -88,10 +91,37 @@ class TestBirthdayAnniversary(IntegrationTestCase):
 		employee_ids = [e["name"] for e in employees]
 		self.assertIn("12079883", employee_ids)
 
-		# Current year joining should NOT be included as an anniversary
+		# Current year joining should NOT be included as an anniversary (0 completed years)
 		employees_joining_year = get_work_anniversary_employees("2024-08-12")
 		employee_ids_joining_year = [e["name"] for e in employees_joining_year]
 		self.assertNotIn("12079883", employee_ids_joining_year)
+
+	def test_work_anniversary_email_sent_only_to_employee_without_cc(self):
+		target_date = "2026-08-12"
+		frappe.db.set_value("Email Account", "Jobs", "default_outgoing", 1)
+		frappe.db.set_value("Email Account", "Jobs", "enable_outgoing", 1)
+		frappe.db.set_value("Employee", "12079883", "prefered_email", "rohan.test@artemhealthtech.com")
+		frappe.db.set_single_value("Artem Setting", "company_team_emails", "team@artemhealthtech.com")
+
+		# Clear communications for test employee
+		frappe.db.delete("Communication", {"reference_name": "12079883"})
+		frappe.db.delete("Email Queue", {"reference_name": "12079883"})
+
+		res = send_work_anniversary_wishes(target_date)
+		self.assertGreaterEqual(res["sent"], 1)
+
+		comm = frappe.db.get_value(
+			"Communication",
+			{"reference_name": "12079883", "email_template": "Employee Work Anniversary"},
+			["name", "recipients", "cc"],
+			as_dict=True,
+		)
+		self.assertIsNotNone(comm)
+		# Sent ONLY to the celebrating employee
+		self.assertIn("rohan.test@artemhealthtech.com", comm.recipients)
+		self.assertNotIn("team@artemhealthtech.com", comm.recipients)
+		# Ensure NO CC recipients are set
+		self.assertEqual(comm.cc or "", "")
 
 	def test_duplicate_prevention_and_error_logging(self):
 		target_date = "2026-05-30"
@@ -143,11 +173,24 @@ class TestBirthdayAnniversary(IntegrationTestCase):
 			comms = frappe.get_all(
 				"Communication",
 				filters={"reference_name": "12079883"},
-				fields=["subject", "email_template"],
+				fields=["subject", "email_template", "recipients", "cc"],
 			)
 			self.assertEqual(len(comms), 2)
 			templates_used = [c.email_template for c in comms]
 			self.assertIn("Employee Birthday", templates_used)
 			self.assertIn("Employee Work Anniversary", templates_used)
+
+			bday_comm = next(c for c in comms if c.email_template == "Employee Birthday")
+			anniv_comm = next(c for c in comms if c.email_template == "Employee Work Anniversary")
+
+			# Birthday email includes company team in CC
+			self.assertTrue(bool(bday_comm.cc))
+
+			# Work anniversary email is sent ONLY to celebrating employee (no CC)
+			self.assertEqual(anniv_comm.cc or "", "")
+			self.assertIn("rohan.test@artemhealthtech.com", anniv_comm.recipients)
+			self.assertNotIn("team@artemhealthtech.com", anniv_comm.recipients)
 		finally:
 			frappe.db.set_value("Employee", "12079883", "date_of_joining", "2024-08-12")
+			frappe.db.delete("Communication", {"reference_name": "12079883"})
+			frappe.db.delete("Email Queue", {"reference_name": "12079883"})
