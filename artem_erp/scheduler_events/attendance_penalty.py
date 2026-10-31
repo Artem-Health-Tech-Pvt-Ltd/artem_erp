@@ -181,13 +181,14 @@ def get_attendance_shift(att):
 				continue
 			return sa.shift_type
 
-	shift_type = frappe.db.get_value(
-		"Shift Assignment",
-		{"employee": emp_id, "status": "Active", "docstatus": 1},
-		"shift_type",
-	)
-	if shift_type:
-		return shift_type
+	if not att_date:
+		shift_type = frappe.db.get_value(
+			"Shift Assignment",
+			{"employee": emp_id, "status": "Active", "docstatus": 1},
+			"shift_type",
+		)
+		if shift_type:
+			return shift_type
 
 	return frappe.db.get_value("Employee", emp_id, "default_shift")
 
