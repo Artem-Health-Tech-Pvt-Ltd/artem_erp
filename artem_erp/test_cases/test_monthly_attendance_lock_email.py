@@ -14,29 +14,155 @@ from artem_erp.auto_email.utils import get_artem_settings
 
 
 class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.class_cleanup_records = []
+		cls.test_email_group = "_Test Monthly Lock Email Group"
+		cls.test_user_email = "test.lock.user@artemhealthtech.com"
+		cls.test_member_email = "test.lock.member@artemhealthtech.com"
+		cls.template_name = "Attendance Regularization & Monthly Attendance Lock Reminder"
+
+		# Outgoing email account
+		if frappe.db.exists("Email Account", "Artem HealthTech"):
+			frappe.db.set_value("Email Account", "Artem HealthTech", "default_outgoing", 1)
+			frappe.db.set_value("Email Account", "Artem HealthTech", "enable_outgoing", 1)
+		elif frappe.db.exists("Email Account", "Jobs"):
+			frappe.db.set_value("Email Account", "Jobs", "default_outgoing", 1)
+			frappe.db.set_value("Email Account", "Jobs", "enable_outgoing", 1)
+		elif not frappe.db.exists("Email Account", {"default_outgoing": 1}):
+			accounts = frappe.get_all("Email Account", limit=1)
+			if accounts:
+				frappe.db.set_value("Email Account", accounts[0].name, "default_outgoing", 1)
+				frappe.db.set_value("Email Account", accounts[0].name, "enable_outgoing", 1)
+
+		# Ensure reminder Email Template fixture exists
+		if not frappe.db.exists("Email Template", cls.template_name):
+			tpl = frappe.get_doc(
+				{
+					"doctype": "Email Template",
+					"name": cls.template_name,
+					"subject": "Monthly Attendance Lock Reminder - {{ month_name }} {{ year }}",
+					"response": "<p>Dear Team, please regularize your attendance for {{ month_name }} {{ year }}.</p>",
+				}
+			).insert(ignore_permissions=True)
+			cls.class_cleanup_records.append(("Email Template", tpl.name))
+
+		# Ensure test User fixture exists for notification logs
+		if not frappe.db.exists("User", cls.test_user_email):
+			usr = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": cls.test_user_email,
+					"first_name": "Test",
+					"last_name": "Lock User",
+					"enabled": 1,
+					"send_welcome_email": 0,
+				}
+			).insert(ignore_permissions=True)
+			cls.class_cleanup_records.append(("User", usr.name))
+
+		# Ensure test Email Group fixture exists
+		if not frappe.db.exists("Email Group", cls.test_email_group):
+			eg = frappe.get_doc(
+				{
+					"doctype": "Email Group",
+					"title": cls.test_email_group,
+				}
+			).insert(ignore_permissions=True)
+			cls.class_cleanup_records.append(("Email Group", eg.name))
+
+		# Ensure test Email Group Member fixtures exist
+		for m_email in [cls.test_member_email, cls.test_user_email]:
+			if not frappe.db.exists(
+				"Email Group Member", {"email_group": cls.test_email_group, "email": m_email}
+			):
+				egm = frappe.get_doc(
+					{
+						"doctype": "Email Group Member",
+						"email_group": cls.test_email_group,
+						"email": m_email,
+						"unsubscribed": 0,
+					}
+				).insert(ignore_permissions=True)
+				cls.class_cleanup_records.append(("Email Group Member", egm.name))
+
+		# Configure Artem Setting
+		cls.orig_reminder_day = frappe.db.get_single_value("Artem Setting", "attendance_lock_reminder_day")
+		cls.orig_template = frappe.db.get_single_value(
+			"Artem Setting", "attendance_lock_notification_template"
+		)
+
+		setting = frappe.get_single("Artem Setting")
+		setting.attendance_lock_reminder_day = 24
+		setting.attendance_lock_notification_template = cls.template_name
+		existing_groups = [
+			row.email_group
+			for row in setting.get("company_team_emails", [])
+			if getattr(row, "email_group", None)
+		]
+		if cls.test_email_group not in existing_groups:
+			setting.append("company_team_emails", {"email_group": cls.test_email_group})
+			cls.added_group_to_setting = True
+		else:
+			cls.added_group_to_setting = False
+		setting.save(ignore_permissions=True)
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		# Revert Artem Setting
+		try:
+			setting = frappe.get_single("Artem Setting")
+			setting.attendance_lock_reminder_day = cls.orig_reminder_day or 24
+			setting.attendance_lock_notification_template = cls.orig_template or ""
+			if getattr(cls, "added_group_to_setting", False):
+				setting.company_team_emails = [
+					row
+					for row in setting.get("company_team_emails", [])
+					if getattr(row, "email_group", None) != cls.test_email_group
+				]
+			setting.save(ignore_permissions=True)
+		except Exception:
+			pass
+
+		# Clean up fixtures in reverse order
+		for doctype, name in reversed(cls.class_cleanup_records):
+			try:
+				if frappe.db.exists(doctype, name):
+					frappe.db.delete(doctype, {"name": name})
+			except Exception:
+				pass
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
 	def setUp(self):
 		super().setUp()
 		self.cleanup_records = []
-		original_day = frappe.db.get_single_value("Artem Setting", "attendance_lock_reminder_day")
-		original_account = frappe.db.get_value(
-			"Email Account",
-			"Artem HealthTech",
-			["default_outgoing", "enable_outgoing"],
-			as_dict=True,
+		frappe.db.set_single_value("Artem Setting", "attendance_lock_reminder_day", 24)
+		frappe.db.set_single_value(
+			"Artem Setting", "attendance_lock_notification_template", self.template_name
 		)
 
-		def restore_settings():
-			frappe.db.set_single_value("Artem Setting", "attendance_lock_reminder_day", original_day)
-			if original_account is not None:
-				frappe.db.set_value("Email Account", "Artem HealthTech", dict(original_account))
-			frappe.db.commit()  # nosemgrep
+		# Clean up any test communications / notification logs for test months
+		for date_range in [
+			["2026-05-01", "2026-05-31"],
+			["2026-06-01", "2026-06-30"],
+			["2026-10-01", "2026-10-31"],
+		]:
+			comms = frappe.get_all(
+				"Communication",
+				filters={
+					"reference_doctype": "Email Template",
+					"reference_name": self.template_name,
+					"communication_date": ["between", date_range],
+				},
+				pluck="name",
+			)
+			for c in comms:
+				frappe.db.delete("Communication", {"name": c})
 
-		self.addCleanup(restore_settings)
-		frappe.db.set_single_value("Artem Setting", "attendance_lock_reminder_day", 24)
-		if original_account is not None:
-			frappe.db.set_value("Email Account", "Artem HealthTech", "default_outgoing", 1)
-			frappe.db.set_value("Email Account", "Artem HealthTech", "enable_outgoing", 1)
-			frappe.db.commit()  # nosemgrep
+		frappe.db.commit()  # nosemgrep
 
 	def tearDown(self):
 		for doctype, name in self.cleanup_records:
@@ -55,6 +181,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 		recipients = get_company_team_recipients(settings)
 		self.assertIsInstance(recipients, list)
 		self.assertGreater(len(recipients), 0)
+		self.assertIn(self.test_member_email, [r.lower() for r in recipients])
 		for email in recipients:
 			self.assertIn("@", email)
 
@@ -158,7 +285,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 			self.cleanup_records.append(("Communication", res3.get("communication")))
 
 	def test_create_attendance_lock_notification_logs(self):
-		test_users = ["anjupatoliya314@gmail.com"]
+		test_users = [self.test_user_email]
 		logs = create_attendance_lock_notification_logs(
 			subject="Test Lock Reminder",
 			message="<p>Test body</p>",
@@ -168,7 +295,7 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 		self.cleanup_records.append(("Notification Log", logs[0]))
 
 		doc = frappe.get_doc("Notification Log", logs[0])
-		self.assertEqual(doc.for_user, "anjupatoliya314@gmail.com")
+		self.assertEqual(doc.for_user, self.test_user_email)
 		self.assertEqual(doc.type, "Alert")
 		self.assertEqual(doc.subject, "Test Lock Reminder")
 

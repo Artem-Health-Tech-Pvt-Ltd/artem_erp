@@ -18,11 +18,104 @@ from artem_erp.auto_email.utils import (
 
 
 class TestBirthdayAnniversary(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.set_value("Employee", "12079883", "date_of_joining", "2024-08-12")
-		frappe.db.set_value("Employee", "12079883", "date_of_birth", "2004-05-30")
-		frappe.db.delete("Communication", {"reference_name": "12079883"})
-		frappe.db.delete("Email Queue", {"reference_name": "12079883"})
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.cleanup_records = []
+
+		# Outgoing email account
+		if frappe.db.exists("Email Account", "Jobs"):
+			frappe.db.set_value("Email Account", "Jobs", "default_outgoing", 1)
+			frappe.db.set_value("Email Account", "Jobs", "enable_outgoing", 1)
+		elif frappe.db.exists("Email Account", {"default_outgoing": 1}):
+			pass
+		else:
+			accounts = frappe.get_all("Email Account", limit=1)
+			if accounts:
+				frappe.db.set_value("Email Account", accounts[0].name, "default_outgoing", 1)
+				frappe.db.set_value("Email Account", accounts[0].name, "enable_outgoing", 1)
+
+		# Ensure birthday and anniversary templates exist
+		for t_name in ["Employee Birthday", "Employee Work Anniversary"]:
+			if not frappe.db.exists("Email Template", t_name):
+				tpl = frappe.get_doc(
+					{
+						"doctype": "Email Template",
+						"name": t_name,
+						"subject": f"Happy {t_name}, {{{{ employee_name }}}}!",
+						"response": f"<p>Happy {t_name}, {{{{ employee_name }}}}!</p>",
+					}
+				).insert(ignore_permissions=True)
+				cls.cleanup_records.append(("Email Template", tpl.name))
+
+		frappe.db.set_single_value("Artem Setting", "employee_birthday_email_template", "Employee Birthday")
+		frappe.db.set_single_value(
+			"Artem Setting", "employee_work_anniversary_email_template", "Employee Work Anniversary"
+		)
+		frappe.db.set_single_value("Artem Setting", "company_team_emails", "team@artemhealthtech.com")
+
+		# Create a test-owned employee fixture
+		company = (
+			frappe.defaults.get_user_default("company")
+			or frappe.db.get_value("Company", {}, "name")
+			or "Pearl Group"
+		)
+		holiday_list = frappe.db.get_value("Holiday List", {}, "name")
+		cls.test_email = "test.birthday@artemhealthtech.com"
+		cls.test_dob = "2000-05-30"
+		cls.test_doj = "2020-08-12"
+
+		# Clean up any leftover test employee from prior interrupted runs
+		for old_emp in frappe.get_all("Employee", filters={"company_email": cls.test_email}, pluck="name"):
+			frappe.db.delete("Communication", {"reference_name": old_emp})
+			frappe.db.delete("Employee", {"name": old_emp})
+		frappe.db.commit()  # nosemgrep
+
+		emp = frappe.get_doc(
+			{
+				"doctype": "Employee",
+				"first_name": "_Test",
+				"last_name": "Birthday Employee",
+				"employee_name": "_Test Birthday Employee",
+				"gender": "Female",
+				"date_of_birth": cls.test_dob,
+				"date_of_joining": cls.test_doj,
+				"status": "Active",
+				"company": company,
+				"holiday_list": holiday_list,
+				"prefered_email": cls.test_email,
+				"company_email": cls.test_email,
+				"person_to_be_contacted": "Emergency Contact",
+				"emergency_phone_number": "9999999999",
+				"relation": "Other",
+				"salary_mode": "Bank",
+			}
+		)
+		emp.insert(ignore_permissions=True, ignore_mandatory=True)
+		cls.test_emp_id = emp.name
+		cls.cleanup_records.append(("Employee", emp.name))
+
+	@classmethod
+	def tearDownClass(cls):
+		if hasattr(cls, "test_emp_id"):
+			frappe.db.delete("Communication", {"reference_name": cls.test_emp_id})
+			frappe.db.delete("Email Queue", {"reference_name": cls.test_emp_id})
+		for doctype, name in reversed(cls.cleanup_records):
+			try:
+				if frappe.db.exists(doctype, name):
+					frappe.db.delete(doctype, {"name": name})
+			except Exception:
+				pass
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def setUp(self):
+		super().setUp()
+		frappe.db.set_value("Employee", self.test_emp_id, "date_of_birth", self.test_dob)
+		frappe.db.set_value("Employee", self.test_emp_id, "date_of_joining", self.test_doj)
+		frappe.db.set_value("Employee", self.test_emp_id, "prefered_email", self.test_email)
+		frappe.db.delete("Communication", {"reference_name": self.test_emp_id})
+		frappe.db.delete("Email Queue", {"reference_name": self.test_emp_id})
 
 	def test_get_ordinal(self):
 		self.assertEqual(get_ordinal(1), "1st")
@@ -80,45 +173,39 @@ class TestBirthdayAnniversary(IntegrationTestCase):
 		self.assertIsNone(get_employee_recipient_email(emp3))
 
 	def test_birthday_query_matching(self):
-		# Rohan's DOB is 30-05-2004
+		# Target date matches test employee's DOB (May 30)
 		employees = get_birthday_employees("2026-05-30")
 		employee_ids = [e["name"] for e in employees]
-		self.assertIn("12079883", employee_ids)
+		self.assertIn(self.test_emp_id, employee_ids)
 
 	def test_work_anniversary_query_matching(self):
-		# Rohan's joining date is 12-08-2024
+		# Target date matches test employee's joining anniversary (Aug 12)
 		employees = get_work_anniversary_employees("2026-08-12")
 		employee_ids = [e["name"] for e in employees]
-		self.assertIn("12079883", employee_ids)
+		self.assertIn(self.test_emp_id, employee_ids)
 
 		# Current year joining should NOT be included as an anniversary (0 completed years)
-		employees_joining_year = get_work_anniversary_employees("2024-08-12")
+		employees_joining_year = get_work_anniversary_employees(self.test_doj)
 		employee_ids_joining_year = [e["name"] for e in employees_joining_year]
-		self.assertNotIn("12079883", employee_ids_joining_year)
+		self.assertNotIn(self.test_emp_id, employee_ids_joining_year)
 
 	def test_work_anniversary_email_sent_only_to_employee_without_cc(self):
 		target_date = "2026-08-12"
-		frappe.db.set_value("Email Account", "Jobs", "default_outgoing", 1)
-		frappe.db.set_value("Email Account", "Jobs", "enable_outgoing", 1)
-		frappe.db.set_value("Employee", "12079883", "prefered_email", "rohan.test@artemhealthtech.com")
-		frappe.db.set_single_value("Artem Setting", "company_team_emails", "team@artemhealthtech.com")
-
-		# Clear communications for test employee
-		frappe.db.delete("Communication", {"reference_name": "12079883"})
-		frappe.db.delete("Email Queue", {"reference_name": "12079883"})
+		frappe.db.delete("Communication", {"reference_name": self.test_emp_id})
+		frappe.db.delete("Email Queue", {"reference_name": self.test_emp_id})
 
 		res = send_work_anniversary_wishes(target_date)
 		self.assertGreaterEqual(res["sent"], 1)
 
 		comm = frappe.db.get_value(
 			"Communication",
-			{"reference_name": "12079883", "email_template": "Employee Work Anniversary"},
+			{"reference_name": self.test_emp_id, "email_template": "Employee Work Anniversary"},
 			["name", "recipients", "cc"],
 			as_dict=True,
 		)
 		self.assertIsNotNone(comm)
 		# Sent ONLY to the celebrating employee
-		self.assertIn("rohan.test@artemhealthtech.com", comm.recipients)
+		self.assertIn(self.test_email, comm.recipients)
 		self.assertNotIn("team@artemhealthtech.com", comm.recipients)
 		# Ensure NO CC recipients are set
 		self.assertEqual(comm.cc or "", "")
@@ -126,19 +213,16 @@ class TestBirthdayAnniversary(IntegrationTestCase):
 	def test_duplicate_prevention_and_error_logging(self):
 		target_date = "2026-05-30"
 		# Missing email logs error
-		frappe.db.set_value("Employee", "12079883", "company_email", "")
-		frappe.db.set_value("Employee", "12079883", "personal_email", "")
-		frappe.db.set_value("Employee", "12079883", "prefered_email", "")
-		frappe.db.set_value("Employee", "12079883", "user_id", "")
+		frappe.db.set_value("Employee", self.test_emp_id, "company_email", "")
+		frappe.db.set_value("Employee", self.test_emp_id, "personal_email", "")
+		frappe.db.set_value("Employee", self.test_emp_id, "prefered_email", "")
+		frappe.db.set_value("Employee", self.test_emp_id, "user_id", "")
 
 		res = send_birthday_wishes(target_date)
 		self.assertGreaterEqual(res["errors"], 1)
 
-		# Now configure valid email and CC
-		frappe.db.set_value("Email Account", "Jobs", "default_outgoing", 1)
-		frappe.db.set_value("Email Account", "Jobs", "enable_outgoing", 1)
-		frappe.db.set_value("Employee", "12079883", "prefered_email", "rohan.test@artemhealthtech.com")
-		frappe.db.set_single_value("Artem Setting", "company_team_emails", "team@artemhealthtech.com")
+		# Now configure valid email
+		frappe.db.set_value("Employee", self.test_emp_id, "prefered_email", self.test_email)
 
 		# First send
 		res1 = send_birthday_wishes(target_date)
@@ -151,17 +235,14 @@ class TestBirthdayAnniversary(IntegrationTestCase):
 
 	def test_separate_birthday_and_anniversary_sends(self):
 		target_date = "2026-05-30"
-		frappe.db.set_value("Email Account", "Jobs", "default_outgoing", 1)
-		frappe.db.set_value("Email Account", "Jobs", "enable_outgoing", 1)
-		frappe.db.set_value("Employee", "12079883", "prefered_email", "rohan.test@artemhealthtech.com")
 		try:
 			# Set joining date to match birthday date
-			frappe.db.set_value("Employee", "12079883", "date_of_joining", "2022-05-30")
-			frappe.db.set_single_value("Artem Setting", "company_team_emails", "team@artemhealthtech.com")
+			frappe.db.set_value("Employee", self.test_emp_id, "date_of_joining", "2020-05-30")
+			frappe.db.set_value("Employee", self.test_emp_id, "prefered_email", self.test_email)
 
 			# Clear communications for test employee
-			frappe.db.delete("Communication", {"reference_name": "12079883"})
-			frappe.db.delete("Email Queue", {"reference_name": "12079883"})
+			frappe.db.delete("Communication", {"reference_name": self.test_emp_id})
+			frappe.db.delete("Email Queue", {"reference_name": self.test_emp_id})
 
 			from artem_erp.auto_email import send_birthday_and_anniversary_wishes
 
@@ -172,7 +253,7 @@ class TestBirthdayAnniversary(IntegrationTestCase):
 
 			comms = frappe.get_all(
 				"Communication",
-				filters={"reference_name": "12079883"},
+				filters={"reference_name": self.test_emp_id},
 				fields=["subject", "email_template", "recipients", "cc"],
 			)
 			self.assertEqual(len(comms), 2)
@@ -188,9 +269,8 @@ class TestBirthdayAnniversary(IntegrationTestCase):
 
 			# Work anniversary email is sent ONLY to celebrating employee (no CC)
 			self.assertEqual(anniv_comm.cc or "", "")
-			self.assertIn("rohan.test@artemhealthtech.com", anniv_comm.recipients)
+			self.assertIn(self.test_email, anniv_comm.recipients)
 			self.assertNotIn("team@artemhealthtech.com", anniv_comm.recipients)
 		finally:
-			frappe.db.set_value("Employee", "12079883", "date_of_joining", "2024-08-12")
-			frappe.db.delete("Communication", {"reference_name": "12079883"})
-			frappe.db.delete("Email Queue", {"reference_name": "12079883"})
+			frappe.db.delete("Communication", {"reference_name": self.test_emp_id})
+			frappe.db.delete("Email Queue", {"reference_name": self.test_emp_id})

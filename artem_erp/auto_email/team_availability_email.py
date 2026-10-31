@@ -91,7 +91,11 @@ def get_employees_working_remotely(target_date) -> dict[str, dict]:
 			"from_date",
 			"to_date",
 			"half_day",
-			*(["workflow_state"] if frappe.get_meta("Attendance Request").has_field("workflow_state") else []),
+			*(
+				["workflow_state"]
+				if frappe.get_meta("Attendance Request").has_field("workflow_state")
+				else []
+			),
 			"docstatus",
 		],
 		order_by="from_date asc",
@@ -252,21 +256,29 @@ def is_department_notification_sent_today(
 				)
 				return True
 
-	# 2. Check Email Queue records
+	# 2. Check Email Queue records (currently queued / sending emails)
 	queues = frappe.get_all(
 		"Email Queue",
 		filters={
 			"reference_doctype": "Department",
 			"reference_name": department,
-			"creation": ["between", [f"{t_date} 00:00:00", f"{t_date} 23:59:59"]],
-			"status": ["!=", "Error"],
+			"status": ["in", ["Not Sent", "Sending"]],
 		},
-		fields=["name", "message"],
+		fields=["name", "message", "communication"],
 	)
 
+	formatted_date = t_date.strftime("%d %b, %Y")
+	date_str = str(t_date)
+
 	for q in queues:
+		comm_name = q.get("communication")
+		if comm_name:
+			comm_date = frappe.db.get_value("Communication", comm_name, "communication_date")
+			if comm_date and getdate(comm_date) != t_date:
+				continue
+
 		msg = (q.get("message") or "").lower()
-		if "availability" in msg:
+		if "availability" in msg and (formatted_date.lower() in msg or date_str in msg):
 			frappe.log_error(
 				title=f"Team Availability Notification Already Sent for {department}",
 				message=(
