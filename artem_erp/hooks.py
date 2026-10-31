@@ -168,7 +168,12 @@ doc_events = {
 		"validate": "artem_erp.doc_events.employee.validate_aadhaar_number",
 	},
 	"Attendance Request": {
-		"on_submit": "artem_erp.doc_events.attendance_request.remove_penalty_from_attendance",
+		"after_insert": "artem_erp.auto_email.attendance_request_email.on_attendance_request_created",
+		"on_update": "artem_erp.auto_email.attendance_request_email.on_attendance_request_updated",
+		"on_submit": [
+			"artem_erp.doc_events.attendance_request.remove_penalty_from_attendance",
+			"artem_erp.auto_email.attendance_request_email.on_attendance_request_submitted",
+		],
 	},
 	"Attendance": {
 		"validate": "artem_erp.doc_events.attendance.apply_partial_day_to_attendance",
@@ -190,6 +195,18 @@ scheduler_events = {
 		"artem_erp.scheduler_events.attendance_penalty.process_attendance_penalties",
 	],
 	"cron": {
+		# Daily: Run every day at 8:00 AM (0 8 * * *)
+		"0 8 * * *": [
+			"artem_erp.auto_email.team_availability_email.send_daily_team_availability_notifications",
+		],
+		#  Daily: Run every day at 9:30 AM (30 9 * * *)
+		"30 9 * * *": [
+			"artem_erp.auto_email.birthday_and_work_anniversary.send_birthday_and_anniversary_wishes",
+		],
+		# Daily: Run every day at 9:35 AM (35 9 * * *) to send monthly attendance lock reminder on configured day
+		"35 9 * * *": [
+			"artem_erp.auto_email.monthly_attendance_lock_email.send_monthly_attendance_lock_reminder",
+		],
 		# Monthly: Run on the 1st day of every month at 9:00 AM (0 9 1 * *)
 		"0 9 1 * *": [
 			"artem_erp.artem_erp.doctype.employee_additional_salary_payroll_review.monthly_weekly_payroll_review.create_monthly_payroll_reviews",
