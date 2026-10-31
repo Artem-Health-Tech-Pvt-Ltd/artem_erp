@@ -17,8 +17,23 @@ class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 	def setUp(self):
 		super().setUp()
 		self.cleanup_records = []
+		original_day = frappe.db.get_single_value("Artem Setting", "attendance_lock_reminder_day")
+		original_account = frappe.db.get_value(
+			"Email Account",
+			"Artem HealthTech",
+			["default_outgoing", "enable_outgoing"],
+			as_dict=True,
+		)
+
+		def restore_settings():
+			frappe.db.set_single_value("Artem Setting", "attendance_lock_reminder_day", original_day)
+			if original_account is not None:
+				frappe.db.set_value("Email Account", "Artem HealthTech", dict(original_account))
+			frappe.db.commit()  # nosemgrep
+
+		self.addCleanup(restore_settings)
 		frappe.db.set_single_value("Artem Setting", "attendance_lock_reminder_day", 24)
-		if frappe.db.exists("Email Account", "Artem HealthTech"):
+		if original_account is not None:
 			frappe.db.set_value("Email Account", "Artem HealthTech", "default_outgoing", 1)
 			frappe.db.set_value("Email Account", "Artem HealthTech", "enable_outgoing", 1)
 			frappe.db.commit()  # nosemgrep
