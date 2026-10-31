@@ -33,9 +33,34 @@ def get_required_working_hours(att) -> str:
 	emp_id = att.get("employee")
 	shift_name = att.get("shift")
 	if not shift_name and emp_id:
-		shift_name = frappe.db.get_value("Employee", emp_id, "default_shift") or frappe.db.get_value(
-			"Shift Assignment", {"employee": emp_id, "status": "Active"}, "shift_type"
-		)
+		att_date = att.get("attendance_date")
+		if att_date:
+			assignments = frappe.get_all(
+				"Shift Assignment",
+				filters={
+					"employee": emp_id,
+					"start_date": ["<=", getdate(att_date)],
+					"docstatus": 1,
+					"status": "Active",
+				},
+				fields=["shift_type", "end_date"],
+				order_by="start_date desc",
+			)
+			for sa in assignments:
+				if sa.end_date and getdate(sa.end_date) < getdate(att_date):
+					continue
+				shift_name = sa.shift_type
+				break
+
+		if not att_date:
+			shift_name = frappe.db.get_value(
+				"Shift Assignment",
+				{"employee": emp_id, "status": "Active", "docstatus": 1},
+				"shift_type",
+			)
+
+		if not shift_name:
+			shift_name = frappe.db.get_value("Employee", emp_id, "default_shift")
 
 	if shift_name:
 		try:

@@ -15,6 +15,93 @@ from artem_erp.auto_email.attendance_penalty_email import (
 
 
 class TestAttendancePenaltyEmail(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.cleanup_records = []
+
+		# Ensure default outgoing email account is enabled
+		if frappe.db.exists("Email Account", "Jobs"):
+			frappe.db.set_value("Email Account", "Jobs", "default_outgoing", 1)
+			frappe.db.set_value("Email Account", "Jobs", "enable_outgoing", 1)
+		elif frappe.db.exists("Email Account", {"default_outgoing": 1}):
+			pass
+		else:
+			accounts = frappe.get_all("Email Account", limit=1)
+			if accounts:
+				frappe.db.set_value("Email Account", accounts[0].name, "default_outgoing", 1)
+				frappe.db.set_value("Email Account", accounts[0].name, "enable_outgoing", 1)
+
+		# Ensure Email Template exists
+		template_name = "Employee Attendance Penalty Notification"
+		if not frappe.db.exists("Email Template", template_name):
+			tpl = frappe.get_doc(
+				{
+					"doctype": "Email Template",
+					"name": template_name,
+					"subject": "Apply Attendance Penalty On {{ date }}",
+					"response": "<p>Dear {{ employee_name }}, attendance penalty applied.</p>",
+				}
+			)
+			tpl.insert(ignore_permissions=True)
+			cls.cleanup_records.append(("Email Template", template_name))
+
+		# Configure Artem Setting with the penalty template
+		frappe.db.set_single_value(
+			"Artem Setting",
+			"employee_attendance_penalty_notification_email_template",
+			template_name,
+		)
+
+		# Create a test-owned employee with a valid recipient email
+		company = (
+			frappe.defaults.get_user_default("company")
+			or frappe.db.get_value("Company", {}, "name")
+			or "Pearl Group"
+		)
+		cls.test_email = "test.penalty@artemhealthtech.com"
+
+		# Clean up any leftover test employee from prior interrupted runs
+		for old_emp in frappe.get_all("Employee", filters={"company_email": cls.test_email}, pluck="name"):
+			frappe.db.delete("Attendance", {"employee": old_emp})
+			frappe.db.delete("Communication", {"reference_name": old_emp})
+			frappe.db.delete("Employee", {"name": old_emp})
+		frappe.db.commit()  # nosemgrep
+
+		emp = frappe.get_doc(
+			{
+				"doctype": "Employee",
+				"first_name": "_Test",
+				"last_name": "Penalty Employee",
+				"employee_name": "_Test Penalty Employee",
+				"gender": "Female",
+				"date_of_birth": "1995-01-01",
+				"date_of_joining": "2022-01-01",
+				"status": "Active",
+				"company": company,
+				"prefered_email": cls.test_email,
+				"company_email": cls.test_email,
+				"person_to_be_contacted": "Emergency Contact",
+				"emergency_phone_number": "9999999999",
+				"relation": "Other",
+				"salary_mode": "Bank",
+			}
+		)
+		emp.insert(ignore_permissions=True, ignore_mandatory=True)
+		cls.test_emp = emp.name
+		cls.cleanup_records.append(("Employee", cls.test_emp))
+
+	@classmethod
+	def tearDownClass(cls):
+		for doctype, name in reversed(cls.cleanup_records):
+			try:
+				if frappe.db.exists(doctype, name):
+					frappe.db.delete(doctype, {"name": name})
+			except Exception:
+				pass
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
 	def test_get_required_working_hours(self):
 		att1 = frappe._dict({"custom_adjusted_required_hours": 6.5})
 		self.assertEqual(get_required_working_hours(att1), "6.5 hrs")
@@ -30,6 +117,31 @@ class TestAttendancePenaltyEmail(IntegrationTestCase):
 
 		att5 = frappe._dict({"employee": "CON-002"})
 		self.assertEqual(get_required_working_hours(att5), "9.5 hrs")
+
+		# Verify date-aware Shift Assignment takes precedence over default_shift
+		frappe.db.set_value("Employee", self.test_emp, "default_shift", "Ahmedabad HO")
+		if frappe.db.exists("Shift Type", "Mumbai"):
+			sa = frappe.get_doc(
+				{
+					"doctype": "Shift Assignment",
+					"employee": self.test_emp,
+					"shift_type": "Mumbai",
+					"start_date": "2026-05-10",
+					"end_date": "2026-05-20",
+					"status": "Active",
+					"docstatus": 1,
+				}
+			)
+			sa.insert(ignore_permissions=True)
+			self.cleanup_records.append(("Shift Assignment", sa.name))
+
+			# Inside Shift Assignment date range -> returns Mumbai (9.0 hrs)
+			att_during_sa = frappe._dict({"employee": self.test_emp, "attendance_date": "2026-05-15"})
+			self.assertEqual(get_required_working_hours(att_during_sa), "9.0 hrs")
+
+			# Outside Shift Assignment date range -> falls back to default_shift Ahmedabad HO (9.5 hrs)
+			att_outside_sa = frappe._dict({"employee": self.test_emp, "attendance_date": "2026-06-01"})
+			self.assertEqual(get_required_working_hours(att_outside_sa), "9.5 hrs")
 
 	def test_get_missing_punches_label(self):
 		att_both_missing = frappe._dict({"in_time": None, "out_time": None, "working_hours": 0})
@@ -58,14 +170,13 @@ class TestAttendancePenaltyEmail(IntegrationTestCase):
 		self.assertEqual(get_penalty_leave_type(att2, penalty_status="Half Day"), "Half Day")
 
 	def test_send_attendance_penalty_email_and_duplicate_prevention(self):
-		# Create test attendance
+		# Create test attendance using test-owned employee fixture
 		test_date = "2026-05-15"
-		test_emp = "ETPL-CON-0001"
 
 		att = frappe.get_doc(
 			{
 				"doctype": "Attendance",
-				"employee": test_emp,
+				"employee": self.test_emp,
 				"attendance_date": test_date,
 				"status": "Absent",
 				"custom_penalty": 1,
@@ -92,7 +203,7 @@ class TestAttendancePenaltyEmail(IntegrationTestCase):
 			)
 			self.assertIsNotNone(comm)
 			self.assertIn("Attendance Penalty", comm.subject)
-			self.assertIn("anjali.patoliya@artemhealthtech.com", comm.recipients)
+			self.assertIn(self.test_email, comm.recipients)
 
 			# Second send: should detect duplicate and skip
 			res2 = send_attendance_penalty_email(
