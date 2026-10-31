@@ -91,7 +91,7 @@ def get_employees_working_remotely(target_date) -> dict[str, dict]:
 			"from_date",
 			"to_date",
 			"half_day",
-			"workflow_state",
+			*(["workflow_state"] if frappe.get_meta("Attendance Request").has_field("workflow_state") else []),
 			"docstatus",
 		],
 		order_by="from_date asc",
