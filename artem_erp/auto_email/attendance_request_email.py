@@ -243,6 +243,8 @@ def send_attendance_request_notification(doc, status: str, attach_to_timeline: b
 
 	# 2. Fetch Artem Settings and configured Email Template
 	settings = get_artem_settings()
+	if not settings:
+		return False
 	template_name = settings.get("attendance_request_notification_email_template")
 	if not template_name:
 		frappe.log_error(
