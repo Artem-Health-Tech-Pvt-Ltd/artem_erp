@@ -46,6 +46,7 @@ app_license = "mit"
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_js = {
 	"Shift Assignment": "public/js/shift_assignment.js",
+	"Attendance Request": "public/js/attendance_request.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -145,13 +146,12 @@ after_install = "artem_erp.install.after_install"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Attendance Request": {
+		"before_validate": "artem_erp.doc_events.attendance_request.validate_attendance_request",
+		"validate": "artem_erp.doc_events.attendance_request.validate_attendance_request",
+	},
+}
 
 # Scheduled Tasks
 # ---------------
