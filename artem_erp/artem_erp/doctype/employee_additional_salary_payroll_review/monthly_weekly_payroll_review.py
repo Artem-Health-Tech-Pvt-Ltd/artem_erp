@@ -104,7 +104,9 @@ def get_applicable_additional_salaries_for_month(company, start_date, end_date):
 				due_records.append(rec)
 			elif rec.to_date and start_date <= getdate(rec.to_date) <= end_date:
 				rec["payout_date"] = getdate(rec.to_date)
-				rec["amount"] = calculate_concluding_recurring_additional_salary_amount(rec, start_date, end_date)
+				rec["amount"] = calculate_concluding_recurring_additional_salary_amount(
+					rec, start_date, end_date
+				)
 				due_records.append(rec)
 
 	return due_records
@@ -136,9 +138,8 @@ def get_pending_additional_salaries_to_carry_forward(review_doc):
 
 	for pr_name in prior_review_names:
 		prior_review = frappe.get_doc("Employee Additional Salary Payroll Review", pr_name)
-		all_prior_rows = (
-			(prior_review.additional_salary_payment_details or [])
-			+ (prior_review.previous_pending_additional_salary or [])
+		all_prior_rows = (prior_review.additional_salary_payment_details or []) + (
+			prior_review.previous_pending_additional_salary or []
 		)
 
 		for row in all_prior_rows:
@@ -167,24 +168,26 @@ def get_pending_additional_salaries_to_carry_forward(review_doc):
 					remaining_amt = total_amt
 
 			if is_pending:
-				pending_items.append({
-					"additional_salary": row.additional_salary,
-					"employee": row.employee,
-					"employee_name": row.employee_name,
-					"bonus_type": row.bonus_type,
-					"previous_pay_action": pay_action,
-					"previous_additional_salary_total_amount": total_amt,
-					"previous_additional_salary_paid_percentage": paid_pct,
-					"previous_additional_salary_paid_amount": paid_amt,
-					"previous_additional_salary_remaining_amount": remaining_amt,
-					"total_amount": remaining_amt,
-					"remaining_amount": remaining_amt,
-					"paid_percentage": 0.0,
-					"paid_amount": 0.0,
-					"payout_date": row.payout_date,
-					"pay_action": pay_action,
-					"comment": row.comment,
-				})
+				pending_items.append(
+					{
+						"additional_salary": row.additional_salary,
+						"employee": row.employee,
+						"employee_name": row.employee_name,
+						"bonus_type": row.bonus_type,
+						"previous_pay_action": pay_action,
+						"previous_additional_salary_total_amount": total_amt,
+						"previous_additional_salary_paid_percentage": paid_pct,
+						"previous_additional_salary_paid_amount": paid_amt,
+						"previous_additional_salary_remaining_amount": remaining_amt,
+						"total_amount": remaining_amt,
+						"remaining_amount": remaining_amt,
+						"paid_percentage": 0.0,
+						"paid_amount": 0.0,
+						"payout_date": row.payout_date,
+						"pay_action": pay_action,
+						"comment": row.comment,
+					}
+				)
 
 			# Mark as processed so older reviews don't override or duplicate
 			processed_ads_keys.add((row.employee, row.additional_salary))
@@ -254,7 +257,9 @@ def sync_additional_salaries_for_review(review_doc):
 
 		rem_amt = flt(pend.get("remaining_amount", 0.0))
 		prev_total = flt(pend.get("previous_additional_salary_total_amount") or pend.get("total_amount", 0.0))
-		prev_pct = flt(pend.get("previous_additional_salary_paid_percentage") or pend.get("paid_percentage", 0.0))
+		prev_pct = flt(
+			pend.get("previous_additional_salary_paid_percentage") or pend.get("paid_percentage", 0.0)
+		)
 		prev_paid = flt(pend.get("previous_additional_salary_paid_amount") or pend.get("paid_amount", 0.0))
 		prev_rem = flt(pend.get("previous_additional_salary_remaining_amount") or rem_amt)
 
@@ -498,7 +503,9 @@ def get_previous_pending_additional_salary_details(
 
 	for pr_name in prior_reviews:
 		pr_doc = frappe.get_doc("Employee Additional Salary Payroll Review", pr_name)
-		all_rows = (pr_doc.additional_salary_payment_details or []) + (pr_doc.previous_pending_additional_salary or [])
+		all_rows = (pr_doc.additional_salary_payment_details or []) + (
+			pr_doc.previous_pending_additional_salary or []
+		)
 		for row in all_rows:
 			if row.additional_salary == additional_salary:
 				rem = flt(row.remaining_amount)
@@ -521,7 +528,9 @@ def get_previous_pending_additional_salary_details(
 				}
 
 	# If not found in any prior review, check Additional Salary itself
-	ads = frappe.db.get_value("Additional Salary", additional_salary, ["amount", "salary_component"], as_dict=True)
+	ads = frappe.db.get_value(
+		"Additional Salary", additional_salary, ["amount", "salary_component"], as_dict=True
+	)
 	if ads:
 		amt = flt(ads.amount)
 		return {
@@ -534,5 +543,3 @@ def get_previous_pending_additional_salary_details(
 		}
 
 	return {}
-
-
