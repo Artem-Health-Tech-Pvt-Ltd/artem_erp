@@ -51,6 +51,7 @@ doctype_js = {
 	"Additional Salary": "public/js/additional_salary.js",
 	"Payroll Entry": "public/js/payroll_entry.js",
 	"Leave Application": "public/js/leave_application.js",
+	"Attendance Request": "public/js/attendance_request.js",
 }
 doctype_list_js = {
 	"Attendance": "public/js/attendance_list.js",
@@ -168,6 +169,8 @@ doc_events = {
 		"validate": "artem_erp.doc_events.employee.validate_aadhaar_number",
 	},
 	"Attendance Request": {
+		"before_validate": "artem_erp.doc_events.attendance_request_shift_validation.validate_attendance_request",
+		"validate": "artem_erp.doc_events.attendance_request_shift_validation.validate_attendance_request",
 		"after_insert": "artem_erp.auto_email.attendance_request_email.on_attendance_request_created",
 		"on_update": "artem_erp.auto_email.attendance_request_email.on_attendance_request_updated",
 		"on_submit": [
