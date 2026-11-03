@@ -25,7 +25,7 @@ frappe.provide("artem_erp");
 				);
 			}
 		} catch (e) {
-			console.error("Error sanitizing redirect-to parameter:", e);
+			// ignore parameter sanitization errors
 		}
 	}
 })();
@@ -57,10 +57,6 @@ artem_erp.redirect_to_employee_dashboard = function () {
 	}
 };
 
-$(document).on("app_ready desk_ready", artem_erp.redirect_to_employee_dashboard);
-if (frappe.router) {
-	frappe.router.on("change", artem_erp.redirect_to_employee_dashboard);
-}
 $(document).on("app_ready desk_ready", artem_erp.redirect_to_employee_dashboard);
 if (frappe.router) {
 	frappe.router.on("change", artem_erp.redirect_to_employee_dashboard);

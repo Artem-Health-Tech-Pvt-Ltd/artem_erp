@@ -10,6 +10,7 @@ from frappe.utils import (
 	getdate,
 )
 
+from artem_erp.auto_email.attendance_penalty_email import send_attendance_penalty_email
 from artem_erp.doc_events.attendance import (
 	is_within_early_exit_window,
 	is_within_late_arrival_window,
@@ -147,6 +148,51 @@ def has_leave_or_attendance_request(att):
 	return classification["type"] in ("Full-Day Leave", "Attendance Request")
 
 
+def get_attendance_shift(att):
+	"""
+	Get the shift name for the attendance record, checking in order:
+	1. Attendance.shift field
+	2. Active Shift Assignment for the employee on that date
+	3. Employee.default_shift
+	"""
+	shift_name = att.get("shift")
+	if shift_name:
+		return shift_name
+
+	emp_id = att.get("employee")
+	if not emp_id:
+		return None
+
+	att_date = att.get("attendance_date")
+	if att_date:
+		assignments = frappe.get_all(
+			"Shift Assignment",
+			filters={
+				"employee": emp_id,
+				"start_date": ["<=", getdate(att_date)],
+				"docstatus": 1,
+				"status": "Active",
+			},
+			fields=["shift_type", "end_date"],
+			order_by="start_date desc",
+		)
+		for sa in assignments:
+			if sa.end_date and getdate(sa.end_date) < getdate(att_date):
+				continue
+			return sa.shift_type
+
+	if not att_date:
+		shift_type = frappe.db.get_value(
+			"Shift Assignment",
+			{"employee": emp_id, "status": "Active", "docstatus": 1},
+			"shift_type",
+		)
+		if shift_type:
+			return shift_type
+
+	return frappe.db.get_value("Employee", emp_id, "default_shift")
+
+
 def is_working_hours_completed(att, partial_day_duration=0):
 	"""
 	Check if employee completed the required minimum daily working hours.
@@ -159,8 +205,9 @@ def is_working_hours_completed(att, partial_day_duration=0):
 	allowance_hours = flt(partial_day_duration) / 60.0
 
 	# If shift has thresholds, check actual working_hours against adjusted thresholds
-	if att.get("shift"):
-		shift_doc = frappe.get_cached_doc("Shift Type", att.shift)
+	shift_name = get_attendance_shift(att)
+	if shift_name:
+		shift_doc = frappe.get_cached_doc("Shift Type", shift_name)
 		threshold_half_day = flt(shift_doc.working_hours_threshold_for_half_day)
 		threshold_absent = flt(shift_doc.working_hours_threshold_for_absent)
 		working_hours = flt(att.working_hours)
@@ -198,8 +245,9 @@ def determine_penalty_status(att, partial_day_duration=0):
 	working_hours = flt(att.working_hours)
 	allowance_hours = flt(partial_day_duration) / 60.0
 
-	if att.get("shift"):
-		shift_doc = frappe.get_cached_doc("Shift Type", att.shift)
+	shift_name = get_attendance_shift(att)
+	if shift_name:
+		shift_doc = frappe.get_cached_doc("Shift Type", shift_name)
 		threshold_absent = flt(shift_doc.working_hours_threshold_for_absent)
 		threshold_half_day = flt(shift_doc.working_hours_threshold_for_half_day)
 
@@ -230,24 +278,28 @@ def is_half_day_leave_hours_completed(att):
 	"""
 	Requirement 18: If an employee takes Half Day Leave, check whether they completed
 	the minimum required working hours for the working portion of the day.
+	Check working_hours_threshold_for_absent in shift (e.g. 5.0 hours).
+	If actual working hours are less than working_hours_threshold_for_absent, return False
+	(so that attendance penalty is applied and marked as Absent).
 	Returns True if completed, False if incomplete.
 	"""
 	working_hours = flt(att.working_hours)
 	if working_hours <= 0:
 		return False
 
-	if att.get("shift"):
-		shift_doc = frappe.get_cached_doc("Shift Type", att.shift)
-		threshold_half_day = flt(shift_doc.working_hours_threshold_for_half_day)
-		if threshold_half_day:
-			# Employee must work at least the half-day threshold
-			return working_hours >= threshold_half_day
+	shift_name = get_attendance_shift(att)
+	if shift_name:
+		shift_doc = frappe.get_cached_doc("Shift Type", shift_name)
+		threshold_absent = flt(shift_doc.working_hours_threshold_for_absent)
+		if threshold_absent > 0:
+			# Employee on half day leave must complete at least working_hours_threshold_for_absent
+			return working_hours >= threshold_absent
 
 	standard_hours = flt(getattr(att, "standard_working_hours", 0) or 0)
-	if standard_hours:
+	if standard_hours > 0:
 		return working_hours >= (standard_hours / 2.0)
 
-	return working_hours >= 4.0
+	return working_hours >= 5.0
 
 
 def is_late_arrival_covered(att, partial_day_type, partial_day_duration):
@@ -257,11 +309,12 @@ def is_late_arrival_covered(att, partial_day_type, partial_day_duration):
 	if partial_day_type != "Late Arrival" or partial_day_duration <= 0:
 		return False
 
-	if not att.get("shift"):
+	shift_name = get_attendance_shift(att)
+	if not shift_name:
 		return True
 
 	try:
-		shift_doc = frappe.get_cached_doc("Shift Type", att.shift)
+		shift_doc = frappe.get_cached_doc("Shift Type", shift_name)
 		shift_start = shift_doc.start_time
 		late_threshold = cint(getattr(shift_doc, "late_entry_grace_period", 0))
 		return is_within_late_arrival_window(
@@ -278,11 +331,12 @@ def is_early_exit_covered(att, partial_day_type, partial_day_duration):
 	if partial_day_type != "Early Exit" or partial_day_duration <= 0:
 		return False
 
-	if not att.get("shift"):
+	shift_name = get_attendance_shift(att)
+	if not shift_name:
 		return True
 
 	try:
-		shift_doc = frappe.get_cached_doc("Shift Type", att.shift)
+		shift_doc = frappe.get_cached_doc("Shift Type", shift_name)
 		shift_end = shift_doc.end_time
 		return is_within_early_exit_window(att.get("out_time"), shift_end, partial_day_duration, 0)
 	except Exception:
@@ -477,17 +531,23 @@ def process_attendance_penalties(up_to_date=None, **kwargs):
 		if cov_type == "Half-Day Leave":
 			if not is_half_day_leave_hours_completed(att):
 				if apply_attendance_penalty:
+					penalty_status = "Absent"
 					frappe.db.set_value(
 						"Attendance",
 						att.name,
-						{"custom_penalty": 1, "status": "Absent"},
+						{"custom_penalty": 1, "status": penalty_status},
+					)
+					comment_text = _(
+						"Attendance penalty applied: Working hours not completed for Half Day Leave; marked as Absent."
 					)
 					add_attendance_penalty_comment(
 						att.name,
-						_(
-							"Attendance penalty applied: Working hours not completed for Half Day Leave; marked as Absent."
-						),
+						comment_text,
 					)
+					try:
+						send_attendance_penalty_email(att, reason=comment_text, penalty_status=penalty_status)
+					except Exception:
+						pass
 					processed_records.append(att.name)
 			continue
 
@@ -508,12 +568,17 @@ def process_attendance_penalties(up_to_date=None, **kwargs):
 						att.name,
 						{"custom_penalty": 1, "status": penalty_status},
 					)
+					comment_text = _(
+						"Attendance penalty applied: Adjusted working hours not completed after Partial Day Leave ({0} mins); marked as {1}."
+					).format(partial_duration, penalty_status)
 					add_attendance_penalty_comment(
 						att.name,
-						_(
-							"Attendance penalty applied: Adjusted working hours not completed after Partial Day Leave ({0} mins); marked as {1}."
-						).format(partial_duration, penalty_status),
+						comment_text,
 					)
+					try:
+						send_attendance_penalty_email(att, reason=comment_text, penalty_status=penalty_status)
+					except Exception:
+						pass
 					processed_records.append(att.name)
 			else:
 				# Working hours met with Partial Day adjustment
@@ -546,12 +611,19 @@ def process_attendance_penalties(up_to_date=None, **kwargs):
 								att.name,
 								{"custom_penalty": 1, "status": penalty_status},
 							)
+							comment_text = _(
+								"Attendance penalty applied: Late entry exceeded Partial Day allowance and monthly allowed limit of {0}; marked as {1}."
+							).format(allowed_late_entries_per_month, penalty_status)
 							add_attendance_penalty_comment(
 								att.name,
-								_(
-									"Attendance penalty applied: Late entry exceeded Partial Day allowance and monthly allowed limit of {0}; marked as {1}."
-								).format(allowed_late_entries_per_month, penalty_status),
+								comment_text,
 							)
+							try:
+								send_attendance_penalty_email(
+									att, reason=comment_text, penalty_status=penalty_status
+								)
+							except Exception:
+								pass
 							processed_records.append(att.name)
 			continue
 
@@ -579,6 +651,10 @@ def process_attendance_penalties(up_to_date=None, **kwargs):
 						"Attendance penalty applied: Minimum required working hours not completed (you have worked {0} hrs); marked as {1}."
 					).format(flt(att.working_hours), penalty_status)
 				add_attendance_penalty_comment(att.name, comment_text)
+				try:
+					send_attendance_penalty_email(att, reason=comment_text, penalty_status=penalty_status)
+				except Exception:
+					pass
 				processed_records.append(att.name)
 		else:
 			if cint(att.late_entry) and apply_late_entry_penalty:
@@ -602,12 +678,17 @@ def process_attendance_penalties(up_to_date=None, **kwargs):
 						att.name,
 						{"custom_penalty": 1, "status": penalty_status},
 					)
+					comment_text = _(
+						"Attendance penalty applied: Late entry exceeded monthly allowed limit of {0}; marked as {1}."
+					).format(allowed_late_entries_per_month, penalty_status)
 					add_attendance_penalty_comment(
 						att.name,
-						_(
-							"Attendance penalty applied: Late entry exceeded monthly allowed limit of {0}; marked as {1}."
-						).format(allowed_late_entries_per_month, penalty_status),
+						comment_text,
 					)
+					try:
+						send_attendance_penalty_email(att, reason=comment_text, penalty_status=penalty_status)
+					except Exception:
+						pass
 					processed_records.append(att.name)
 
 	if processed_records:

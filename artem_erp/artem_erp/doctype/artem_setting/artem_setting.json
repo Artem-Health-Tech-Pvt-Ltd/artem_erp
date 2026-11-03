@@ -12,10 +12,21 @@
   "late_entry_penalty_settings_section",
   "apply_late_entry_penalty",
   "allowed_late_entries_per_month",
+  "sandwich_leave_configuration_tab",
   "sandwich_leave_configuration_section",
   "apply_sandwich_leave_rule_on_leave",
   "maximum_employee_exemptions",
-  "sandwich_leave_deduction_type"
+  "sandwich_leave_deduction_type",
+  "auto_email_configuration_tab",
+  "employee_birthday_email_template",
+  "employee_work_anniversary_email_template",
+  "company_team_emails",
+  "column_break_gqys",
+  "team_availability_notification_email_template",
+  "employee_attendance_penalty_notification_email_template",
+  "attendance_request_notification_email_template",
+  "attendance_lock_notification_template",
+  "attendance_lock_reminder_day"
  ],
  "fields": [
   {
@@ -55,8 +66,7 @@
   },
   {
    "fieldname": "sandwich_leave_configuration_section",
-   "fieldtype": "Section Break",
-   "label": "Sandwich Leave Configuration"
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
@@ -76,13 +86,78 @@
    "fieldtype": "Table",
    "label": "Sandwich Leave Deduction Type",
    "options": "Sandwich Leave Deduction Type"
+  },
+  {
+   "fieldname": "auto_email_configuration_tab",
+   "fieldtype": "Tab Break",
+   "label": "Auto Email Configuration"
+  },
+  {
+   "fieldname": "employee_work_anniversary_email_template",
+   "fieldtype": "Link",
+   "label": "Employee Work Anniversary Email Template",
+   "options": "Email Template"
+  },
+  {
+   "description": "Configure company team Email Groups to receive employee birthday, work anniversary, and Attendance Lock Notification emails.",
+   "fieldname": "company_team_emails",
+   "fieldtype": "Table MultiSelect",
+   "label": "Company Team Emails",
+   "options": "Email Group Table"
+  },
+  {
+   "fieldname": "team_availability_notification_email_template",
+   "fieldtype": "Link",
+   "label": "Team Availability Notification Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "column_break_gqys",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "employee_attendance_penalty_notification_email_template",
+   "fieldtype": "Link",
+   "label": "Employee Attendance Penalty Notification Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "attendance_request_notification_email_template",
+   "fieldtype": "Link",
+   "label": "Attendance Request Notification Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "sandwich_leave_configuration_tab",
+   "fieldtype": "Tab Break",
+   "label": "Sandwich Leave Configuration"
+  },
+  {
+   "fieldname": "employee_birthday_email_template",
+   "fieldtype": "Link",
+   "label": "Employee Birthday Email Template",
+   "options": "Email Template"
+  },
+  {
+   "description": "Select the email template used to send monthly attendance regularization and attendance lock reminders on the configured reminder day.",
+   "fieldname": "attendance_lock_notification_template",
+   "fieldtype": "Link",
+   "label": "Attendance Lock Notification Template",
+   "options": "Email Template"
+  },
+  {
+   "default": "24",
+   "description": "Specify the day of the month (1-31) to automatically send the monthly attendance lock reminder email.",
+   "fieldname": "attendance_lock_reminder_day",
+   "fieldtype": "Int",
+   "label": "Attendance Lock Reminder Day"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-26 12:06:14.685418",
+ "modified": "2026-10-29 13:14:05.577668",
  "modified_by": "Administrator",
  "module": "Artem ERP",
  "name": "Artem Setting",
