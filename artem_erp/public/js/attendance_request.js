@@ -1,7 +1,6 @@
 // Copyright (c) 2026, Artem Healthtech and contributors
 // For license information, please see license.txt
 
-console.log(" --------- >> Custom Attendance Request JS loaded <<------------");
 frappe.ui.form.on("Attendance Request", {
 	onload(frm) {
 		frm.trigger("fetch_company_attendance_config");
