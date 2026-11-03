@@ -376,7 +376,7 @@ CUSTOM_FIELDS = {
 			"system_generated": 0,
 		},
 	],
- 	"Company": [
+	"Company": [
 		{
 			"fieldname": "custom_enable_single_day_attendance_regularization",
 			"label": "Enable Single-Day Attendance Regularization",
