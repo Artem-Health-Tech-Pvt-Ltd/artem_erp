@@ -152,7 +152,7 @@ frappe.ui.form.on("Attendance Request", {
 		if (!company && !employee) return;
 
 		frappe.call({
-			method: "artem_erp.doc_events.attendance_request.get_company_attendance_regularization_config",
+			method: "artem_erp.doc_events.attendance_request_shift_validation.get_company_attendance_regularization_config",
 			args: {
 				company: company,
 				employee: employee,
@@ -227,7 +227,7 @@ frappe.ui.form.on("Attendance Request", {
 
 		// Shift detection runs for all attendance requests
 		frappe.call({
-			method: "artem_erp.doc_events.attendance_request.detect_shifts_and_validate",
+			method: "artem_erp.doc_events.attendance_request_shift_validation.detect_shifts_and_validate",
 			args: {
 				employee: frm.doc.employee,
 				from_date: frm.doc.from_date,

@@ -5,22 +5,14 @@ import unittest
 from datetime import timedelta
 
 import frappe
-from frappe.utils import add_days, getdate
+from frappe.utils import getdate
 
-from artem_erp.doc_events.attendance_request import (
-	build_date_wise_multiple_shifts_html_message,
+from artem_erp.doc_events.attendance_request_shift_validation import (
 	build_multiple_shifts_html_message,
 	build_same_date_multiple_shifts_html_message,
-	build_unassigned_dates_html_message,
-	detect_shifts_and_validate,
-	get_company_attendance_regularization_config,
 	get_date_wise_shift_analysis,
-	get_effective_shift_for_date,
 	get_inclusive_date_range_days,
 	get_shift_time_label,
-	get_shift_working_hours,
-	get_shifts_for_date,
-	get_shifts_for_date_range,
 	group_consecutive_date_wise_shifts,
 	group_consecutive_shifts,
 	validate_attendance_request_doc,
@@ -156,11 +148,11 @@ class TestCompanyAttendanceRegularization(unittest.TestCase):
 
 		with (
 			patch(
-				"artem_erp.doc_events.attendance_request.get_company_attendance_regularization_config",
+				"artem_erp.doc_events.attendance_request_shift_validation.get_company_attendance_regularization_config",
 				return_value={"enable_single_day": 0, "max_days": 0},
 			),
 			patch(
-				"artem_erp.doc_events.attendance_request.get_shifts_for_date",
+				"artem_erp.doc_events.attendance_request_shift_validation.get_shifts_for_date",
 				side_effect=mock_get_shifts_for_date,
 			),
 		):
@@ -184,11 +176,11 @@ class TestCompanyAttendanceRegularization(unittest.TestCase):
 		# 5. When company has enable_single_day=1, selecting a valid assigned shift must pass
 		with (
 			patch(
-				"artem_erp.doc_events.attendance_request.get_company_attendance_regularization_config",
+				"artem_erp.doc_events.attendance_request_shift_validation.get_company_attendance_regularization_config",
 				return_value={"enable_single_day": 1, "max_days": 1},
 			),
 			patch(
-				"artem_erp.doc_events.attendance_request.get_shifts_for_date",
+				"artem_erp.doc_events.attendance_request_shift_validation.get_shifts_for_date",
 				side_effect=mock_get_shifts_for_date,
 			),
 		):
@@ -214,7 +206,8 @@ class TestCompanyAttendanceRegularization(unittest.TestCase):
 			return []
 
 		with patch(
-			"artem_erp.doc_events.attendance_request.get_shifts_for_date", side_effect=mock_get_shifts
+			"artem_erp.doc_events.attendance_request_shift_validation.get_shifts_for_date",
+			side_effect=mock_get_shifts,
 		):
 			analysis = get_date_wise_shift_analysis("EMP-TEST", "2026-11-03", "2026-11-04")
 			self.assertFalse(analysis["has_unassigned_dates"])
@@ -240,7 +233,7 @@ class TestCompanyAttendanceRegularization(unittest.TestCase):
 				docstatus=0,
 			)
 			with patch(
-				"artem_erp.doc_events.attendance_request.get_company_attendance_regularization_config",
+				"artem_erp.doc_events.attendance_request_shift_validation.get_company_attendance_regularization_config",
 				return_value={"enable_single_day": 0, "max_days": 0},
 			):
 				with self.assertRaises(frappe.ValidationError):
@@ -261,7 +254,8 @@ class TestCompanyAttendanceRegularization(unittest.TestCase):
 			return []
 
 		with patch(
-			"artem_erp.doc_events.attendance_request.get_shifts_for_date", side_effect=mock_get_shifts
+			"artem_erp.doc_events.attendance_request_shift_validation.get_shifts_for_date",
+			side_effect=mock_get_shifts,
 		):
 			analysis = get_date_wise_shift_analysis("EMP-TEST", "2026-11-03", "2026-11-04")
 			self.assertTrue(analysis["has_unassigned_dates"])
@@ -288,7 +282,8 @@ class TestCompanyAttendanceRegularization(unittest.TestCase):
 			return []
 
 		with patch(
-			"artem_erp.doc_events.attendance_request.get_shifts_for_date", side_effect=mock_get_shifts
+			"artem_erp.doc_events.attendance_request_shift_validation.get_shifts_for_date",
+			side_effect=mock_get_shifts,
 		):
 			analysis = get_date_wise_shift_analysis("EMP-TEST", "2026-11-03", "2026-11-10")
 			groups = group_consecutive_date_wise_shifts(analysis["date_wise"])

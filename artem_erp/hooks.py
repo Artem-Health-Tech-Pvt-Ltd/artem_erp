@@ -148,8 +148,8 @@ after_install = "artem_erp.install.after_install"
 
 doc_events = {
 	"Attendance Request": {
-		"before_validate": "artem_erp.doc_events.attendance_request.validate_attendance_request",
-		"validate": "artem_erp.doc_events.attendance_request.validate_attendance_request",
+		"before_validate": "artem_erp.doc_events.attendance_request_shift_validation.validate_attendance_request",
+		"validate": "artem_erp.doc_events.attendance_request_shift_validation.validate_attendance_request",
 	},
 }
 
