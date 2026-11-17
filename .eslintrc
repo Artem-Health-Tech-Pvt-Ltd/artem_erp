@@ -26,6 +26,9 @@
 	"root": true,
 	"globals": {
 		"frappe": true,
+		"hrms": true,
+		"erpnext": true,
+		"artem_erp": true,
 		"Vue": true,
 		"SetVueGlobals": true,
 		"__": true,

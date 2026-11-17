@@ -27,10 +27,11 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/artem_erp/css/artem_erp.css"
 # app_include_js = "/assets/artem_erp/js/artem_erp.js"
+app_include_js = "/assets/artem_erp/js/artem_erp.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/artem_erp/css/artem_erp.css"
-# web_include_js = "/assets/artem_erp/js/artem_erp.js"
+web_include_js = "/assets/artem_erp/js/artem_erp.js"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "artem_erp/public/scss/website"
@@ -45,9 +46,16 @@ app_license = "mit"
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_js = {
+	"Attendance": "public/js/attendance.js",
 	"Shift Assignment": "public/js/shift_assignment.js",
+	"Additional Salary": "public/js/additional_salary.js",
+	"Payroll Entry": "public/js/payroll_entry.js",
+	"Leave Application": "public/js/leave_application.js",
+	"Attendance Request": "public/js/attendance_request.js",
 }
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+doctype_list_js = {
+	"Attendance": "public/js/attendance_list.js",
+}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -63,9 +71,10 @@ doctype_js = {
 # home_page = "login"
 
 # website user home page (by Role)
-# role_home_page = {
-# 	"Role": "home_page"
-# }
+role_home_page = {
+	"Employee": "desk/employee-dashboard",
+	"Manager": "desk/employee-dashboard",
+}
 
 # Generators
 # ----------
@@ -87,7 +96,7 @@ doctype_js = {
 
 # Migration
 # ------------------
-after_migrate = "artem_erp.install.after_migrate"
+# after_migrate = "artem_erp.install.after_migrate"
 
 # Installation
 # ------------
@@ -133,46 +142,84 @@ after_install = "artem_erp.install.after_install"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
-#
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+permission_query_conditions = {
+	"Device Login Authorization": "artem_erp.artem_erp.doctype.device_login_authorization.device_login_authorization.get_permission_query_conditions",
+}
+
+has_permission = {
+	"Device Login Authorization": "artem_erp.artem_erp.doctype.device_login_authorization.device_login_authorization.has_permission",
+}
 
 # Document Events
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"User": {
+		"validate": "artem_erp.artem_erp.device_login.validate_user",
+	},
+	"Salary Slip": {
+		"on_submit": "artem_erp.doc_events.salary_slip.on_submit",
+		"on_cancel": "artem_erp.doc_events.salary_slip.on_cancel",
+	},
+	"Payroll Entry": {
+		"before_submit": "artem_erp.doc_events.payroll_entry.before_submit",
+	},
+	"Employee": {
+		"validate": "artem_erp.doc_events.employee.validate_aadhaar_number",
+	},
+	"Attendance Request": {
+		"before_validate": "artem_erp.doc_events.attendance_request_shift_validation.validate_attendance_request",
+		"validate": "artem_erp.doc_events.attendance_request_shift_validation.validate_attendance_request",
+		"after_insert": "artem_erp.auto_email.attendance_request_email.on_attendance_request_created",
+		"on_update": "artem_erp.auto_email.attendance_request_email.on_attendance_request_updated",
+		"on_submit": [
+			"artem_erp.doc_events.attendance_request.remove_penalty_from_attendance",
+			"artem_erp.auto_email.attendance_request_email.on_attendance_request_submitted",
+		],
+	},
+	"Attendance": {
+		"validate": "artem_erp.doc_events.attendance.apply_partial_day_to_attendance",
+		"on_cancel": "artem_erp.doc_events.attendance.on_cancel",
+	},
+	"Leave Application": {
+		"validate": "artem_erp.doc_events.leave_application.validate",
+		"before_submit": "artem_erp.doc_events.leave_application.before_submit",
+		"on_submit": "artem_erp.doc_events.leave_application.on_submit",
+		"on_cancel": "artem_erp.doc_events.leave_application.on_cancel",
+	},
+}
 
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"artem_erp.tasks.all"
-# 	],
-# 	"daily": [
-# 		"artem_erp.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"artem_erp.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"artem_erp.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"artem_erp.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"hourly_long": [
+		"artem_erp.scheduler_events.attendance_penalty.process_attendance_penalties",
+	],
+	"cron": {
+		# Daily: Run every day at 8:00 AM (0 8 * * *)
+		"0 8 * * *": [
+			"artem_erp.auto_email.team_availability_email.send_daily_team_availability_notifications",
+		],
+		#  Daily: Run every day at 9:30 AM (30 9 * * *)
+		"30 9 * * *": [
+			"artem_erp.auto_email.birthday_and_work_anniversary.send_birthday_and_anniversary_wishes",
+		],
+		# Daily: Run every day at 9:35 AM (35 9 * * *) to send monthly attendance lock reminder on configured day
+		"35 9 * * *": [
+			"artem_erp.auto_email.monthly_attendance_lock_email.send_monthly_attendance_lock_reminder",
+		],
+		# Monthly: Run on the 1st day of every month at 9:00 AM (0 9 1 * *)
+		"0 9 1 * *": [
+			"artem_erp.artem_erp.doctype.employee_additional_salary_payroll_review.monthly_weekly_payroll_review.create_monthly_payroll_reviews",
+		],
+		# Weekly: Run every Monday at 9:00 AM (0 9 * * 1)
+		"0 9 * * 1": [
+			"artem_erp.artem_erp.doctype.employee_additional_salary_payroll_review.monthly_weekly_payroll_review.sync_weekly_payroll_reviews",
+		],
+	},
+}
 
 # Testing
 # -------
@@ -183,7 +230,14 @@ after_install = "artem_erp.install.after_install"
 # ------------------------------
 #
 # Specify custom mixins to extend the standard doctype controller.
-extend_doctype_class = {"Employee Checkin": "artem_erp.override.employee_checkin.CustomEmployeeCheckin"}
+extend_doctype_class = {
+	"Employee Checkin": "artem_erp.override.employee_checkin.CustomEmployeeCheckin",
+	"Additional Salary": "artem_erp.override.additional_salary.CustomAdditionalSalary",
+	"Salary Slip": "artem_erp.override.salary_slip.CustomSalarySlip",
+	"Attendance Request": "artem_erp.override.attendance_request.CustomAttendanceRequest",
+	"Leave Application": "artem_erp.override.leave_application.CustomLeaveApplication",
+}
+
 
 # Overriding Methods
 # ------------------------------
@@ -210,7 +264,7 @@ extend_doctype_class = {"Employee Checkin": "artem_erp.override.employee_checkin
 
 # Request Events
 # ----------------
-# before_request = ["artem_erp.utils.before_request"]
+before_request = ["artem_erp.artem_erp.device_login.before_request"]
 # after_request = ["artem_erp.utils.after_request"]
 
 # Job Events
@@ -244,6 +298,10 @@ extend_doctype_class = {"Employee Checkin": "artem_erp.override.employee_checkin
 
 # Authentication and authorization
 # --------------------------------
+on_login = [
+	"artem_erp.artem_erp.device_login.on_login",
+	"artem_erp.auth.redirect_employee_on_login",
+]
 
 # auth_hooks = [
 # 	"artem_erp.auth.validate"
@@ -260,3 +318,6 @@ extend_doctype_class = {"Employee Checkin": "artem_erp.override.employee_checkin
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
+
+
+fixtures = [{"dt": "Workflow"}, {"dt": "Workflow State"}, {"dt": "Workflow Action Master"}]
