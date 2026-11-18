@@ -293,6 +293,9 @@ def setup_desktop_icon(ws_data):
 	di.standard = 1
 	di.app = ws_data.get("app", "artem_erp")
 	di.hidden = 0
+	if label == "Employee Dashboard":
+		di.logo_url = "/assets/artem_erp/images/artem_logo.png"
+		di.icon_image = "/assets/artem_erp/images/artem_logo.png"
 
 	# Assign roles
 	di.set("roles", [])
