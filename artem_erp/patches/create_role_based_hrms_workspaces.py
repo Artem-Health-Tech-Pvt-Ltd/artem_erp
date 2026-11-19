@@ -341,7 +341,7 @@ def get_workspace_configs():
 					"color": "Orange",
 					"stats_filter": '[["Leave Application", "workflow_state", "=", "Pending"]]',
 				},
-    			{
+				{
 					"label": "Attendance Regularization Requests",
 					"type": "DocType",
 					"link_to": "Attendance Request",
