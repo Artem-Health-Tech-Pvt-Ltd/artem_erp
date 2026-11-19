@@ -97,6 +97,8 @@ def setup_workspace(ws_data):
 			"icon": s.get("icon"),
 			"color": s.get("color", "Grey"),
 		}
+		if s.get("stats_filter"):
+			shortcut_row["stats_filter"] = s["stats_filter"]
 		if s.get("type") == "Report":
 			shortcut_row["report_ref_doctype"] = s.get("report_ref_doctype", "")
 			if s.get("is_query_report"):
@@ -336,7 +338,17 @@ def get_workspace_configs():
 					"link_to": "Leave Application",
 					"doc_view": "List",
 					"icon": "calendar-plus",
-					"color": "Blue",
+					"color": "Orange",
+					"stats_filter": '[["Leave Application", "workflow_state", "=", "Pending"]]',
+				},
+    			{
+					"label": "Attendance Regularization Requests",
+					"type": "DocType",
+					"link_to": "Attendance Request",
+					"doc_view": "List",
+					"icon": "calendar-check",
+					"color": "Orange",
+					"stats_filter": '[["Attendance Request", "workflow_state", "=", "Pending"]]',
 				},
 				{
 					"label": "Punch Logs",
@@ -345,14 +357,6 @@ def get_workspace_configs():
 					"doc_view": "List",
 					"icon": "clock",
 					"color": "Green",
-				},
-				{
-					"label": "Attendance Regularization Requests",
-					"type": "DocType",
-					"link_to": "Attendance Request",
-					"doc_view": "List",
-					"icon": "calendar-check",
-					"color": "Orange",
 				},
 				{
 					"label": "Attendance Logs",

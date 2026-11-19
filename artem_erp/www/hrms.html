@@ -178,6 +178,73 @@
 			href="/assets/hrms/manifest/apple-splash-1136-640.jpg"
 			media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
 		/>
+		<script>
+			window.csrf_token = "{{ csrf_token }}";
+			window.site_name = '{{ site_name }}';
+			if (!window.frappe) window.frappe = {};
+			try {
+				var bootEl = document.getElementById("hrms-boot-data");
+				frappe.boot = bootEl ? JSON.parse(bootEl.textContent) : {};
+			} catch (e) {
+				frappe.boot = {};
+			}
+			if (!frappe.boot) frappe.boot = {};
+			if (!frappe.boot.__messages) frappe.boot.__messages = {};
+			frappe.boot.__messages["Login to Frappe HR"] = "Login to Artem HR";
+			frappe.boot.__messages["Install Frappe HR"] = "Install Artem HR";
+			frappe.boot.__messages["Frappe HR"] = "Artem HR";
+
+			(function() {
+				function replaceFrappeHR(root) {
+					if (!root) return;
+					if (root.nodeType === Node.TEXT_NODE) {
+						if (root.nodeValue && root.nodeValue.includes("Frappe HR")) {
+							root.nodeValue = root.nodeValue.replace(/Frappe HR/g, "Artem HR");
+						}
+						return;
+					}
+					var walker = document.createTreeWalker(
+						root,
+						NodeFilter.SHOW_TEXT,
+						null,
+						false
+					);
+					var node;
+					while ((node = walker.nextNode())) {
+						if (node.nodeValue && node.nodeValue.includes("Frappe HR")) {
+							node.nodeValue = node.nodeValue.replace(/Frappe HR/g, "Artem HR");
+						}
+					}
+				}
+
+				function customizeHRMS() {
+					replaceFrappeHR(document.body);
+				}
+
+				if (typeof MutationObserver !== "undefined") {
+					var observer = new MutationObserver(function(mutations) {
+						for (var i = 0; i < mutations.length; i++) {
+							var m = mutations[i];
+							if (m.type === "characterData") {
+								if (m.target.nodeValue && m.target.nodeValue.includes("Frappe HR")) {
+									m.target.nodeValue = m.target.nodeValue.replace(/Frappe HR/g, "Artem HR");
+								}
+							} else if (m.type === "childList") {
+								for (var j = 0; j < m.addedNodes.length; j++) {
+									replaceFrappeHR(m.addedNodes[j]);
+								}
+							}
+						}
+					});
+					observer.observe(document.documentElement, {
+						childList: true,
+						subtree: true,
+						characterData: true,
+					});
+				}
+				document.addEventListener("DOMContentLoaded", customizeHRMS);
+			})();
+		</script>
 		<script type="module" crossorigin src="/assets/hrms/frontend/assets/index-BGng3SlX.js"></script>
 		<link rel="modulepreload" crossorigin href="/assets/hrms/frontend/assets/frappe-ui-DCs81Cw-.js">
 		<link rel="stylesheet" crossorigin href="/assets/hrms/frontend/assets/frappe-ui-IZoKCQSt.css">
@@ -197,51 +264,23 @@
 				background: url("/assets/artem_erp/images/artem_logo.png") no-repeat center / contain;
 				margin-bottom: 2px;
 			}
+			.flex.flex-col.mx-auto.gap-3.items-center .text-3xl {
+				font-size: 0 !important;
+			}
+			.flex.flex-col.mx-auto.gap-3.items-center .text-3xl::after {
+				content: "Login to Artem HR" !important;
+				font-size: 1.875rem !important;
+				line-height: 2.25rem !important;
+				font-weight: 600 !important;
+				color: rgb(17 24 39) !important;
+				text-align: center !important;
+				display: block !important;
+			}
 		</style>
 	</head>
 	<body class="antialiased">
 		<div id="app"></div>
 		<div id="modals"></div>
 		<div id="popovers"></div>
-
-		<script>
-			window.csrf_token = "{{ csrf_token }}"
-			window.site_name = '{{ site_name }}'
-			if (!window.frappe) window.frappe = {}
-			frappe.boot = {{ boot }}
-			if (!frappe.boot) frappe.boot = {}
-			if (!frappe.boot.__messages) frappe.boot.__messages = {}
-			frappe.boot.__messages["Login to Frappe HR"] = "Login to Artem HR"
-			frappe.boot.__messages["Install Frappe HR"] = "Install Artem HR"
-			frappe.boot.__messages["Frappe HR"] = "Artem HR"
-
-			(function() {
-				function customizeHRMS() {
-					var container = document.querySelector(".flex.flex-col.mx-auto.gap-3.items-center");
-					if (container) {
-						var svg = container.querySelector("svg");
-						if (svg) {
-							svg.style.display = "none";
-						}
-						if (!container.querySelector("img.artem-hrms-logo")) {
-							var img = document.createElement("img");
-							img.src = "/assets/artem_erp/images/artem_logo.png";
-							img.alt = "Artem Logo";
-							img.className = "h-11 w-11 object-contain artem-hrms-logo";
-							container.prepend(img);
-						}
-						var titleEl = container.querySelector(".text-3xl");
-						if (titleEl && titleEl.textContent.trim() === "Login to Frappe HR") {
-							titleEl.textContent = "Login to Artem HR";
-						}
-					}
-				}
-				if (typeof MutationObserver !== "undefined") {
-					var observer = new MutationObserver(customizeHRMS);
-					observer.observe(document.documentElement, { childList: true, subtree: true });
-				}
-				document.addEventListener("DOMContentLoaded", customizeHRMS);
-			})();
-		</script>
 	</body>
 </html>
