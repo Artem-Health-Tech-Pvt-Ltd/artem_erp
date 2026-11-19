@@ -50,9 +50,14 @@ doctype_js = {
 	"Additional Salary": "public/js/additional_salary.js",
 	"Payroll Entry": "public/js/payroll_entry.js",
 	"Leave Application": "public/js/leave_application.js",
+	"Asset": "public/js/asset.js",
+	"Asset Category": "public/js/asset_category.js",
+	"Employee": "public/js/employee.js",
 }
 doctype_list_js = {
 	"Attendance": "public/js/attendance_list.js",
+	"Asset": "public/js/asset_list.js",
+	"Employee Asset Allocation": "artem_erp/doctype/employee_asset_allocation/employee_asset_allocation_list.js",
 }
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -93,7 +98,7 @@ doctype_list_js = {
 
 # Migration
 # ------------------
-# after_migrate = "artem_erp.install.after_migrate"
+after_migrate = "artem_erp.install.after_migrate"
 
 # Installation
 # ------------
@@ -163,7 +168,8 @@ doc_events = {
 		"before_submit": "artem_erp.doc_events.payroll_entry.before_submit",
 	},
 	"Employee": {
-		"validate": "artem_erp.doc_events.employee.validate_aadhaar_number",
+		"onload": "artem_erp.doc_events.employee.onload",
+		"validate": "artem_erp.doc_events.employee.validate",
 	},
 	"Attendance Request": {
 		"on_submit": "artem_erp.doc_events.attendance_request.remove_penalty_from_attendance",
@@ -175,6 +181,24 @@ doc_events = {
 		"validate": "artem_erp.doc_events.leave_application.validate",
 		"on_submit": "artem_erp.doc_events.leave_application.on_submit",
 		"on_cancel": "artem_erp.doc_events.leave_application.on_cancel",
+	},
+	"Asset Category": {
+		"validate": "artem_erp.doc_events.asset_category.validate",
+		"on_update": "artem_erp.doc_events.asset_category.create_item",
+	},
+	"Asset": {
+		"on_update": "artem_erp.api.asset_maintenance_sync.sync_asset_records",
+		"on_update_after_submit": "artem_erp.api.asset_maintenance_sync.sync_asset_records",
+	},
+	"Asset Repair": {
+		"on_update": "artem_erp.api.asset_maintenance_sync.on_asset_repair_update",
+		"on_submit": "artem_erp.api.asset_maintenance_sync.on_asset_repair_update",
+		"on_cancel": "artem_erp.api.asset_maintenance_sync.on_asset_repair_update",
+	},
+	"Asset Movement": {
+		"on_submit": "artem_erp.doc_events.asset_movement.on_submit",
+		"on_cancel": "artem_erp.doc_events.asset_movement.on_cancel",
+
 	},
 }
 
@@ -211,6 +235,7 @@ extend_doctype_class = {
 	"Additional Salary": "artem_erp.override.additional_salary.CustomAdditionalSalary",
 	"Salary Slip": "artem_erp.override.salary_slip.CustomSalarySlip",
 	"Attendance Request": "artem_erp.override.attendance_request.CustomAttendanceRequest",
+	"Asset": "artem_erp.override.asset.CustomAsset",
 }
 
 
@@ -290,6 +315,4 @@ on_login = "artem_erp.artem_erp.device_login.on_login"
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-
-
 fixtures = [{"dt": "Workflow"}, {"dt": "Workflow State"}, {"dt": "Workflow Action Master"}]

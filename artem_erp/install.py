@@ -6,29 +6,161 @@ from artem_erp.custom_fields_and_property_setter.custom_fields import CUSTOM_FIE
 from artem_erp.custom_fields_and_property_setter.property_setter import get_property_setters
 
 
-def after_migrate():
+def sync_customizations():
+	"""Create app-owned custom fields and property setters on every site migration."""
+	# Cleanup obsolete fields
+	if frappe.db.exists("Custom Field", "Asset Category-custom_default_warranty_months"):
+		frappe.delete_doc("Custom Field", "Asset Category-custom_default_warranty_months", ignore_permissions=True, force=True)
+
 	create_custom_fields(CUSTOM_FIELDS, update=True, ignore_validate=True)
 	make_property_setter()
-	setup_workspace_shortcuts()
+	sync_asset_field_order()
+	sync_employee_field_order()
 
+	# Rebuild cached metadata so newly-created fields are immediately available in Desk.
+	frappe.clear_cache(doctype="Asset Category")
+	frappe.clear_cache(doctype="Asset")
+	frappe.clear_cache(doctype="Employee")
+	frappe.clear_cache(doctype="Asset Maintenance Log")
+	frappe.clear_cache(doctype="Asset Repair")
+	frappe.clear_cache(doctype="Employee Asset Allocation")
+	frappe.clear_cache(doctype="Employee Asset Allocation Item")
+	frappe.clear_cache(doctype="Asset Assignment History")
+
+
+def sync_employee_field_order():
+	"""Ensure Allocated Devices & Assets section and Assigned Assets table
+	are positioned in the Overview tab right after Company Details,
+	before contact_details (Address & Contacts tab)."""
+	import json
+
+	meta = frappe.get_meta("Employee")
+	fields = [f.fieldname for f in meta.fields]
+
+	cluster = [
+		"custom_assigned_assets_section",
+		"custom_assigned_assets",
+	]
+
+	# Remove cluster from existing positions if present
+	remaining = [f for f in fields if f not in cluster]
+
+	# Insert cluster before contact_details (the start of the Address & Contacts tab)
+	if "contact_details" in remaining:
+		pos = remaining.index("contact_details")
+	elif "branch" in remaining:
+		pos = remaining.index("branch") + 1
+	else:
+		pos = len(remaining)
+
+	new_order = remaining[:pos] + cluster + remaining[pos:]
+
+	frappe.make_property_setter(
+		{
+			"doctype": "Employee",
+			"doctype_or_field": "DocType",
+			"property": "field_order",
+			"value": json.dumps(new_order),
+			"property_type": "Data",
+		},
+		validate_fields_for_doctype=False,
+	)
+
+
+def sync_asset_field_order():
+	"""Ensure Custodian, Employee Details, Specifications, Warranty, and Maintenance
+	are positioned in the Details section (before Depreciation and More Info tabs)."""
+	import json
+
+	meta = frappe.get_meta("Asset")
+	fields = [f.fieldname for f in meta.fields]
+
+	it_details_cluster = [
+		"custodian",
+		"custom_employee_name",
+		"custom_employee_email",
+		"custom_assignment_date",
+		"custom_spec_section",
+		"custom_specifications",
+		"custom_warranty_billing_section",
+		"custom_bill_copy",
+		"custom_warranty_billing_col_break",
+		"custom_warranty_start",
+		"custom_warranty_expiry",
+		"custom_warranty_document",
+		"custom_maintenance_section",
+		"custom_maintenance_count",
+		"custom_column_break_maint",
+		"custom_total_maintenance_cost",
+		"custom_maintenance_section_table",
+		"custom_maintenance_records",
+	]
+
+	# Remove cluster fields from their current positions
+	remaining = [f for f in fields if f not in it_details_cluster]
+
+	# Insert cluster into Details section right after custom_device_id / custom_asset_status
+	if "custom_device_id" in remaining:
+		pos = remaining.index("custom_device_id") + 1
+	elif "custom_asset_status" in remaining:
+		pos = remaining.index("custom_asset_status") + 1
+	elif "custom_series_number" in remaining:
+		pos = remaining.index("custom_series_number") + 1
+	else:
+		pos = remaining.index("asset_category") + 1
+
+	new_order = remaining[:pos] + it_details_cluster + remaining[pos:]
+
+	frappe.make_property_setter(
+		{
+			"doctype": "Asset",
+			"doctype_or_field": "DocType",
+			"property": "field_order",
+			"value": json.dumps(new_order),
+			"property_type": "Data",
+		},
+		validate_fields_for_doctype=False,
+	)
+
+
+
+def after_migrate():
+	sync_customizations()
+	setup_workspace_shortcuts()
+	try:
+		# Backfill custom_asset_status for legacy assets
+		frappe.db.sql(
+			"""
+			UPDATE `tabAsset`
+			SET custom_asset_status = IF(custodian IS NOT NULL AND custodian != '', 'Assigned', 'In Stock')
+			WHERE (custom_asset_status IS NULL OR custom_asset_status = '') AND docstatus < 2
+			"""
+		)
+	except Exception:
+		pass
+	try:
+		from artem_erp.artem_erp.doctype.employee_asset_allocation.employee_asset_allocation import (
+			sync_all_employee_allocations,
+		)
+		sync_all_employee_allocations()
+	except Exception:
+		pass
 
 def after_install():
-	create_custom_fields(CUSTOM_FIELDS, update=True, ignore_validate=True)
-	make_property_setter()
+	sync_customizations()
 	setup_workspace_shortcuts()
 	create_workflow()
 
-
 def setup_workspace_shortcuts():
 	from artem_erp.patches.payroll_shortcut import execute as setup_payroll_shortcuts
-
 	setup_payroll_shortcuts()
 
+	from artem_erp.asset_maintenance_setup import setup_asset_maintenance_suite
+	setup_asset_maintenance_suite()
 
 def make_property_setter():
 	for property_setter in get_property_setters():
 		frappe.make_property_setter(property_setter, validate_fields_for_doctype=False)
-
 
 def add_workspace_shortcut(
 	workspace_name,
@@ -94,7 +226,6 @@ def add_workspace_shortcut(
 		workspace.append("items", new_item)
 
 	workspace.save()
-
 
 def create_workflow():
     fixture_folder_name = [
