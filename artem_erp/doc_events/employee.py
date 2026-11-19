@@ -5,11 +5,8 @@ from frappe import _
 def validate_aadhaar_number(doc, method=None):
 	aadhaar_number = doc.get("custom_aadhaar_number")
 
-	if not aadhaar_number:
-		frappe.throw(
-			_("Aadhaar Number is mandatory."),
-			title=_("Aadhaar Number Required"),
-		)
+	if not aadhaar_number or not str(aadhaar_number).strip():
+		return
 
 	aadhaar_number = str(aadhaar_number).strip()
 

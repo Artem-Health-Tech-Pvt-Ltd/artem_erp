@@ -2,7 +2,7 @@
  "actions": [],
  "allow_bulk_edit": 1,
  "allow_rename": 1,
- "creation": "2026-10-06 11:25:05.811102",
+ "creation": "2026-10-21 14:29:52.842144",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -11,7 +11,22 @@
   "apply_attendance_penalty",
   "late_entry_penalty_settings_section",
   "apply_late_entry_penalty",
-  "allowed_late_entries_per_month"
+  "allowed_late_entries_per_month",
+  "sandwich_leave_configuration_tab",
+  "sandwich_leave_configuration_section",
+  "apply_sandwich_leave_rule_on_leave",
+  "maximum_employee_exemptions",
+  "sandwich_leave_deduction_type",
+  "auto_email_configuration_tab",
+  "employee_birthday_email_template",
+  "employee_work_anniversary_email_template",
+  "company_team_emails",
+  "column_break_gqys",
+  "team_availability_notification_email_template",
+  "employee_attendance_penalty_notification_email_template",
+  "attendance_request_notification_email_template",
+  "attendance_lock_notification_template",
+  "attendance_lock_reminder_day"
  ],
  "fields": [
   {
@@ -48,13 +63,101 @@
    "fieldname": "apply_late_entry_penalty",
    "fieldtype": "Check",
    "label": "Apply Late Entry Penalty"
+  },
+  {
+   "fieldname": "sandwich_leave_configuration_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "apply_sandwich_leave_rule_on_leave",
+   "fieldtype": "Check",
+   "label": "Apply Sandwich Leave Rule on Leave"
+  },
+  {
+   "description": "Defines the maximum number of sandwich leave exemptions an employee can use during the configured leave year.",
+   "fieldname": "maximum_employee_exemptions",
+   "fieldtype": "Int",
+   "label": "Maximum Employee Exemptions "
+  },
+  {
+   "description": "Define priority-wise Leave Types for Sandwich Leave deduction based on available balance.",
+   "fieldname": "sandwich_leave_deduction_type",
+   "fieldtype": "Table",
+   "label": "Sandwich Leave Deduction Type",
+   "options": "Sandwich Leave Deduction Type"
+  },
+  {
+   "fieldname": "auto_email_configuration_tab",
+   "fieldtype": "Tab Break",
+   "label": "Auto Email Configuration"
+  },
+  {
+   "fieldname": "employee_work_anniversary_email_template",
+   "fieldtype": "Link",
+   "label": "Employee Work Anniversary Email Template",
+   "options": "Email Template"
+  },
+  {
+   "description": "Configure company team Email Groups to receive employee birthday, work anniversary, and Attendance Lock Notification emails.",
+   "fieldname": "company_team_emails",
+   "fieldtype": "Table MultiSelect",
+   "label": "Company Team Emails",
+   "options": "Email Group Table"
+  },
+  {
+   "fieldname": "team_availability_notification_email_template",
+   "fieldtype": "Link",
+   "label": "Team Availability Notification Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "column_break_gqys",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "employee_attendance_penalty_notification_email_template",
+   "fieldtype": "Link",
+   "label": "Employee Attendance Penalty Notification Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "attendance_request_notification_email_template",
+   "fieldtype": "Link",
+   "label": "Attendance Request Notification Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "sandwich_leave_configuration_tab",
+   "fieldtype": "Tab Break",
+   "label": "Sandwich Leave Configuration"
+  },
+  {
+   "fieldname": "employee_birthday_email_template",
+   "fieldtype": "Link",
+   "label": "Employee Birthday Email Template",
+   "options": "Email Template"
+  },
+  {
+   "description": "Select the email template used to send monthly attendance regularization and attendance lock reminders on the configured reminder day.",
+   "fieldname": "attendance_lock_notification_template",
+   "fieldtype": "Link",
+   "label": "Attendance Lock Notification Template",
+   "options": "Email Template"
+  },
+  {
+   "default": "24",
+   "description": "Specify the day of the month (1-31) to automatically send the monthly attendance lock reminder email.",
+   "fieldname": "attendance_lock_reminder_day",
+   "fieldtype": "Int",
+   "label": "Attendance Lock Reminder Day"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-08 14:30:00.000000",
+ "modified": "2026-10-29 13:14:05.577668",
  "modified_by": "Administrator",
  "module": "Artem ERP",
  "name": "Artem Setting",
@@ -67,6 +170,16 @@
    "print": 1,
    "read": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "HR Manager",
    "share": 1,
    "write": 1
   }

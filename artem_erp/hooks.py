@@ -5,32 +5,42 @@ app_description = "ERPNext and HRMS customizations for Artem Healthtech"
 app_email = "support@artemhealthtech.com"
 app_license = "mit"
 
+app_logo_url = "/assets/artem_erp/images/artem_logo.png"
+
+website_context = {
+	"favicon": "/assets/artem_erp/images/favicon.png",
+	"splash_image": "/assets/artem_erp/images/artem_logo.png",
+}
+
+website_route_rules = [
+	{"from_route": "/hrms/<path:app_path>", "to_route": "hrms"},
+]
+
 # Apps
 # ------------------
 
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "artem_erp",
-# 		"logo": "/assets/artem_erp/logo.png",
-# 		"title": "Artem ERP",
-# 		"route": "/artem_erp",
-# 		"has_permission": "artem_erp.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+	{
+		"name": "artem_erp",
+		"logo": "/assets/artem_erp/images/artem_logo.png",
+		"title": "Artem ERP",
+		"route": "/desk",
+	}
+]
 
 # Includes in <head>
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/artem_erp/css/artem_erp.css"
-# app_include_js = "/assets/artem_erp/js/artem_erp.js"
+app_include_css = "/assets/artem_erp/css/artem_erp.css"
+app_include_js = "/assets/artem_erp/js/artem_erp.js"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/artem_erp/css/artem_erp.css"
-# web_include_js = "/assets/artem_erp/js/artem_erp.js"
+web_include_css = "/assets/artem_erp/css/artem_erp.css"
+web_include_js = "/assets/artem_erp/js/artem_erp.js"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "artem_erp/public/scss/website"
@@ -43,22 +53,23 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_js = {
 	"Attendance": "public/js/attendance.js",
 	"Shift Assignment": "public/js/shift_assignment.js",
 	"Additional Salary": "public/js/additional_salary.js",
 	"Payroll Entry": "public/js/payroll_entry.js",
 	"Leave Application": "public/js/leave_application.js",
-	"Asset": "public/js/asset.js",
+	"Attendance Request": "public/js/attendance_request.js",
 	"Asset Category": "public/js/asset_category.js",
+	"Asset": "public/js/asset.js",
 	"Employee": "public/js/employee.js",
 }
+
 doctype_list_js = {
 	"Attendance": "public/js/attendance_list.js",
 	"Asset": "public/js/asset_list.js",
-	"Employee Asset Allocation": "artem_erp/doctype/employee_asset_allocation/employee_asset_allocation_list.js",
 }
+
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -74,9 +85,10 @@ doctype_list_js = {
 # home_page = "login"
 
 # website user home page (by Role)
-# role_home_page = {
-# 	"Role": "home_page"
-# }
+role_home_page = {
+	"Employee": "desk/employee-dashboard",
+	"Manager": "desk/employee-dashboard",
+}
 
 # Generators
 # ----------
@@ -172,13 +184,22 @@ doc_events = {
 		"validate": "artem_erp.doc_events.employee.validate",
 	},
 	"Attendance Request": {
-		"on_submit": "artem_erp.doc_events.attendance_request.remove_penalty_from_attendance",
+		"before_validate": "artem_erp.doc_events.attendance_request_shift_validation.validate_attendance_request",
+		"validate": "artem_erp.doc_events.attendance_request_shift_validation.validate_attendance_request",
+		"after_insert": "artem_erp.auto_email.attendance_request_email.on_attendance_request_created",
+		"on_update": "artem_erp.auto_email.attendance_request_email.on_attendance_request_updated",
+		"on_submit": [
+			"artem_erp.doc_events.attendance_request.remove_penalty_from_attendance",
+			"artem_erp.auto_email.attendance_request_email.on_attendance_request_submitted",
+		],
 	},
 	"Attendance": {
 		"validate": "artem_erp.doc_events.attendance.apply_partial_day_to_attendance",
+		"on_cancel": "artem_erp.doc_events.attendance.on_cancel",
 	},
 	"Leave Application": {
 		"validate": "artem_erp.doc_events.leave_application.validate",
+		"before_submit": "artem_erp.doc_events.leave_application.before_submit",
 		"on_submit": "artem_erp.doc_events.leave_application.on_submit",
 		"on_cancel": "artem_erp.doc_events.leave_application.on_cancel",
 	},
@@ -198,7 +219,6 @@ doc_events = {
 	"Asset Movement": {
 		"on_submit": "artem_erp.doc_events.asset_movement.on_submit",
 		"on_cancel": "artem_erp.doc_events.asset_movement.on_cancel",
-
 	},
 }
 
@@ -207,9 +227,22 @@ doc_events = {
 
 scheduler_events = {
 	"hourly_long": [
+		"artem_erp.scheduler_events.delayed_attendance.process_delayed_employee_checkins",
 		"artem_erp.scheduler_events.attendance_penalty.process_attendance_penalties",
 	],
 	"cron": {
+		# Daily: Run every day at 8:00 AM (0 8 * * *)
+		"0 8 * * *": [
+			"artem_erp.auto_email.team_availability_email.send_daily_team_availability_notifications",
+		],
+		# Daily: Run every day at 9:30 AM (30 9 * * *)
+		"30 9 * * *": [
+			"artem_erp.auto_email.birthday_and_work_anniversary.send_birthday_and_anniversary_wishes",
+		],
+		# Daily: Run every day at 9:35 AM (35 9 * * *) to send monthly attendance lock reminder on configured day
+		"35 9 * * *": [
+			"artem_erp.auto_email.monthly_attendance_lock_email.send_monthly_attendance_lock_reminder",
+		],
 		# Monthly: Run on the 1st day of every month at 9:00 AM (0 9 1 * *)
 		"0 9 1 * *": [
 			"artem_erp.artem_erp.doctype.employee_additional_salary_payroll_review.monthly_weekly_payroll_review.create_monthly_payroll_reviews",
@@ -235,6 +268,7 @@ extend_doctype_class = {
 	"Additional Salary": "artem_erp.override.additional_salary.CustomAdditionalSalary",
 	"Salary Slip": "artem_erp.override.salary_slip.CustomSalarySlip",
 	"Attendance Request": "artem_erp.override.attendance_request.CustomAttendanceRequest",
+	"Leave Application": "artem_erp.override.leave_application.CustomLeaveApplication",
 	"Asset": "artem_erp.override.asset.CustomAsset",
 }
 
@@ -298,7 +332,10 @@ before_request = ["artem_erp.artem_erp.device_login.before_request"]
 
 # Authentication and authorization
 # --------------------------------
-on_login = "artem_erp.artem_erp.device_login.on_login"
+on_login = [
+	"artem_erp.artem_erp.device_login.on_login",
+	"artem_erp.auth.redirect_employee_on_login",
+]
 
 # auth_hooks = [
 # 	"artem_erp.auth.validate"
@@ -315,4 +352,6 @@ on_login = "artem_erp.artem_erp.device_login.on_login"
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
+
+
 fixtures = [{"dt": "Workflow"}, {"dt": "Workflow State"}, {"dt": "Workflow Action Master"}]

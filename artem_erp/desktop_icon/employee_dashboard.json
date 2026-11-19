@@ -1,0 +1,36 @@
+{
+ "app": "artem_erp",
+ "bg_color": "gray",
+ "creation": "2026-08-25 13:26:14.593498",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "dashboard",
+ "icon_image": "/assets/artem_erp/images/artem_logo.png",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Employee Dashboard",
+ "link_to": "Employee Dashboard",
+ "link_type": "Workspace Sidebar",
+ "logo_url": "/assets/artem_erp/images/artem_logo.png",
+ "modified": "2026-11-18 18:10:18.148579",
+ "modified_by": "Administrator",
+ "name": "Employee Dashboard",
+ "owner": "Administrator",
+ "restrict_removal": 0,
+ "roles": [
+  {
+   "role": "Employee"
+  },
+  {
+   "role": "Manager"
+  },
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  }
+ ],
+ "standard": 1
+}
