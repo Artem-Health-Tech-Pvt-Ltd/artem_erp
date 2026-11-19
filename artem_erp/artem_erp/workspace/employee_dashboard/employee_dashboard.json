@@ -1,7 +1,7 @@
 {
  "app": "artem_erp",
  "charts": [],
- "content": "[{\"id\": \"hdr_shortcuts_8dd52496\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Quick Access</b></span>\", \"col\": 12}}, {\"id\": \"sc_78568e62\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Leave Applications\", \"col\": 3}}, {\"id\": \"sc_782b8f70\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Punch Logs\", \"col\": 3}}, {\"id\": \"sc_d7965e69\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Attendance Regularization Requests\", \"col\": 3}}, {\"id\": \"sc_6cb74959\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Attendance Logs\", \"col\": 3}}, {\"id\": \"sc_310ef8e9\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Leave Balance\", \"col\": 3}}, {\"id\": \"sc_66317046\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Payslips\", \"col\": 3}}, {\"id\": \"sc_c70990ad\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Expense Claims\", \"col\": 3}}, {\"id\": \"sc_7b84fc8c\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Employee Advances\", \"col\": 3}}, {\"id\": \"sc_320e0c77\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Monthly Attendance Details\", \"col\": 3}}, {\"id\": \"sc_06fa3fbb\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Asset\", \"col\": 3}}, {\"id\": \"spc_7f94b5c3\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"hdr_cards_6bd720be\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Masters & Reports</b></span>\", \"col\": 12}}, {\"id\": \"card_872b4f19\", \"type\": \"card\", \"data\": {\"card_name\": \"Employee Information\", \"col\": 4}}, {\"id\": \"card_526dc5a4\", \"type\": \"card\", \"data\": {\"card_name\": \"Attendance\", \"col\": 4}}, {\"id\": \"card_804492d1\", \"type\": \"card\", \"data\": {\"card_name\": \"Leave & Holidays\", \"col\": 4}}, {\"id\": \"card_adf34be6\", \"type\": \"card\", \"data\": {\"card_name\": \"Payroll & Tax\", \"col\": 4}}, {\"id\": \"card_d5af7031\", \"type\": \"card\", \"data\": {\"card_name\": \"Expenses & Advances\", \"col\": 4}}, {\"id\": \"card_581e6302\", \"type\": \"card\", \"data\": {\"card_name\": \"Assets\", \"col\": 4}}, {\"id\": \"card_c41064b3\", \"type\": \"card\", \"data\": {\"card_name\": \"Reports\", \"col\": 4}}, {\"id\": \"card_d1361cb8\", \"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4}}]",
+ "content": "[{\"id\": \"hdr_shortcuts_45096def\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Quick Access</b></span>\", \"col\": 12}}, {\"id\": \"sc_e71d4e93\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Leave Applications\", \"col\": 3}}, {\"id\": \"sc_73f55878\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Attendance Regularization Requests\", \"col\": 3}}, {\"id\": \"sc_86bf3d66\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Punch Logs\", \"col\": 3}}, {\"id\": \"sc_135ff543\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Attendance Logs\", \"col\": 3}}, {\"id\": \"sc_7b1a8702\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Leave Balance\", \"col\": 3}}, {\"id\": \"sc_7afd208e\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Payslips\", \"col\": 3}}, {\"id\": \"sc_c946948a\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Expense Claims\", \"col\": 3}}, {\"id\": \"sc_b317e24c\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Employee Advances\", \"col\": 3}}, {\"id\": \"sc_53d0cdd1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Monthly Attendance Details\", \"col\": 3}}, {\"id\": \"sc_677afbc8\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Asset\", \"col\": 3}}, {\"id\": \"spc_a4b036de\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"hdr_cards_601022b4\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Masters & Reports</b></span>\", \"col\": 12}}, {\"id\": \"card_97925033\", \"type\": \"card\", \"data\": {\"card_name\": \"Employee Information\", \"col\": 4}}, {\"id\": \"card_d942835f\", \"type\": \"card\", \"data\": {\"card_name\": \"Attendance\", \"col\": 4}}, {\"id\": \"card_69987f89\", \"type\": \"card\", \"data\": {\"card_name\": \"Leave & Holidays\", \"col\": 4}}, {\"id\": \"card_24c4d5b6\", \"type\": \"card\", \"data\": {\"card_name\": \"Payroll & Tax\", \"col\": 4}}, {\"id\": \"card_5d70497f\", \"type\": \"card\", \"data\": {\"card_name\": \"Expenses & Advances\", \"col\": 4}}, {\"id\": \"card_7b14e2d2\", \"type\": \"card\", \"data\": {\"card_name\": \"Assets\", \"col\": 4}}, {\"id\": \"card_68e3ad5c\", \"type\": \"card\", \"data\": {\"card_name\": \"Reports\", \"col\": 4}}, {\"id\": \"card_9b925ebb\", \"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4}}]",
  "creation": "2026-10-24 18:18:50.147679",
  "custom_blocks": [],
  "docstatus": 0,
@@ -304,7 +304,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-26 16:29:17.447160",
+ "modified": "2026-11-19 11:01:56.781296",
  "modified_by": "Administrator",
  "module": "Artem ERP",
  "name": "Employee Dashboard",
@@ -329,19 +329,12 @@
  "sequence_id": 0.0,
  "shortcuts": [
   {
-   "color": "Blue",
+   "color": "Orange",
    "doc_view": "List",
    "icon": "calendar-plus",
    "label": "Leave Applications",
    "link_to": "Leave Application",
-   "type": "DocType"
-  },
-  {
-   "color": "Green",
-   "doc_view": "List",
-   "icon": "clock",
-   "label": "Punch Logs",
-   "link_to": "Employee Checkin",
+   "stats_filter": "[[\"Leave Application\", \"workflow_state\", \"=\", \"Pending\"]]",
    "type": "DocType"
   },
   {
@@ -350,6 +343,15 @@
    "icon": "calendar-check",
    "label": "Attendance Regularization Requests",
    "link_to": "Attendance Request",
+   "stats_filter": "[[\"Attendance Request\", \"workflow_state\", \"=\", \"Pending\"]]",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "icon": "clock",
+   "label": "Punch Logs",
+   "link_to": "Employee Checkin",
    "type": "DocType"
   },
   {

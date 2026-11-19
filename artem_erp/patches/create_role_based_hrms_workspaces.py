@@ -97,6 +97,8 @@ def setup_workspace(ws_data):
 			"icon": s.get("icon"),
 			"color": s.get("color", "Grey"),
 		}
+		if s.get("stats_filter"):
+			shortcut_row["stats_filter"] = s["stats_filter"]
 		if s.get("type") == "Report":
 			shortcut_row["report_ref_doctype"] = s.get("report_ref_doctype", "")
 			if s.get("is_query_report"):
@@ -293,6 +295,9 @@ def setup_desktop_icon(ws_data):
 	di.standard = 1
 	di.app = ws_data.get("app", "artem_erp")
 	di.hidden = 0
+	if label == "Employee Dashboard":
+		di.logo_url = "/assets/artem_erp/images/artem_logo.png"
+		di.icon_image = "/assets/artem_erp/images/artem_logo.png"
 
 	# Assign roles
 	di.set("roles", [])
@@ -333,15 +338,8 @@ def get_workspace_configs():
 					"link_to": "Leave Application",
 					"doc_view": "List",
 					"icon": "calendar-plus",
-					"color": "Blue",
-				},
-				{
-					"label": "Punch Logs",
-					"type": "DocType",
-					"link_to": "Employee Checkin",
-					"doc_view": "List",
-					"icon": "clock",
-					"color": "Green",
+					"color": "Orange",
+					"stats_filter": '[["Leave Application", "workflow_state", "=", "Pending"]]',
 				},
 				{
 					"label": "Attendance Regularization Requests",
@@ -350,6 +348,15 @@ def get_workspace_configs():
 					"doc_view": "List",
 					"icon": "calendar-check",
 					"color": "Orange",
+					"stats_filter": '[["Attendance Request", "workflow_state", "=", "Pending"]]',
+				},
+				{
+					"label": "Punch Logs",
+					"type": "DocType",
+					"link_to": "Employee Checkin",
+					"doc_view": "List",
+					"icon": "clock",
+					"color": "Green",
 				},
 				{
 					"label": "Attendance Logs",
