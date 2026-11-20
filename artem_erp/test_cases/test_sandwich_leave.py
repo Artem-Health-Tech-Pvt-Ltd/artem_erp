@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Artem Healthtech and Contributors
 # See license.txt
 
+import unittest
+
 import frappe
 from frappe import _
 from frappe.model.workflow import apply_workflow
@@ -29,6 +31,8 @@ class TestSandwichLeave(IntegrationTestCase):
 
 	@classmethod
 	def setUpClass(cls):
+		if not frappe.db.exists("DocType", "Employee"):
+			raise unittest.SkipTest("HRMS DocType 'Employee' is not installed.")
 		super().setUpClass()
 		setting = frappe.get_doc("Artem Setting")
 		cls.original_apply_rule = setting.apply_sandwich_leave_rule_on_leave

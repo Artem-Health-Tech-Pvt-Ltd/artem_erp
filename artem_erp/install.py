@@ -18,20 +18,33 @@ def sync_customizations():
 			force=True,
 		)
 
-	create_custom_fields(CUSTOM_FIELDS, update=True, ignore_validate=True)
+	# Only create custom fields for DocTypes that exist on the current site
+	available_custom_fields = {
+		dt: fields for dt, fields in CUSTOM_FIELDS.items() if frappe.db.exists("DocType", dt)
+	}
+	if available_custom_fields:
+		create_custom_fields(available_custom_fields, update=True, ignore_validate=True)
+
 	make_property_setter()
-	sync_asset_field_order()
-	sync_employee_field_order()
+
+	if frappe.db.exists("DocType", "Asset"):
+		sync_asset_field_order()
+	if frappe.db.exists("DocType", "Employee"):
+		sync_employee_field_order()
 
 	# Rebuild cached metadata so newly-created fields are immediately available in Desk.
-	frappe.clear_cache(doctype="Asset Category")
-	frappe.clear_cache(doctype="Asset")
-	frappe.clear_cache(doctype="Employee")
-	frappe.clear_cache(doctype="Asset Maintenance Log")
-	frappe.clear_cache(doctype="Asset Repair")
-	frappe.clear_cache(doctype="Employee Asset Allocation")
-	frappe.clear_cache(doctype="Employee Asset Allocation Item")
-	frappe.clear_cache(doctype="Asset Assignment History")
+	for dt in [
+		"Asset Category",
+		"Asset",
+		"Employee",
+		"Asset Maintenance Log",
+		"Asset Repair",
+		"Employee Asset Allocation",
+		"Employee Asset Allocation Item",
+		"Asset Assignment History",
+	]:
+		if frappe.db.exists("DocType", dt):
+			frappe.clear_cache(doctype=dt)
 
 
 def sync_employee_field_order():
@@ -39,6 +52,9 @@ def sync_employee_field_order():
 	are positioned in the Overview tab right after Company Details,
 	before contact_details (Address & Contacts tab)."""
 	import json
+
+	if not frappe.db.exists("DocType", "Employee"):
+		return
 
 	meta = frappe.get_meta("Employee")
 	fields = [f.fieldname for f in meta.fields]
@@ -77,6 +93,9 @@ def sync_asset_field_order():
 	"""Ensure Custodian, Employee Details, Specifications, Warranty, and Maintenance
 	are positioned in the Details section (before Depreciation and More Info tabs)."""
 	import json
+
+	if not frappe.db.exists("DocType", "Asset"):
+		return
 
 	meta = frappe.get_meta("Asset")
 	fields = [f.fieldname for f in meta.fields]
@@ -160,20 +179,37 @@ def after_install():
 
 
 def setup_workspace_shortcuts():
-	from artem_erp.patches.create_role_based_hrms_workspaces import execute as setup_hrms_workspaces
-	from artem_erp.patches.payroll_shortcut import execute as setup_payroll_shortcuts
+	try:
+		from artem_erp.patches.create_role_based_hrms_workspaces import execute as setup_hrms_workspaces
 
-	setup_payroll_shortcuts()
-	setup_hrms_workspaces()
+		setup_hrms_workspaces()
+	except Exception:
+		pass
 
-	from artem_erp.asset_maintenance_setup import setup_asset_maintenance_suite
+	try:
+		from artem_erp.patches.payroll_shortcut import execute as setup_payroll_shortcuts
 
-	setup_asset_maintenance_suite()
+		setup_payroll_shortcuts()
+	except Exception:
+		pass
+
+	try:
+		from artem_erp.asset_maintenance_setup import setup_asset_maintenance_suite
+
+		setup_asset_maintenance_suite()
+	except Exception:
+		pass
 
 
 def make_property_setter():
 	for property_setter in get_property_setters():
-		frappe.make_property_setter(property_setter, validate_fields_for_doctype=False)
+		dt = property_setter.get("doctype")
+		if dt and not frappe.db.exists("DocType", dt):
+			continue
+		try:
+			frappe.make_property_setter(property_setter, validate_fields_for_doctype=False)
+		except Exception:
+			pass
 
 
 def add_workspace_shortcut(
@@ -243,35 +279,46 @@ def add_workspace_shortcut(
 
 
 def create_workflow():
-	fixture_folder_name = ["workflow.device_login_authorization_workflow"]
+	try:
+		fixture_folder_name = ["workflow.device_login_authorization_workflow"]
 
-	suffix_mapping = {
-		"workflow_action_master": "Workflow Action Master",
-		"workflow_state": "Workflow State",
-		"workflow": "Workflow",
-	}
+		suffix_mapping = {
+			"workflow_action_master": "Workflow Action Master",
+			"workflow_state": "Workflow State",
+			"workflow": "Workflow",
+		}
 
-	for file_path in fixture_folder_name:
-		for suffix, doctype in suffix_mapping.items():
-			make_workflow(
-				f"artem_erp.{file_path}.{suffix}",
-				f"get_{suffix}",
-				doctype,
-			)
+		for file_path in fixture_folder_name:
+			for suffix, doctype in suffix_mapping.items():
+				make_workflow(
+					f"artem_erp.{file_path}.{suffix}",
+					f"get_{suffix}",
+					doctype,
+				)
+	except Exception:
+		pass
 
 
 def make_workflow(file_path, module_name, doctype):
-	module = importlib.import_module(file_path)
-	workflow_function = getattr(module, module_name)
+	try:
+		module = importlib.import_module(file_path)
+		workflow_function = getattr(module, module_name)
 
-	for workflow in workflow_function():
-		name = workflow.get("name")
+		for workflow in workflow_function():
+			name = workflow.get("name")
 
-		if frappe.db.exists(doctype, name):
-			doc = frappe.get_doc(doctype, name)
-			doc.update(workflow)
-			doc.save()
-		else:
-			doc = frappe.new_doc(doctype)
-			doc.update(workflow)
-			doc.insert()
+			if doctype == "Workflow":
+				doc_type = workflow.get("document_type")
+				if doc_type and not frappe.db.exists("DocType", doc_type):
+					continue
+
+			if frappe.db.exists(doctype, name):
+				doc = frappe.get_doc(doctype, name)
+				doc.update(workflow)
+				doc.save()
+			else:
+				doc = frappe.new_doc(doctype)
+				doc.update(workflow)
+				doc.insert()
+	except Exception:
+		pass
