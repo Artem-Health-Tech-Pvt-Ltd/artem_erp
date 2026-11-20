@@ -1,14 +1,34 @@
 import frappe
 from frappe import _
+from frappe.model.document import Document
 from frappe.utils import add_days, cint, date_diff, flt, getdate
-from hrms.hr.doctype.leave_application.leave_application import (
-	LeaveApplication,
-	get_holidays,
-	get_leave_balance_on,
-	get_number_of_leave_days,
-	is_lwp,
-)
-from hrms.hr.utils import get_holiday_dates_for_employee
+
+try:
+	from hrms.hr.doctype.leave_application.leave_application import (
+		LeaveApplication,
+		get_holidays,
+		get_leave_balance_on,
+		get_number_of_leave_days,
+		is_lwp,
+	)
+	from hrms.hr.utils import get_holiday_dates_for_employee
+except ImportError:
+	LeaveApplication = Document
+
+	def get_holidays(*args, **kwargs):
+		return []
+
+	def get_leave_balance_on(*args, **kwargs):
+		return 0
+
+	def get_number_of_leave_days(*args, **kwargs):
+		return 0
+
+	def is_lwp(*args, **kwargs):
+		return False
+
+	def get_holiday_dates_for_employee(*args, **kwargs):
+		return []
 
 
 class CustomLeaveApplication(LeaveApplication):

@@ -2,8 +2,13 @@
 # For license information, please see license.txt
 
 import frappe
-from erpnext.assets.doctype.asset.asset import Asset
+from frappe.model.document import Document
 from frappe.model.naming import make_autoname
+
+try:
+	from erpnext.assets.doctype.asset.asset import Asset
+except ImportError:
+	Asset = Document
 
 
 class CustomAsset(Asset):

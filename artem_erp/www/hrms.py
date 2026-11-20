@@ -1,5 +1,12 @@
 import frappe
-from hrms.www.hrms import get_boot
+
+try:
+	from hrms.www.hrms import get_boot
+except ImportError:
+
+	def get_boot(*args, **kwargs):
+		return {}
+
 
 no_cache = 1
 

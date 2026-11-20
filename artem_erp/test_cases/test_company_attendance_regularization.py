@@ -20,6 +20,11 @@ from artem_erp.doc_events.attendance_request_shift_validation import (
 
 
 class TestCompanyAttendanceRegularization(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		if not frappe.db.exists("DocType", "Attendance Request"):
+			raise unittest.SkipTest("HRMS DocType 'Attendance Request' is not installed.")
+
 	def setUp(self):
 		frappe.db.rollback()
 

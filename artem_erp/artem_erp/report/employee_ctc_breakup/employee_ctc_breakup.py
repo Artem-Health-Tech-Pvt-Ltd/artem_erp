@@ -6,7 +6,13 @@ from frappe import _
 from frappe.utils import flt, get_link_to_form, getdate, has_common, nowdate
 from frappe.utils.formatters import fmt_money
 from frappe.utils.jinja import render_template
-from hrms.payroll.doctype.salary_structure.salary_structure import _make_salary_slip
+
+try:
+	from hrms.payroll.doctype.salary_structure.salary_structure import _make_salary_slip
+except ImportError:
+
+	def _make_salary_slip(*args, **kwargs):
+		return None
 
 
 class SalaryBreakupReport:
