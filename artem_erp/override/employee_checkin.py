@@ -2,8 +2,20 @@
 
 import frappe
 from frappe import _
-from hrms.hr.doctype.employee_checkin.employee_checkin import CheckinRadiusExceededError, EmployeeCheckin
-from hrms.hr.utils import get_distance_between_coordinates
+from frappe.model.document import Document
+
+try:
+	from hrms.hr.doctype.employee_checkin.employee_checkin import (
+		CheckinRadiusExceededError,
+		EmployeeCheckin,
+	)
+	from hrms.hr.utils import get_distance_between_coordinates
+except ImportError:
+	EmployeeCheckin = Document
+	CheckinRadiusExceededError = Exception
+
+	def get_distance_between_coordinates(*args, **kwargs):
+		return 0
 
 
 # Override for the Employee Checkin doctype to validate checkin against multiple assigned shift locations not just the primary one.

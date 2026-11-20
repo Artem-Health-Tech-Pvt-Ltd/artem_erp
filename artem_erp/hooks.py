@@ -53,18 +53,23 @@ web_include_js = "/assets/artem_erp/js/artem_erp.js"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_js = {
 	"Attendance": "public/js/attendance.js",
 	"Shift Assignment": "public/js/shift_assignment.js",
 	"Additional Salary": "public/js/additional_salary.js",
 	"Payroll Entry": "public/js/payroll_entry.js",
 	"Leave Application": "public/js/leave_application.js",
-	"Attendance Request": "public/js/attendance_request.js",
+	"Asset Category": "public/js/asset_category.js",
+	"Asset": "public/js/asset.js",
+	"Employee": "public/js/employee.js",
 }
+
 doctype_list_js = {
 	"Attendance": "public/js/attendance_list.js",
+	"Employee Asset Allocation": "artem_erp/doctype/employee_asset_allocation/employee_asset_allocation_list.js",
+	"Asset": "public/js/asset_list.js",
 }
+
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -105,7 +110,7 @@ role_home_page = {
 
 # Migration
 # ------------------
-# after_migrate = "artem_erp.install.after_migrate"
+after_migrate = "artem_erp.install.after_migrate"
 
 # Installation
 # ------------
@@ -175,7 +180,8 @@ doc_events = {
 		"before_submit": "artem_erp.doc_events.payroll_entry.before_submit",
 	},
 	"Employee": {
-		"validate": "artem_erp.doc_events.employee.validate_aadhaar_number",
+		"onload": "artem_erp.doc_events.employee.onload",
+		"validate": "artem_erp.doc_events.employee.validate",
 	},
 	"Attendance Request": {
 		"before_validate": "artem_erp.doc_events.attendance_request_shift_validation.validate_attendance_request",
@@ -197,6 +203,23 @@ doc_events = {
 		"on_submit": "artem_erp.doc_events.leave_application.on_submit",
 		"on_cancel": "artem_erp.doc_events.leave_application.on_cancel",
 	},
+	"Asset Category": {
+		"validate": "artem_erp.doc_events.asset_category.validate",
+		"on_update": "artem_erp.doc_events.asset_category.create_item",
+	},
+	"Asset": {
+		"on_update": "artem_erp.api.asset_maintenance_sync.sync_asset_records",
+		"on_update_after_submit": "artem_erp.api.asset_maintenance_sync.sync_asset_records",
+	},
+	"Asset Repair": {
+		"on_update": "artem_erp.api.asset_maintenance_sync.on_asset_repair_update",
+		"on_submit": "artem_erp.api.asset_maintenance_sync.on_asset_repair_update",
+		"on_cancel": "artem_erp.api.asset_maintenance_sync.on_asset_repair_update",
+	},
+	"Asset Movement": {
+		"on_submit": "artem_erp.doc_events.asset_movement.on_submit",
+		"on_cancel": "artem_erp.doc_events.asset_movement.on_cancel",
+	},
 }
 
 # Scheduled Tasks
@@ -212,7 +235,7 @@ scheduler_events = {
 		"0 8 * * *": [
 			"artem_erp.auto_email.team_availability_email.send_daily_team_availability_notifications",
 		],
-		#  Daily: Run every day at 9:30 AM (30 9 * * *)
+		# Daily: Run every day at 9:30 AM (30 9 * * *)
 		"30 9 * * *": [
 			"artem_erp.auto_email.birthday_and_work_anniversary.send_birthday_and_anniversary_wishes",
 		],
@@ -245,7 +268,7 @@ extend_doctype_class = {
 	"Additional Salary": "artem_erp.override.additional_salary.CustomAdditionalSalary",
 	"Salary Slip": "artem_erp.override.salary_slip.CustomSalarySlip",
 	"Attendance Request": "artem_erp.override.attendance_request.CustomAttendanceRequest",
-	"Leave Application": "artem_erp.override.leave_application.CustomLeaveApplication",
+	"Asset": "artem_erp.override.asset.CustomAsset",
 }
 
 
@@ -328,6 +351,4 @@ on_login = [
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-
-
 fixtures = [{"dt": "Workflow"}, {"dt": "Workflow State"}, {"dt": "Workflow Action Master"}]

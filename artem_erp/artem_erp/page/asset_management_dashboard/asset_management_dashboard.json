@@ -1,0 +1,30 @@
+{
+ "content": null,
+ "creation": "2026-11-03 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-11-03 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Artem ERP",
+ "name": "asset_management_dashboard",
+ "owner": "Administrator",
+ "page_name": "asset_management_dashboard",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Asset Manager"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "HR User"
+  }
+ ],
+ "standard": "Yes",
+ "title": "Asset Management Dashboard"
+}
+

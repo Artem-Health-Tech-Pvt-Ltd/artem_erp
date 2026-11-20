@@ -2,7 +2,12 @@
 # For license information, please see license.txt
 
 import frappe
-from hrms.hr.doctype.attendance_request.attendance_request import AttendanceRequest
+from frappe.model.document import Document
+
+try:
+	from hrms.hr.doctype.attendance_request.attendance_request import AttendanceRequest
+except ImportError:
+	AttendanceRequest = Document
 
 
 class CustomAttendanceRequest(AttendanceRequest):

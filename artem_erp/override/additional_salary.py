@@ -1,7 +1,12 @@
 import frappe
 from frappe import _, bold
+from frappe.model.document import Document
 from frappe.utils import add_months, comma_and, date_diff, flt, formatdate, get_link_to_form, getdate
-from hrms.payroll.doctype.additional_salary.additional_salary import AdditionalSalary
+
+try:
+	from hrms.payroll.doctype.additional_salary.additional_salary import AdditionalSalary
+except ImportError:
+	AdditionalSalary = Document
 
 
 def get_employee_joining_date(employee):

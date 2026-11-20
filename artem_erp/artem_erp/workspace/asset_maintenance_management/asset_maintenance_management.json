@@ -1,0 +1,163 @@
+{
+ "app": "artem_erp",
+ "charts": [],
+ "content": "[{\"id\": \"hdr_kpi\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Maintenance Overview &amp; KPIs</b></span>\", \"col\": 12}}, {\"id\": \"nc_in_repair\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Assets In Repair\", \"col\": 3}}, {\"id\": \"nc_tot_records\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Total Maintenance Records\", \"col\": 3}}, {\"id\": \"nc_tot_cost\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Total Maintenance Expenditure\", \"col\": 3}}, {\"id\": \"nc_never_maint\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Never Maintained Assets\", \"col\": 3}}, {\"id\": \"spc_1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"hdr_reports\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Maintenance Analytics &amp; Reports</b></span>\", \"col\": 12}}, {\"id\": \"card_reports\", \"type\": \"card\", \"data\": {\"card_name\": \"Reports & Analytics\", \"col\": 6}}, {\"id\": \"card_quick_links\", \"type\": \"card\", \"data\": {\"card_name\": \"Quick Operations\", \"col\": 6}}, {\"id\": \"spc_2\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"hdr_charts\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Visual Analytics</b></span>\", \"col\": 12}}, {\"id\": \"ch_by_category\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Asset Maintenance by Category\", \"col\": 6}}, {\"id\": \"ch_by_type\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Asset Maintenance by Type\", \"col\": 6}}]",
+ "creation": "2026-11-03 12:18:44.725809",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "hide_custom": 0,
+ "icon": "tool",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Asset Maintenance Management",
+ "link_type": "DocType",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports & Analytics",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Maintenance History Report",
+   "link_count": 0,
+   "link_to": "Maintenance History Report",
+   "link_type": "Report",
+   "onboard": 1,
+   "report_ref_doctype": "Asset",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Maintenance Status Report",
+   "link_count": 0,
+   "link_to": "Maintenance Status Report",
+   "link_type": "Report",
+   "onboard": 1,
+   "report_ref_doctype": "Asset",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Maintenance Cost Analysis",
+   "link_count": 0,
+   "link_to": "Maintenance Cost Analysis",
+   "link_type": "Report",
+   "onboard": 1,
+   "report_ref_doctype": "Asset",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Asset Repair Tracking",
+   "link_count": 0,
+   "link_to": "Asset Repair Tracking",
+   "link_type": "Report",
+   "onboard": 1,
+   "report_ref_doctype": "Asset",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Quick Operations",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "Asset",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Assets Currently In Repair",
+   "link_count": 0,
+   "link_to": "Asset",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "All IT Assets",
+   "link_count": 0,
+   "link_to": "Asset",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Asset Categories",
+   "link_count": 0,
+   "link_to": "Asset Category",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-11-03 12:18:44.725809",
+ "modified_by": "Administrator",
+ "module": "Artem ERP",
+ "name": "Asset Maintenance Management",
+ "number_cards": [],
+ "owner": "Administrator",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Asset Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 0.0,
+ "shortcuts": [
+  {
+   "color": "Red",
+   "doc_view": "List",
+   "label": "Assets In Repair",
+   "link_to": "Asset",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "doc_view": "",
+   "label": "Maintenance History",
+   "link_to": "Maintenance History Report",
+   "report_ref_doctype": "Asset",
+   "type": "Report"
+  },
+  {
+   "color": "Green",
+   "doc_view": "",
+   "label": "Cost Analysis",
+   "link_to": "Maintenance Cost Analysis",
+   "report_ref_doctype": "Asset",
+   "type": "Report"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "",
+   "label": "Repair Tracking",
+   "link_to": "Asset Repair Tracking",
+   "report_ref_doctype": "Asset",
+   "type": "Report"
+  }
+ ],
+ "title": "Asset Maintenance Management",
+ "type": "Workspace"
+}

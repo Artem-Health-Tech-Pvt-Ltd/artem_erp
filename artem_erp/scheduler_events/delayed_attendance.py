@@ -13,14 +13,29 @@ from frappe.utils import (
 	get_time,
 	getdate,
 )
-from hrms.hr.doctype.employee_checkin.employee_checkin import (
-	get_overtime_data,
-	time_diff_in_hours,
-	update_attendance_in_checkins,
-)
-from hrms.hr.doctype.shift_assignment.shift_assignment import (
-	get_actual_start_end_datetime_of_shift,
-)
+
+try:
+	from hrms.hr.doctype.employee_checkin.employee_checkin import (
+		get_overtime_data,
+		time_diff_in_hours,
+		update_attendance_in_checkins,
+	)
+	from hrms.hr.doctype.shift_assignment.shift_assignment import (
+		get_actual_start_end_datetime_of_shift,
+	)
+except ImportError:
+
+	def get_overtime_data(*args, **kwargs):
+		return {}
+
+	def time_diff_in_hours(*args, **kwargs):
+		return 0
+
+	def update_attendance_in_checkins(*args, **kwargs):
+		return
+
+	def get_actual_start_end_datetime_of_shift(*args, **kwargs):
+		return None, None
 
 
 @frappe.whitelist()

@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Artem Healthtech and Contributors
 # See license.txt
 
+import unittest
+
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import today
@@ -17,6 +19,8 @@ from artem_erp.auto_email.attendance_penalty_email import (
 class TestAttendancePenaltyEmail(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
+		if not frappe.db.exists("DocType", "Employee"):
+			raise unittest.SkipTest("HRMS DocType 'Employee' is not installed.")
 		super().setUpClass()
 		cls.cleanup_records = []
 

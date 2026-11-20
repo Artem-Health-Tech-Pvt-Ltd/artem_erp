@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Artem Healthtech and Contributors
 # See license.txt
 
+import unittest
 from datetime import datetime, timedelta
 
 import frappe
@@ -23,6 +24,8 @@ class TestDelayedAttendance(IntegrationTestCase):
 
 	@classmethod
 	def setUpClass(cls):
+		if not frappe.db.exists("DocType", "Employee"):
+			raise unittest.SkipTest("HRMS DocType 'Employee' is not installed.")
 		super().setUpClass()
 		cls.class_records = []
 

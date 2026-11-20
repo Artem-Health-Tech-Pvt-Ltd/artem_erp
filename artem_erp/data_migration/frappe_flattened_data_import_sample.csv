@@ -1,0 +1,7 @@
+ID,Asset Category,Serial No,Attribute Name (Child),Attribute Value (Child)
+AHT-LAP-127,Laptop,PG034DXE,Manufacturer,Dell Inc.
+AHT-LAP-127,Laptop,PG034DXE,Model,Latitude 5400
+AHT-LAP-127,Laptop,PG034DXE,CPU,Intel i7-8665U
+AHT-LAP-127,Laptop,PG034DXE,RAM,16GB
+AHT-LAP-127,Laptop,PG034DXE,Storage,512GB
+AHT-SPK-001,Speaker,SPK-99081,Connectivity,Bluetooth / AUX 
