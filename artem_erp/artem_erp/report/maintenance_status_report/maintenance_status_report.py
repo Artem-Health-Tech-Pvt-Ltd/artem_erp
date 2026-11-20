@@ -204,4 +204,3 @@ def get_report_summary(data):
 			"datatype": "Currency",
 		},
 	]
-

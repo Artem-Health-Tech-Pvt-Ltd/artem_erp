@@ -2,7 +2,11 @@
 # For license information, please see license.txt
 
 import frappe
-from artem_erp.services.asset_assignment_service import handle_asset_movement_submit, sync_employee_allocation_record
+
+from artem_erp.services.asset_assignment_service import (
+	handle_asset_movement_submit,
+	sync_employee_allocation_record,
+)
 
 
 def on_submit(doc, method=None):

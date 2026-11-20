@@ -460,4 +460,3 @@ def get_property_setters():
 			"value": 0,
 		},
 	]
-

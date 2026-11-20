@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import re
+
 import frappe
 from frappe import _
 
@@ -75,9 +76,9 @@ def validate_specifications(doc):
 		clean_name = row.spec_name.strip().lower()
 		if clean_name in seen_names:
 			frappe.throw(
-				_("Specification '{0}' is defined more than once in this category. Each specification name must be unique.").format(
-					row.spec_name.strip()
-				)
+				_(
+					"Specification '{0}' is defined more than once in this category. Each specification name must be unique."
+				).format(row.spec_name.strip())
 			)
 		seen_names.add(clean_name)
 
@@ -87,9 +88,9 @@ def validate_specifications(doc):
 			lines = [opt.strip() for opt in (row.options or "").splitlines() if opt.strip()]
 			if len(lines) < 2:
 				frappe.throw(
-					_("Row #{0} ('{1}'): Select Data Type requires at least 2 options (one option per line).").format(
-						row.idx, row.spec_name
-					)
+					_(
+						"Row #{0} ('{1}'): Select Data Type requires at least 2 options (one option per line)."
+					).format(row.idx, row.spec_name)
 				)
 		else:
 			row.options = ""
@@ -128,9 +129,9 @@ def validate_specifications(doc):
 				valid_opts = [opt.strip() for opt in (row.options or "").splitlines() if opt.strip()]
 				if val not in valid_opts:
 					frappe.throw(
-						_("Row #{0} ('{1}'): Default Value '{2}' must match one of the configured options: {3}.").format(
-							row.idx, row.spec_name, val, ", ".join(valid_opts)
-						)
+						_(
+							"Row #{0} ('{1}'): Default Value '{2}' must match one of the configured options: {3}."
+						).format(row.idx, row.spec_name, val, ", ".join(valid_opts))
 					)
 
 

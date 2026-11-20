@@ -66,7 +66,6 @@ doctype_js = {
 
 doctype_list_js = {
 	"Attendance": "public/js/attendance_list.js",
-	"Asset": "public/js/asset_list.js",
 	"Employee Asset Allocation": "artem_erp/doctype/employee_asset_allocation/employee_asset_allocation_list.js",
 	"Asset": "public/js/asset_list.js",
 }
@@ -203,24 +202,6 @@ doc_events = {
 		"before_submit": "artem_erp.doc_events.leave_application.before_submit",
 		"on_submit": "artem_erp.doc_events.leave_application.on_submit",
 		"on_cancel": "artem_erp.doc_events.leave_application.on_cancel",
-	},
-	"Asset Category": {
-		"validate": "artem_erp.doc_events.asset_category.validate",
-		"on_update": "artem_erp.doc_events.asset_category.create_item",
-	},
-	"Asset": {
-		"on_update": "artem_erp.api.asset_maintenance_sync.sync_asset_records",
-		"on_update_after_submit": "artem_erp.api.asset_maintenance_sync.sync_asset_records",
-	},
-	"Asset Repair": {
-		"on_update": "artem_erp.api.asset_maintenance_sync.on_asset_repair_update",
-		"on_submit": "artem_erp.api.asset_maintenance_sync.on_asset_repair_update",
-		"on_cancel": "artem_erp.api.asset_maintenance_sync.on_asset_repair_update",
-	},
-	"Asset Movement": {
-		"on_submit": "artem_erp.doc_events.asset_movement.on_submit",
-		"on_cancel": "artem_erp.doc_events.asset_movement.on_cancel",
-
 	},
 	"Asset Category": {
 		"validate": "artem_erp.doc_events.asset_category.validate",

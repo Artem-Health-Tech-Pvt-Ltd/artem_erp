@@ -12,7 +12,6 @@ frappe.dom.set_style(`
 
 // ─── Main form handler ────────────────────────────────────────────────────────
 frappe.ui.form.on("Asset", {
-
 	setup(frm) {
 		_patch_meta_dependencies();
 		_bypass_purchase_validation(frm);
@@ -60,31 +59,47 @@ frappe.ui.form.on("Asset", {
 			frm.set_df_property("custom_series_number", "read_only", 1);
 
 			// Standard maintenance module navigation shortcuts
-			frm.add_custom_button(__("Asset Maintenance Logs"), () => {
-				frappe.set_route("List", "Asset Maintenance Log", {
-					custom_source_asset: frm.doc.name,
-				});
-			}, __("Maintenance"));
+			frm.add_custom_button(
+				__("Asset Maintenance Logs"),
+				() => {
+					frappe.set_route("List", "Asset Maintenance Log", {
+						custom_source_asset: frm.doc.name,
+					});
+				},
+				__("Maintenance")
+			);
 
-			frm.add_custom_button(__("Asset Repairs"), () => {
-				frappe.set_route("List", "Asset Repair", {
-					asset: frm.doc.name,
-				});
-			}, __("Maintenance"));
+			frm.add_custom_button(
+				__("Asset Repairs"),
+				() => {
+					frappe.set_route("List", "Asset Repair", {
+						asset: frm.doc.name,
+					});
+				},
+				__("Maintenance")
+			);
 
-			frm.add_custom_button(__("Assignment History"), () => {
-				frappe.set_route("List", "Asset Assignment History", {
-					asset: frm.doc.name,
-				});
-			}, __("Allocation"));
+			frm.add_custom_button(
+				__("Assignment History"),
+				() => {
+					frappe.set_route("List", "Asset Assignment History", {
+						asset: frm.doc.name,
+					});
+				},
+				__("Allocation")
+			);
 
-			frm.add_custom_button(__("Employee Allocation"), () => {
-				if (frm.doc.custodian) {
-					frappe.set_route("Form", "Employee Asset Allocation", frm.doc.custodian);
-				} else {
-					frappe.set_route("List", "Employee Asset Allocation");
-				}
-			}, __("Allocation"));
+			frm.add_custom_button(
+				__("Employee Allocation"),
+				() => {
+					if (frm.doc.custodian) {
+						frappe.set_route("Form", "Employee Asset Allocation", frm.doc.custodian);
+					} else {
+						frappe.set_route("List", "Employee Asset Allocation");
+					}
+				},
+				__("Allocation")
+			);
 
 			_render_assignment_history(frm);
 		}
@@ -146,7 +161,12 @@ frappe.ui.form.on("Asset", {
 				(r) => {
 					if (r) {
 						frm.set_value("custom_employee_name", r.employee_name || "");
-						const email = r.company_email || r.personal_email || r.user_id || r.prefered_email || "";
+						const email =
+							r.company_email ||
+							r.personal_email ||
+							r.user_id ||
+							r.prefered_email ||
+							"";
 						frm.set_value("custom_employee_email", email);
 					}
 				}
@@ -180,7 +200,9 @@ frappe.ui.form.on("Asset", {
 			});
 		} else if (status === "In Stock" && frm.doc.custodian) {
 			frappe.confirm(
-				__("Setting status to <b>In Stock</b> will clear the current Custodian. Do you want to continue?"),
+				__(
+					"Setting status to <b>In Stock</b> will clear the current Custodian. Do you want to continue?"
+				),
 				() => {
 					frm.set_value("custodian", "");
 				},
@@ -205,20 +227,17 @@ frappe.ui.form.on("Asset", {
 
 		// Client-side: collect mandatory spec rows with empty values
 		let missing = (frm.doc.custom_specifications || [])
-			.filter(r => r.is_mandatory && !String(r.value || "").trim())
-			.map(r => r.spec_name);
+			.filter((r) => r.is_mandatory && !String(r.value || "").trim())
+			.map((r) => r.spec_name);
 
 		if (missing.length) {
 			frappe.msgprint({
 				title: __("Mandatory Specification Missing"),
 				indicator: "red",
-				message: __(
-					"Required specifications for <b>{0}</b>:<br><br><ul>{1}</ul>",
-					[
-						frm.doc.asset_category,
-						missing.map(m => `<li><b>${m}</b></li>`).join(""),
-					]
-				),
+				message: __("Required specifications for <b>{0}</b>:<br><br><ul>{1}</ul>", [
+					frm.doc.asset_category,
+					missing.map((m) => `<li><b>${m}</b></li>`).join(""),
+				]),
 			});
 			frappe.validated = false;
 		}
@@ -255,7 +274,9 @@ frappe.ui.form.on("Asset Maintenance Record", {
 				frappe.model.set_value(cdt, cdn, "maintenance_status", "In Progress");
 			}
 			frappe.show_alert({
-				message: __("Repair marked as required. You can click 'Create / Open Asset Repair' to manage breakdown repair details."),
+				message: __(
+					"Repair marked as required. You can click 'Create / Open Asset Repair' to manage breakdown repair details."
+				),
 				indicator: "blue",
 			});
 		}
@@ -268,7 +289,8 @@ frappe.ui.form.on("Asset Maintenance Record", {
 	},
 	form_render(frm, cdt, cdn) {
 		const row = locals[cdt][cdn];
-		const grid_row = frm.fields_dict.custom_maintenance_records?.grid?.grid_rows_by_docname[cdn];
+		const grid_row =
+			frm.fields_dict.custom_maintenance_records?.grid?.grid_rows_by_docname[cdn];
 		if (!grid_row || !grid_row.grid_form) return;
 
 		const repair_wrapper = grid_row.grid_form.fields_dict["asset_repair"]?.$wrapper;
@@ -281,7 +303,9 @@ frappe.ui.form.on("Asset Maintenance Record", {
 
 			const $btn = $(`
 				<div class="create-repair-btn-container" style="margin-top: 6px;">
-					<button type="button" class="btn btn-xs ${has_repair ? 'btn-info' : 'btn-primary'} create-repair-btn">
+					<button type="button" class="btn btn-xs ${
+						has_repair ? "btn-info" : "btn-primary"
+					} create-repair-btn">
 						<i class="fa fa-wrench"></i> ${label}
 					</button>
 				</div>
@@ -506,43 +530,72 @@ function _hide_standard_fields(frm) {
 	frm.toggle_display("asset_type", false);
 
 	// Insurance section
-	frm.toggle_display([
-		"insurance_details",
-		"section_break_insurance",
-		"policy_number", "insurer", "insured_value",
-		"insurance_start_date", "insurance_end_date", "comprehensive_insurance",
-	], false);
+	frm.toggle_display(
+		[
+			"insurance_details",
+			"section_break_insurance",
+			"policy_number",
+			"insurer",
+			"insured_value",
+			"insurance_start_date",
+			"insurance_end_date",
+			"comprehensive_insurance",
+		],
+		false
+	);
 
 	// Additional / accounting info
-	frm.toggle_display([
-		"additional_info_section", "more_info",
-		"accounting_dimensions_section", "branch", "customer",
-		"asset_owner",
-	], false);
+	frm.toggle_display(
+		[
+			"additional_info_section",
+			"more_info",
+			"accounting_dimensions_section",
+			"branch",
+			"customer",
+			"asset_owner",
+		],
+		false
+	);
 
 	// Standard purchase fields (we use custom_bill_copy instead)
-	frm.toggle_display([
-		"purchase_receipt", "purchase_receipt_item", "purchase_invoice", "purchase_invoice_item",
-		"purchase_date", "supplier", "is_existing_asset",
-	], false);
+	frm.toggle_display(
+		[
+			"purchase_receipt",
+			"purchase_receipt_item",
+			"purchase_invoice",
+			"purchase_invoice_item",
+			"purchase_date",
+			"supplier",
+			"is_existing_asset",
+		],
+		false
+	);
 
 	// Depreciation
-	frm.toggle_display([
-		"depreciation_section", "calculate_depreciation",
-		"depreciation_schedule_section", "schedules",
-	], false);
+	frm.toggle_display(
+		[
+			"depreciation_section",
+			"calculate_depreciation",
+			"depreciation_schedule_section",
+			"schedules",
+		],
+		false
+	);
 
 	// Naming / item (auto-managed)
 	frm.toggle_display(["naming_series", "item_code", "item_name", "custom_device_id"], false);
 
 	// Ensure custodian and custom details are explicitly visible
-	frm.toggle_display([
-		"custodian",
-		"custom_asset_status",
-		"custom_employee_name",
-		"custom_employee_email",
-		"custom_assignment_date",
-	], true);
+	frm.toggle_display(
+		[
+			"custodian",
+			"custom_asset_status",
+			"custom_employee_name",
+			"custom_employee_email",
+			"custom_assignment_date",
+		],
+		true
+	);
 }
 
 function _update_naming_series(frm) {
@@ -559,7 +612,10 @@ function _update_naming_series(frm) {
 				series = `${r.custom_series_prefix.trim().toUpperCase()}-.####`;
 			}
 			if (series) {
-				let opts = series.split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+				let opts = series
+					.split(/[\n,]/)
+					.map((s) => s.trim())
+					.filter(Boolean);
 				if (opts.length) {
 					frm.set_df_property("naming_series", "options", opts);
 					if (!opts.includes(frm.doc.naming_series)) {
@@ -598,8 +654,9 @@ function _load_specs_from_category(frm) {
 
 			if (!spec_rows.length) {
 				frappe.show_alert({
-					message: __("No specification template found for category {0}.",
-						[frm.doc.asset_category]),
+					message: __("No specification template found for category {0}.", [
+						frm.doc.asset_category,
+					]),
 					indicator: "orange",
 				});
 			}
@@ -610,8 +667,9 @@ function _load_specs_from_category(frm) {
 }
 
 function _confirm_if_has_values(frm, cb) {
-	const has_values = (frm.doc.custom_specifications || [])
-		.some(r => r.value && String(r.value).trim());
+	const has_values = (frm.doc.custom_specifications || []).some(
+		(r) => r.value && String(r.value).trim()
+	);
 
 	if (has_values) {
 		frappe.confirm(
@@ -627,7 +685,8 @@ function _confirm_if_has_values(frm, cb) {
 }
 
 function _decorate_spec_grid(frm) {
-	const grid = frm.fields_dict["custom_specifications"] && frm.fields_dict["custom_specifications"].grid;
+	const grid =
+		frm.fields_dict["custom_specifications"] && frm.fields_dict["custom_specifications"].grid;
 	if (!grid) return;
 
 	// Disable add/delete row buttons — users only fill the Value column
@@ -643,8 +702,7 @@ function _decorate_spec_grid(frm) {
 		// Red asterisk on mandatory specs
 		if (doc.is_mandatory) {
 			$row.attr("data-spec-mandatory", "1");
-			$row.find(".col[data-fieldname='spec_name'] .static-area")
-				.addClass("spec-required");
+			$row.find(".col[data-fieldname='spec_name'] .static-area").addClass("spec-required");
 		}
 
 		// Type hints in the Value cell
@@ -678,10 +736,15 @@ function _validate_spec_row_type(row) {
 	} else if (dt === "Date" && isNaN(Date.parse(val))) {
 		err = __("'{0}' must be a valid date (YYYY-MM-DD).", [row.spec_name]);
 	} else if (dt === "Select" && row.options) {
-		const opts = row.options.split("\n").map(o => o.trim().toLowerCase()).filter(Boolean);
+		const opts = row.options
+			.split("\n")
+			.map((o) => o.trim().toLowerCase())
+			.filter(Boolean);
 		if (opts.length && !opts.includes(val.toLowerCase())) {
-			err = __("'{0}' must be one of: {1}", [row.spec_name,
-			row.options.split("\n").filter(Boolean).join(", ")]);
+			err = __("'{0}' must be one of: {1}", [
+				row.spec_name,
+				row.options.split("\n").filter(Boolean).join(", "),
+			]);
 		}
 	}
 	if (err) {
@@ -700,7 +763,11 @@ function _calculate_maintenance_summary(frm) {
 function _update_asset_number_preview(frm, category_prefix) {
 	let num = (frm.doc.custom_series_number || "").toString().trim();
 	if (!num || !frm.doc.asset_category) {
-		frm.set_df_property("custom_series_number", "description", __("Sequential number for this asset (e.g. 001, 046)."));
+		frm.set_df_property(
+			"custom_series_number",
+			"description",
+			__("Sequential number for this asset (e.g. 001, 046).")
+		);
 		return;
 	}
 
@@ -767,7 +834,9 @@ function _render_assignment_history(frm) {
 	if (frm.is_new() || !frm.doc.name) {
 		if (frm.fields_dict.custom_assignment_history_html) {
 			frm.fields_dict.custom_assignment_history_html.$wrapper.html(
-				`<div class="text-muted" style="padding: 10px;">${__("Assignment history will be recorded after the asset is saved.")}</div>`
+				`<div class="text-muted" style="padding: 10px;">${__(
+					"Assignment history will be recorded after the asset is saved."
+				)}</div>`
 			);
 		}
 		return;
@@ -792,7 +861,7 @@ function _render_assignment_history(frm) {
 				"asset_movement",
 				"assigned_by",
 				"returned_by",
-				"remarks"
+				"remarks",
 			],
 			order_by: "creation desc",
 			limit_page_length: 50,
@@ -828,25 +897,39 @@ function _render_assignment_history(frm) {
 					</tr>
 				`;
 			} else {
-				rows.forEach(row => {
+				rows.forEach((row) => {
 					const is_assigned = row.assignment_status === "Assigned";
 					const status_badge = is_assigned
 						? `<span class="indicator-pill green">${__("Assigned")}</span>`
 						: `<span class="indicator-pill blue">${__("Returned")}</span>`;
 
 					const prev_cust = row.previous_custodian
-						? `<a href="/app/employee/${encodeURIComponent(row.previous_custodian)}"><b>${frappe.utils.escape_html(row.previous_custodian_name || row.previous_custodian)}</b></a>`
+						? `<a href="/app/employee/${encodeURIComponent(
+								row.previous_custodian
+						  )}"><b>${frappe.utils.escape_html(
+								row.previous_custodian_name || row.previous_custodian
+						  )}</b></a>`
 						: `<span class="text-muted">-</span>`;
 
 					const curr_cust = row.employee
-						? `<a href="/app/employee/${encodeURIComponent(row.employee)}"><b>${frappe.utils.escape_html(row.employee_name || row.employee)}</b></a>`
+						? `<a href="/app/employee/${encodeURIComponent(
+								row.employee
+						  )}"><b>${frappe.utils.escape_html(
+								row.employee_name || row.employee
+						  )}</b></a>`
 						: `<span class="text-muted">-</span>`;
 
 					const movement_ref = row.asset_movement
-						? `<a href="/app/asset-movement/${encodeURIComponent(row.asset_movement)}" class="badge badge-info">${frappe.utils.escape_html(row.asset_movement)}</a>`
+						? `<a href="/app/asset-movement/${encodeURIComponent(
+								row.asset_movement
+						  )}" class="badge badge-info">${frappe.utils.escape_html(
+								row.asset_movement
+						  )}</a>`
 						: `<span class="text-muted">-</span>`;
 
-					const actor = (is_assigned ? row.assigned_by : (row.returned_by || row.assigned_by)) || "-";
+					const actor =
+						(is_assigned ? row.assigned_by : row.returned_by || row.assigned_by) ||
+						"-";
 
 					html += `
 						<tr>
@@ -854,7 +937,11 @@ function _render_assignment_history(frm) {
 							<td>${curr_cust}</td>
 							<td>${movement_ref}</td>
 							<td>${row.assignment_date ? frappe.datetime.str_to_user(row.assignment_date) : "-"}</td>
-							<td>${row.return_date ? frappe.datetime.str_to_user(row.return_date) : "<span class='text-muted'>Active</span>"}</td>
+							<td>${
+								row.return_date
+									? frappe.datetime.str_to_user(row.return_date)
+									: "<span class='text-muted'>Active</span>"
+							}</td>
 							<td>${status_badge}</td>
 							<td>${frappe.utils.escape_html(actor)}</td>
 							<td>${frappe.utils.escape_html(row.remarks || "-")}</td>

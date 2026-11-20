@@ -85,7 +85,9 @@ def get_columns():
 def get_data(filters):
 	conditions = [
 		"a.docstatus != 2",
-		"COALESCE(a.custom_asset_status, a.status) = 'In Repair'" if not filters.get("status") else "COALESCE(a.custom_asset_status, a.status) = %(status)s",
+		"COALESCE(a.custom_asset_status, a.status) = 'In Repair'"
+		if not filters.get("status")
+		else "COALESCE(a.custom_asset_status, a.status) = %(status)s",
 	]
 	values = {}
 
@@ -188,4 +190,3 @@ def get_report_summary(data):
 			"datatype": "Currency",
 		},
 	]
-

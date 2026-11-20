@@ -56,7 +56,15 @@ def get_employee_assigned_assets(employee):
 	assets = frappe.get_all(
 		"Asset",
 		filters={"custodian": employee, "docstatus": ["!=", 2]},
-		fields=["name", "asset_name", "asset_category", "location", "custom_assignment_date", "status", "custom_asset_status"],
+		fields=[
+			"name",
+			"asset_name",
+			"asset_category",
+			"location",
+			"custom_assignment_date",
+			"status",
+			"custom_asset_status",
+		],
 		order_by="creation desc",
 	)
 	for a in assets:
@@ -75,7 +83,15 @@ def sync_employee_assets_table(doc):
 	assets = frappe.get_all(
 		"Asset",
 		filters={"custodian": doc.name, "docstatus": ["!=", 2]},
-		fields=["name", "asset_name", "asset_category", "location", "custom_assignment_date", "status", "custom_asset_status"],
+		fields=[
+			"name",
+			"asset_name",
+			"asset_category",
+			"location",
+			"custom_assignment_date",
+			"status",
+			"custom_asset_status",
+		],
 		order_by="creation desc",
 	)
 	doc.set("custom_assigned_assets", [])
@@ -111,7 +127,7 @@ def sync_manual_asset_assignments(doc):
 	)
 
 	# New assets added in table -> update custodian, status and assignment date
-	for new_asset in (table_assets - db_assets):
+	for new_asset in table_assets - db_assets:
 		frappe.db.set_value(
 			"Asset",
 			new_asset,
@@ -127,6 +143,7 @@ def sync_manual_asset_assignments(doc):
 			update_modified=False,
 		)
 		from artem_erp.services.asset_assignment_service import record_assignment
+
 		record_assignment(
 			asset=new_asset,
 			employee=doc.name,
@@ -135,7 +152,7 @@ def sync_manual_asset_assignments(doc):
 		)
 
 	# If assets were removed from child table -> return them to In Stock
-	for removed_asset in (db_assets - table_assets):
+	for removed_asset in db_assets - table_assets:
 		frappe.db.set_value(
 			"Asset",
 			removed_asset,
@@ -149,6 +166,7 @@ def sync_manual_asset_assignments(doc):
 			update_modified=False,
 		)
 		from artem_erp.services.asset_assignment_service import record_return
+
 		record_return(
 			asset=removed_asset,
 			employee=doc.name,

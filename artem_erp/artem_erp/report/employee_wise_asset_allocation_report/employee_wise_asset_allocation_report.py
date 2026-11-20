@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 
+
 def execute(filters=None):
 	filters = filters or {}
 	columns = get_columns()
@@ -11,6 +12,7 @@ def execute(filters=None):
 	chart = get_chart_data(data)
 	report_summary = get_report_summary(data)
 	return columns, data, None, chart, report_summary
+
 
 def get_columns():
 	return [
@@ -120,6 +122,7 @@ def get_columns():
 		},
 	]
 
+
 def get_data(filters):
 	conditions = []
 	values = {}
@@ -194,6 +197,7 @@ def get_data(filters):
 
 	return frappe.db.sql(sql, values, as_dict=True)
 
+
 def get_report_summary(data):
 	if not data:
 		return []
@@ -211,6 +215,7 @@ def get_report_summary(data):
 		{"value": unique_assets, "label": _("Unique Assets"), "datatype": "Int"},
 		{"value": unique_employees, "label": _("Unique Employees"), "datatype": "Int"},
 	]
+
 
 def get_chart_data(data):
 	if not data:
@@ -236,4 +241,3 @@ def get_chart_data(data):
 		"type": "donut",
 		"colors": colors,
 	}
-

@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate, nowdate, get_datetime
+from frappe.utils import flt, get_datetime, getdate, nowdate
 
 
 def sync_asset_records(doc, method=None):
@@ -37,7 +37,7 @@ def sync_asset_records(doc, method=None):
 
 def sync_maintenance_record(asset_doc, row):
 	"""Creates or updates the corresponding standard Asset Maintenance Log.
-	
+
 	Status mapping (ERPNext standard Asset Maintenance Log only supports Planned, Completed, Cancelled, Overdue):
 	- Planned -> Planned
 	- In Progress -> Planned
@@ -191,7 +191,7 @@ def sync_asset_repair(asset_doc, row):
 def update_asset_maintenance_status(asset_name):
 	"""Determines and synchronizes ONLY the custom Asset Status ('custom_asset_status').
 	Never overwrites the standard ERPNext Asset 'status' field.
-	
+
 	Rules:
 	- 'In Repair' if ANY active repair exists (Asset Repair with repair_status='Pending'
 	   OR child row with repair_required=1 and maintenance_status='In Progress').

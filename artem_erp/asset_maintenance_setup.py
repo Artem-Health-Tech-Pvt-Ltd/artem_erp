@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import json
+
 import frappe
 
 
@@ -42,7 +43,9 @@ def setup_number_cards():
 			"label": "Assets In Stock",
 			"document_type": "Asset",
 			"function": "Count",
-			"filters_json": json.dumps([["Asset", "custom_asset_status", "=", "In Stock"], ["Asset", "docstatus", "!=", 2]]),
+			"filters_json": json.dumps(
+				[["Asset", "custom_asset_status", "=", "In Stock"], ["Asset", "docstatus", "!=", 2]]
+			),
 			"color": "#10b981",
 		},
 		{
@@ -50,7 +53,9 @@ def setup_number_cards():
 			"label": "Assets Assigned",
 			"document_type": "Asset",
 			"function": "Count",
-			"filters_json": json.dumps([["Asset", "custom_asset_status", "=", "Assigned"], ["Asset", "docstatus", "!=", 2]]),
+			"filters_json": json.dumps(
+				[["Asset", "custom_asset_status", "=", "Assigned"], ["Asset", "docstatus", "!=", 2]]
+			),
 			"color": "#3b82f6",
 		},
 		{
@@ -58,7 +63,9 @@ def setup_number_cards():
 			"label": "Assets In Repair",
 			"document_type": "Asset",
 			"function": "Count",
-			"filters_json": json.dumps([["Asset", "custom_asset_status", "=", "In Repair"], ["Asset", "docstatus", "!=", 2]]),
+			"filters_json": json.dumps(
+				[["Asset", "custom_asset_status", "=", "In Repair"], ["Asset", "docstatus", "!=", 2]]
+			),
 			"color": "#ef4444",
 		},
 		{
@@ -85,7 +92,9 @@ def setup_number_cards():
 			"label": "Never Maintained Assets",
 			"document_type": "Asset",
 			"function": "Count",
-			"filters_json": json.dumps([["Asset", "custom_maintenance_count", "=", 0], ["Asset", "docstatus", "!=", 2]]),
+			"filters_json": json.dumps(
+				[["Asset", "custom_maintenance_count", "=", 0], ["Asset", "docstatus", "!=", 2]]
+			),
 			"color": "#6b7280",
 		},
 	]
@@ -199,33 +208,100 @@ def setup_maintenance_workspace():
 	ws_name = "Asset Maintenance Management"
 
 	content_blocks = [
-		{"id": "hdr_kpi", "type": "header", "data": {"text": "<span class=\"h4\"><b>Maintenance Overview &amp; KPIs</b></span>", "col": 12}},
-		{"id": "nc_in_repair", "type": "number_card", "data": {"number_card_name": "Assets In Repair", "col": 3}},
-		{"id": "nc_tot_records", "type": "number_card", "data": {"number_card_name": "Total Maintenance Records", "col": 3}},
-		{"id": "nc_tot_cost", "type": "number_card", "data": {"number_card_name": "Total Maintenance Expenditure", "col": 3}},
-		{"id": "nc_never_maint", "type": "number_card", "data": {"number_card_name": "Never Maintained Assets", "col": 3}},
+		{
+			"id": "hdr_kpi",
+			"type": "header",
+			"data": {"text": '<span class="h4"><b>Maintenance Overview &amp; KPIs</b></span>', "col": 12},
+		},
+		{
+			"id": "nc_in_repair",
+			"type": "number_card",
+			"data": {"number_card_name": "Assets In Repair", "col": 3},
+		},
+		{
+			"id": "nc_tot_records",
+			"type": "number_card",
+			"data": {"number_card_name": "Total Maintenance Records", "col": 3},
+		},
+		{
+			"id": "nc_tot_cost",
+			"type": "number_card",
+			"data": {"number_card_name": "Total Maintenance Expenditure", "col": 3},
+		},
+		{
+			"id": "nc_never_maint",
+			"type": "number_card",
+			"data": {"number_card_name": "Never Maintained Assets", "col": 3},
+		},
 		{"id": "spc_1", "type": "spacer", "data": {"col": 12}},
-		{"id": "hdr_reports", "type": "header", "data": {"text": "<span class=\"h4\"><b>Maintenance Analytics &amp; Reports</b></span>", "col": 12}},
+		{
+			"id": "hdr_reports",
+			"type": "header",
+			"data": {"text": '<span class="h4"><b>Maintenance Analytics &amp; Reports</b></span>', "col": 12},
+		},
 		{"id": "card_reports", "type": "card", "data": {"card_name": "Reports & Analytics", "col": 6}},
 		{"id": "card_quick_links", "type": "card", "data": {"card_name": "Quick Operations", "col": 6}},
 		{"id": "spc_2", "type": "spacer", "data": {"col": 12}},
-		{"id": "hdr_charts", "type": "header", "data": {"text": "<span class=\"h4\"><b>Visual Analytics</b></span>", "col": 12}},
-		{"id": "ch_by_category", "type": "chart", "data": {"chart_name": "Asset Maintenance by Category", "col": 6}},
+		{
+			"id": "hdr_charts",
+			"type": "header",
+			"data": {"text": '<span class="h4"><b>Visual Analytics</b></span>', "col": 12},
+		},
+		{
+			"id": "ch_by_category",
+			"type": "chart",
+			"data": {"chart_name": "Asset Maintenance by Category", "col": 6},
+		},
 		{"id": "ch_by_type", "type": "chart", "data": {"chart_name": "Asset Maintenance by Type", "col": 6}},
 	]
 
 	links = [
 		# Card 1: Reports & Analytics
 		{"label": "Reports & Analytics", "type": "Card Break"},
-		{"label": "Maintenance History Report", "type": "Link", "link_type": "Report", "link_to": "Maintenance History Report", "onboard": 1},
-		{"label": "Maintenance Status Report", "type": "Link", "link_type": "Report", "link_to": "Maintenance Status Report", "onboard": 1},
-		{"label": "Maintenance Cost Analysis", "type": "Link", "link_type": "Report", "link_to": "Maintenance Cost Analysis", "onboard": 1},
-		{"label": "Asset Repair Tracking", "type": "Link", "link_type": "Report", "link_to": "Asset Repair Tracking", "onboard": 1},
+		{
+			"label": "Maintenance History Report",
+			"type": "Link",
+			"link_type": "Report",
+			"link_to": "Maintenance History Report",
+			"onboard": 1,
+		},
+		{
+			"label": "Maintenance Status Report",
+			"type": "Link",
+			"link_type": "Report",
+			"link_to": "Maintenance Status Report",
+			"onboard": 1,
+		},
+		{
+			"label": "Maintenance Cost Analysis",
+			"type": "Link",
+			"link_type": "Report",
+			"link_to": "Maintenance Cost Analysis",
+			"onboard": 1,
+		},
+		{
+			"label": "Asset Repair Tracking",
+			"type": "Link",
+			"link_type": "Report",
+			"link_to": "Asset Repair Tracking",
+			"onboard": 1,
+		},
 		# Card 2: Quick Operations
 		{"label": "Quick Operations", "type": "Card Break"},
-		{"label": "Assets Currently In Repair", "type": "Link", "link_type": "DocType", "link_to": "Asset", "dependencies": "Asset"},
+		{
+			"label": "Assets Currently In Repair",
+			"type": "Link",
+			"link_type": "DocType",
+			"link_to": "Asset",
+			"dependencies": "Asset",
+		},
 		{"label": "All IT Assets", "type": "Link", "link_type": "DocType", "link_to": "Asset"},
-		{"label": "Maintenance Logs", "type": "Link", "link_type": "DocType", "link_to": "Asset Maintenance Log"},
+		{
+			"label": "Maintenance Logs",
+			"type": "Link",
+			"link_type": "DocType",
+			"link_to": "Asset Maintenance Log",
+		},
 		{"label": "Asset Repairs", "type": "Link", "link_type": "DocType", "link_to": "Asset Repair"},
 		{"label": "Asset Categories", "type": "Link", "link_type": "DocType", "link_to": "Asset Category"},
 	]
@@ -296,26 +372,83 @@ def setup_asset_management_workspace():
 	ws_name = "Asset Management"
 
 	content_blocks = [
-		{"id": "hdr_kpi", "type": "header", "data": {"text": "<span class=\"h4\"><b>Asset Allocation &amp; Operations</b></span>", "col": 12}},
-		{"id": "nc_in_stock", "type": "number_card", "data": {"number_card_name": "Assets In Stock", "col": 3}},
-		{"id": "nc_assigned", "type": "number_card", "data": {"number_card_name": "Assets Assigned", "col": 3}},
-		{"id": "nc_in_repair", "type": "number_card", "data": {"number_card_name": "Assets In Repair", "col": 3}},
-		{"id": "nc_tot_cost", "type": "number_card", "data": {"number_card_name": "Total Maintenance Expenditure", "col": 3}},
+		{
+			"id": "hdr_kpi",
+			"type": "header",
+			"data": {"text": '<span class="h4"><b>Asset Allocation &amp; Operations</b></span>', "col": 12},
+		},
+		{
+			"id": "nc_in_stock",
+			"type": "number_card",
+			"data": {"number_card_name": "Assets In Stock", "col": 3},
+		},
+		{
+			"id": "nc_assigned",
+			"type": "number_card",
+			"data": {"number_card_name": "Assets Assigned", "col": 3},
+		},
+		{
+			"id": "nc_in_repair",
+			"type": "number_card",
+			"data": {"number_card_name": "Assets In Repair", "col": 3},
+		},
+		{
+			"id": "nc_tot_cost",
+			"type": "number_card",
+			"data": {"number_card_name": "Total Maintenance Expenditure", "col": 3},
+		},
 		{"id": "spc_1", "type": "spacer", "data": {"col": 12}},
-		{"id": "hdr_ops", "type": "header", "data": {"text": "<span class=\"h4\"><b>Allocation &amp; Inventory Management</b></span>", "col": 12}},
-		{"id": "card_alloc", "type": "card", "data": {"card_name": "Asset Allocation & Assignment", "col": 6}},
-		{"id": "card_inventory", "type": "card", "data": {"card_name": "Asset Master & Categories", "col": 6}},
+		{
+			"id": "hdr_ops",
+			"type": "header",
+			"data": {
+				"text": '<span class="h4"><b>Allocation &amp; Inventory Management</b></span>',
+				"col": 12,
+			},
+		},
+		{
+			"id": "card_alloc",
+			"type": "card",
+			"data": {"card_name": "Asset Allocation & Assignment", "col": 6},
+		},
+		{
+			"id": "card_inventory",
+			"type": "card",
+			"data": {"card_name": "Asset Master & Categories", "col": 6},
+		},
 		{"id": "spc_2", "type": "spacer", "data": {"col": 12}},
-		{"id": "hdr_reports", "type": "header", "data": {"text": "<span class=\"h4\"><b>Asset &amp; Allocation Reports</b></span>", "col": 12}},
+		{
+			"id": "hdr_reports",
+			"type": "header",
+			"data": {"text": '<span class="h4"><b>Asset &amp; Allocation Reports</b></span>', "col": 12},
+		},
 		{"id": "card_reports", "type": "card", "data": {"card_name": "Reports & Analytics", "col": 12}},
 	]
 
 	links = [
 		# Card 1: Asset Allocation & Assignment
 		{"label": "Asset Allocation & Assignment", "type": "Card Break"},
-		{"label": "Employee Asset Allocation", "type": "Link", "link_type": "DocType", "link_to": "Employee Asset Allocation", "onboard": 1},
-		{"label": "Asset Assignment History", "type": "Link", "link_type": "DocType", "link_to": "Asset Assignment History", "onboard": 1},
-		{"label": "Asset Management Dashboard", "type": "Link", "link_type": "Page", "link_to": "asset_management_dashboard", "onboard": 1},
+		{
+			"label": "Employee Asset Allocation",
+			"type": "Link",
+			"link_type": "DocType",
+			"link_to": "Employee Asset Allocation",
+			"onboard": 1,
+		},
+		{
+			"label": "Asset Assignment History",
+			"type": "Link",
+			"link_type": "DocType",
+			"link_to": "Asset Assignment History",
+			"onboard": 1,
+		},
+		{
+			"label": "Asset Management Dashboard",
+			"type": "Link",
+			"link_type": "Page",
+			"link_to": "asset_management_dashboard",
+			"onboard": 1,
+		},
 		# Card 2: Asset Master & Categories
 		{"label": "Asset Master & Categories", "type": "Card Break"},
 		{"label": "Assets", "type": "Link", "link_type": "DocType", "link_to": "Asset", "onboard": 1},
@@ -324,11 +457,37 @@ def setup_asset_management_workspace():
 		{"label": "Employees", "type": "Link", "link_type": "DocType", "link_to": "Employee"},
 		# Card 3: Reports & Analytics
 		{"label": "Reports & Analytics", "type": "Card Break"},
-		{"label": "Employee-wise Asset Allocation Report", "type": "Link", "link_type": "Report", "link_to": "Employee-wise Asset Allocation Report", "onboard": 1},
-		{"label": "Maintenance Status Report", "type": "Link", "link_type": "Report", "link_to": "Maintenance Status Report"},
-		{"label": "Maintenance History Report", "type": "Link", "link_type": "Report", "link_to": "Maintenance History Report"},
-		{"label": "Maintenance Cost Analysis", "type": "Link", "link_type": "Report", "link_to": "Maintenance Cost Analysis"},
-		{"label": "Asset Repair Tracking", "type": "Link", "link_type": "Report", "link_to": "Asset Repair Tracking"},
+		{
+			"label": "Employee-wise Asset Allocation Report",
+			"type": "Link",
+			"link_type": "Report",
+			"link_to": "Employee-wise Asset Allocation Report",
+			"onboard": 1,
+		},
+		{
+			"label": "Maintenance Status Report",
+			"type": "Link",
+			"link_type": "Report",
+			"link_to": "Maintenance Status Report",
+		},
+		{
+			"label": "Maintenance History Report",
+			"type": "Link",
+			"link_type": "Report",
+			"link_to": "Maintenance History Report",
+		},
+		{
+			"label": "Maintenance Cost Analysis",
+			"type": "Link",
+			"link_type": "Report",
+			"link_to": "Maintenance Cost Analysis",
+		},
+		{
+			"label": "Asset Repair Tracking",
+			"type": "Link",
+			"link_type": "Report",
+			"link_to": "Asset Repair Tracking",
+		},
 	]
 
 	shortcuts = [
@@ -700,24 +859,79 @@ def sync_assets_workspace_sidebar():
 		ws_links = [
 			# Card: Assets
 			{"label": "Assets", "type": "Card Break"},
-			{"label": "Asset Management Dashboard", "type": "Link", "link_type": "Page", "link_to": "asset_management_dashboard", "onboard": 1},
+			{
+				"label": "Asset Management Dashboard",
+				"type": "Link",
+				"link_type": "Page",
+				"link_to": "asset_management_dashboard",
+				"onboard": 1,
+			},
 			{"label": "Asset", "type": "Link", "link_type": "DocType", "link_to": "Asset", "onboard": 1},
-			{"label": "Employee Asset Allocation", "type": "Link", "link_type": "DocType", "link_to": "Employee Asset Allocation", "onboard": 1},
-			{"label": "Asset Assignment History", "type": "Link", "link_type": "DocType", "link_to": "Asset Assignment History", "onboard": 1},
+			{
+				"label": "Employee Asset Allocation",
+				"type": "Link",
+				"link_type": "DocType",
+				"link_to": "Employee Asset Allocation",
+				"onboard": 1,
+			},
+			{
+				"label": "Asset Assignment History",
+				"type": "Link",
+				"link_type": "DocType",
+				"link_to": "Asset Assignment History",
+				"onboard": 1,
+			},
 			{"label": "Asset Movement", "type": "Link", "link_type": "DocType", "link_to": "Asset Movement"},
 			{"label": "Asset Category", "type": "Link", "link_type": "DocType", "link_to": "Asset Category"},
 			{"label": "Location", "type": "Link", "link_type": "DocType", "link_to": "Location"},
 			# Card: Maintenance
 			{"label": "Maintenance", "type": "Card Break"},
-			{"label": "Maintenance Overview", "type": "Link", "link_type": "Workspace", "link_to": "Asset Maintenance Management", "onboard": 1},
-			{"label": "Maintenance History Report", "type": "Link", "link_type": "Report", "link_to": "Maintenance History Report"},
-			{"label": "Maintenance Status Report", "type": "Link", "link_type": "Report", "link_to": "Maintenance Status Report"},
-			{"label": "Maintenance Cost Analysis", "type": "Link", "link_type": "Report", "link_to": "Maintenance Cost Analysis"},
-			{"label": "Asset Repair Tracking", "type": "Link", "link_type": "Report", "link_to": "Asset Repair Tracking"},
+			{
+				"label": "Maintenance Overview",
+				"type": "Link",
+				"link_type": "Workspace",
+				"link_to": "Asset Maintenance Management",
+				"onboard": 1,
+			},
+			{
+				"label": "Maintenance History Report",
+				"type": "Link",
+				"link_type": "Report",
+				"link_to": "Maintenance History Report",
+			},
+			{
+				"label": "Maintenance Status Report",
+				"type": "Link",
+				"link_type": "Report",
+				"link_to": "Maintenance Status Report",
+			},
+			{
+				"label": "Maintenance Cost Analysis",
+				"type": "Link",
+				"link_type": "Report",
+				"link_to": "Maintenance Cost Analysis",
+			},
+			{
+				"label": "Asset Repair Tracking",
+				"type": "Link",
+				"link_type": "Report",
+				"link_to": "Asset Repair Tracking",
+			},
 			# Card: Reports
 			{"label": "Reports", "type": "Card Break"},
-			{"label": "Employee-wise Asset Allocation Report", "type": "Link", "link_type": "Report", "link_to": "Employee-wise Asset Allocation Report", "onboard": 1},
-			{"label": "Fixed Asset Register", "type": "Link", "link_type": "Report", "link_to": "Fixed Asset Register"},
+			{
+				"label": "Employee-wise Asset Allocation Report",
+				"type": "Link",
+				"link_type": "Report",
+				"link_to": "Employee-wise Asset Allocation Report",
+				"onboard": 1,
+			},
+			{
+				"label": "Fixed Asset Register",
+				"type": "Link",
+				"link_type": "Report",
+				"link_to": "Fixed Asset Register",
+			},
 			{"label": "Asset Activity", "type": "Link", "link_type": "Report", "link_to": "Asset Activity"},
 		]
 		ws.set("links", ws_links)

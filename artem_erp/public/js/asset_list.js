@@ -4,7 +4,6 @@
 // Asset list view: colour indicators + custom columns
 
 frappe.listview_settings["Asset"] = {
-
 	// ── Columns shown in the list ────────────────────────────────────────────
 	add_fields: [
 		"asset_name",
@@ -41,7 +40,5 @@ frappe.listview_settings["Asset"] = {
 	},
 
 	// ── Filters exposed in the sidebar ──────────────────────────────────────
-	filters: [
-		["Asset", "asset_category", "is", "set"],
-	],
+	filters: [["Asset", "asset_category", "is", "set"]],
 };

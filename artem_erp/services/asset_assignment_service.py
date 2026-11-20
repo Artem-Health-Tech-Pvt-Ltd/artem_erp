@@ -78,19 +78,25 @@ def record_assignment(
 	if is_recently_logged(asset, employee, "Assigned", asset_movement):
 		return None
 
-	asset_meta = frappe.db.get_value(
-		"Asset",
-		asset,
-		["name", "asset_name", "asset_category"],
-		as_dict=True,
-	) or {}
+	asset_meta = (
+		frappe.db.get_value(
+			"Asset",
+			asset,
+			["name", "asset_name", "asset_category"],
+			as_dict=True,
+		)
+		or {}
+	)
 
-	emp_meta = frappe.db.get_value(
-		"Employee",
-		employee,
-		["name", "employee_name", "company_email", "personal_email", "user_id", "prefered_email"],
-		as_dict=True,
-	) or {}
+	emp_meta = (
+		frappe.db.get_value(
+			"Employee",
+			employee,
+			["name", "employee_name", "company_email", "personal_email", "user_id", "prefered_email"],
+			as_dict=True,
+		)
+		or {}
+	)
 
 	emp_email = (
 		emp_meta.get("company_email")
@@ -106,24 +112,26 @@ def record_assignment(
 
 	curr_dt = assignment_date or now_datetime()
 
-	doc = frappe.get_doc({
-		"doctype": "Asset Assignment History",
-		"asset": asset,
-		"asset_id": asset,
-		"asset_name": asset_meta.get("asset_name") or asset,
-		"asset_category": asset_meta.get("asset_category") or "",
-		"previous_custodian": previous_custodian or None,
-		"previous_custodian_name": prev_name,
-		"employee": employee,
-		"employee_id": emp_meta.get("name") or employee,
-		"employee_name": emp_meta.get("employee_name") or "",
-		"employee_email": emp_email,
-		"assignment_date": curr_dt,
-		"assignment_status": "Assigned",
-		"asset_movement": asset_movement or None,
-		"assigned_by": assigned_by or frappe.session.user,
-		"remarks": remarks or _("Asset assigned to custodian."),
-	})
+	doc = frappe.get_doc(
+		{
+			"doctype": "Asset Assignment History",
+			"asset": asset,
+			"asset_id": asset,
+			"asset_name": asset_meta.get("asset_name") or asset,
+			"asset_category": asset_meta.get("asset_category") or "",
+			"previous_custodian": previous_custodian or None,
+			"previous_custodian_name": prev_name,
+			"employee": employee,
+			"employee_id": emp_meta.get("name") or employee,
+			"employee_name": emp_meta.get("employee_name") or "",
+			"employee_email": emp_email,
+			"assignment_date": curr_dt,
+			"assignment_status": "Assigned",
+			"asset_movement": asset_movement or None,
+			"assigned_by": assigned_by or frappe.session.user,
+			"remarks": remarks or _("Asset assigned to custodian."),
+		}
+	)
 	doc.flags.ignore_permissions = True
 	doc.insert(ignore_permissions=True)
 
@@ -167,9 +175,12 @@ def record_return(
 			{
 				"return_date": curr_dt,
 				"assignment_status": "Returned",
-				"asset_movement": asset_movement or frappe.db.get_value("Asset Assignment History", active_history, "asset_movement"),
+				"asset_movement": asset_movement
+				or frappe.db.get_value("Asset Assignment History", active_history, "asset_movement"),
 				"returned_by": returned_by or frappe.session.user,
-				"remarks": remarks or frappe.db.get_value("Asset Assignment History", active_history, "remarks") or _("Asset returned."),
+				"remarks": remarks
+				or frappe.db.get_value("Asset Assignment History", active_history, "remarks")
+				or _("Asset returned."),
 			},
 			update_modified=False,
 		)
@@ -177,19 +188,25 @@ def record_return(
 		return active_history
 
 	# If no active assignment record exists to close, create a standalone return entry
-	asset_meta = frappe.db.get_value(
-		"Asset",
-		asset,
-		["name", "asset_name", "asset_category"],
-		as_dict=True,
-	) or {}
+	asset_meta = (
+		frappe.db.get_value(
+			"Asset",
+			asset,
+			["name", "asset_name", "asset_category"],
+			as_dict=True,
+		)
+		or {}
+	)
 
-	emp_meta = frappe.db.get_value(
-		"Employee",
-		employee,
-		["name", "employee_name", "company_email", "personal_email", "user_id", "prefered_email"],
-		as_dict=True,
-	) or {}
+	emp_meta = (
+		frappe.db.get_value(
+			"Employee",
+			employee,
+			["name", "employee_name", "company_email", "personal_email", "user_id", "prefered_email"],
+			as_dict=True,
+		)
+		or {}
+	)
 
 	emp_email = (
 		emp_meta.get("company_email")
@@ -199,22 +216,24 @@ def record_return(
 		or ""
 	)
 
-	doc = frappe.get_doc({
-		"doctype": "Asset Assignment History",
-		"asset": asset,
-		"asset_id": asset,
-		"asset_name": asset_meta.get("asset_name") or asset,
-		"asset_category": asset_meta.get("asset_category") or "",
-		"employee": employee,
-		"employee_id": emp_meta.get("name") or employee,
-		"employee_name": emp_meta.get("employee_name") or "",
-		"employee_email": emp_email,
-		"return_date": curr_dt,
-		"assignment_status": "Returned",
-		"asset_movement": asset_movement or None,
-		"returned_by": returned_by or frappe.session.user,
-		"remarks": remarks or _("Asset returned by custodian."),
-	})
+	doc = frappe.get_doc(
+		{
+			"doctype": "Asset Assignment History",
+			"asset": asset,
+			"asset_id": asset,
+			"asset_name": asset_meta.get("asset_name") or asset,
+			"asset_category": asset_meta.get("asset_category") or "",
+			"employee": employee,
+			"employee_id": emp_meta.get("name") or employee,
+			"employee_name": emp_meta.get("employee_name") or "",
+			"employee_email": emp_email,
+			"return_date": curr_dt,
+			"assignment_status": "Returned",
+			"asset_movement": asset_movement or None,
+			"returned_by": returned_by or frappe.session.user,
+			"remarks": remarks or _("Asset returned by custodian."),
+		}
+	)
 	doc.flags.ignore_permissions = True
 	doc.insert(ignore_permissions=True)
 
@@ -389,12 +408,15 @@ def update_asset_after_movement(asset_id, custodian, status, tx_date):
 	"""Updates Asset custom fields ensuring status and custodian consistency."""
 	emp_name, emp_email = "", ""
 	if custodian:
-		emp = frappe.db.get_value(
-			"Employee",
-			custodian,
-			["employee_name", "company_email", "personal_email", "user_id", "prefered_email"],
-			as_dict=True,
-		) or {}
+		emp = (
+			frappe.db.get_value(
+				"Employee",
+				custodian,
+				["employee_name", "company_email", "personal_email", "user_id", "prefered_email"],
+				as_dict=True,
+			)
+			or {}
+		)
 		emp_name = emp.get("employee_name") or ""
 		emp_email = (
 			emp.get("company_email")
@@ -448,6 +470,7 @@ def sync_employee_allocation_record(employee):
 	try:
 		emp = frappe.get_doc("Employee", employee)
 		from artem_erp.doc_events.employee import sync_employee_assets_table
+
 		sync_employee_assets_table(emp)
 		emp.flags.ignore_validate = True
 		emp.flags.ignore_mandatory = True

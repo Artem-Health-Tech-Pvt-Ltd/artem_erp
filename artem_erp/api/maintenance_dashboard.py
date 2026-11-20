@@ -152,4 +152,3 @@ def get_top_expensive_assets(limit=10):
 		(limit,),
 		as_dict=1,
 	)
-

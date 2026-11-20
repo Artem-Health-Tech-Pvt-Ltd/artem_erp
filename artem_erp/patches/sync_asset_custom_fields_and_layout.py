@@ -3,10 +3,10 @@ Ensures Custodian, Employee Details, and Specifications are correctly placed in 
 """
 
 import frappe
+
 from artem_erp.install import sync_customizations
 
 
 def execute():
 	sync_customizations()
 	frappe.db.commit()
-

@@ -28,14 +28,15 @@ frappe.query_reports["Maintenance Cost Analysis"] = {
 			fieldname: "from_date",
 			label: __("From Date"),
 			fieldtype: "Date",
-			depends_on: "eval:frappe.query_report.get_filter_value('group_by')=='By Month' || frappe.query_report.get_filter_value('group_by')=='By Year'",
+			depends_on:
+				"eval:frappe.query_report.get_filter_value('group_by')=='By Month' || frappe.query_report.get_filter_value('group_by')=='By Year'",
 		},
 		{
 			fieldname: "to_date",
 			label: __("To Date"),
 			fieldtype: "Date",
-			depends_on: "eval:frappe.query_report.get_filter_value('group_by')=='By Month' || frappe.query_report.get_filter_value('group_by')=='By Year'",
+			depends_on:
+				"eval:frappe.query_report.get_filter_value('group_by')=='By Month' || frappe.query_report.get_filter_value('group_by')=='By Year'",
 		},
 	],
 };
-

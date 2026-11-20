@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import re
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -86,7 +87,7 @@ def get_highest_asset_number_and_padding(prefix, asset_category=None):
 	query = f"""
 		SELECT name, custom_series_number, custom_device_id
 		FROM `tabAsset`
-		WHERE {' OR '.join(filters)}
+		WHERE {" OR ".join(filters)}
 	"""
 	try:
 		existing_assets = frappe.db.sql(query, tuple(params), as_dict=True)

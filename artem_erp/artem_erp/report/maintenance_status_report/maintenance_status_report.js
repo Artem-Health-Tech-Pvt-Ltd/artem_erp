@@ -43,4 +43,3 @@ frappe.query_reports["Maintenance Status Report"] = {
 		return value;
 	},
 };
-

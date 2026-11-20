@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+
 from artem_erp.asset_maintenance_setup import sync_assets_workspace_sidebar
 
 

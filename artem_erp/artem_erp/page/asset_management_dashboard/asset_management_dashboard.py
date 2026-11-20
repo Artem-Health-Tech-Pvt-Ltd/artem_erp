@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 
+
 @frappe.whitelist()
 def get_dashboard_data(filters=None):
 	"""Returns aggregated data for the Asset Management Dashboard."""
@@ -148,4 +149,3 @@ def get_dashboard_data(filters=None):
 		},
 		"recent_assignments": recent_assignments,
 	}
-

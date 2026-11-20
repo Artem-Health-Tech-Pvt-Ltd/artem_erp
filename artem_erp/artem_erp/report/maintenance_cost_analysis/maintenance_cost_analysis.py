@@ -378,4 +378,3 @@ def get_report_summary(data, group_by):
 			{"value": with_maint, "label": _("Assets With Maintenance"), "datatype": "Int"},
 			{"value": total_cost, "label": _("Total Expenditure"), "datatype": "Currency"},
 		]
-

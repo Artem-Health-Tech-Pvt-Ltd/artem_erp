@@ -4,7 +4,11 @@
 frappe.ui.form.on("Employee", {
 	onload(frm) {
 		_ensure_assets_section_visible(frm);
-		if (!frm.is_new() && frm.doc.name && (!frm.doc.custom_assigned_assets || frm.doc.custom_assigned_assets.length === 0)) {
+		if (
+			!frm.is_new() &&
+			frm.doc.name &&
+			(!frm.doc.custom_assigned_assets || frm.doc.custom_assigned_assets.length === 0)
+		) {
 			_sync_assigned_assets(frm);
 		}
 	},
@@ -32,14 +36,29 @@ frappe.ui.form.on("Employee Assigned Asset", {
 		frappe.db.get_value(
 			"Asset",
 			row.asset,
-			["asset_name", "asset_category", "location", "custom_assignment_date", "status", "custom_asset_status"],
+			[
+				"asset_name",
+				"asset_category",
+				"location",
+				"custom_assignment_date",
+				"status",
+				"custom_asset_status",
+			],
 			(r) => {
 				if (r) {
 					frappe.model.set_value(cdt, cdn, "asset_name", r.asset_name || "");
 					frappe.model.set_value(cdt, cdn, "asset_category", r.asset_category || "");
 					frappe.model.set_value(cdt, cdn, "location", r.location || "");
-					frappe.model.set_value(cdt, cdn, "assignment_date", r.custom_assignment_date || frappe.datetime.get_today());
-					const st = r.custom_asset_status || (r.status === "In Stock" ? "Assigned" : r.status) || "Assigned";
+					frappe.model.set_value(
+						cdt,
+						cdn,
+						"assignment_date",
+						r.custom_assignment_date || frappe.datetime.get_today()
+					);
+					const st =
+						r.custom_asset_status ||
+						(r.status === "In Stock" ? "Assigned" : r.status) ||
+						"Assigned";
 					frappe.model.set_value(cdt, cdn, "status", st);
 				}
 			}
@@ -94,7 +113,9 @@ function _sync_assigned_assets(frm) {
 		},
 		callback: function (r) {
 			if (r.message && r.message.length) {
-				const existing_assets = (frm.doc.custom_assigned_assets || []).map((row) => row.asset);
+				const existing_assets = (frm.doc.custom_assigned_assets || []).map(
+					(row) => row.asset
+				);
 				const fetched_assets = r.message.map((row) => row.name);
 
 				const has_changes =

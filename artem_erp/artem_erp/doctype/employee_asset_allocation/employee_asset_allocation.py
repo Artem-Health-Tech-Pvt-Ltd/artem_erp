@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import nowdate, now_datetime
+from frappe.utils import now_datetime, nowdate
 
 
 class EmployeeAssetAllocation(Document):
@@ -136,13 +136,29 @@ def assign_assets_to_employee(employee, asset_names):
 	emp_details = frappe.db.get_value(
 		"Employee",
 		employee,
-		["name", "employee_name", "company_email", "personal_email", "user_id", "prefered_email", "department", "designation", "company"],
+		[
+			"name",
+			"employee_name",
+			"company_email",
+			"personal_email",
+			"user_id",
+			"prefered_email",
+			"department",
+			"designation",
+			"company",
+		],
 		as_dict=True,
 	)
 	if not emp_details:
 		frappe.throw(_("Employee {0} not found.").format(employee))
 
-	emp_email = emp_details.company_email or emp_details.personal_email or emp_details.user_id or emp_details.prefered_email or ""
+	emp_email = (
+		emp_details.company_email
+		or emp_details.personal_email
+		or emp_details.user_id
+		or emp_details.prefered_email
+		or ""
+	)
 	curr_date = nowdate()
 	curr_dt = now_datetime()
 	assigned_now = []
@@ -196,6 +212,7 @@ def assign_assets_to_employee(employee, asset_names):
 			)
 
 			from artem_erp.services.asset_assignment_service import record_assignment
+
 			record_assignment(
 				asset=asset_name,
 				employee=employee,
@@ -237,7 +254,6 @@ def return_assets_from_employee(employee, asset_names, remarks=None):
 	if not asset_names:
 		frappe.throw(_("Please select at least one asset to return."))
 
-	curr_date = nowdate()
 	curr_dt = now_datetime()
 	returned_now = []
 
@@ -269,6 +285,7 @@ def return_assets_from_employee(employee, asset_names, remarks=None):
 			)
 
 			from artem_erp.services.asset_assignment_service import record_return
+
 			record_return(
 				asset=asset_name,
 				employee=employee,
@@ -301,6 +318,7 @@ def _sync_employee_assets_table(employee):
 	try:
 		emp = frappe.get_doc("Employee", employee)
 		from artem_erp.doc_events.employee import sync_employee_assets_table
+
 		sync_employee_assets_table(emp)
 		emp.flags.ignore_validate = True
 		emp.flags.ignore_mandatory = True
@@ -313,6 +331,7 @@ def sync_assignment_on_asset_save(asset_doc):
 	"""Bidirectional synchronization: updates Asset Assignment History and Employee Asset Allocation
 	when an Asset's custodian is updated directly on the Asset form."""
 	from artem_erp.services.asset_assignment_service import handle_asset_custodian_change
+
 	handle_asset_custodian_change(asset_doc)
 
 

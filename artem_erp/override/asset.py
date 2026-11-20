@@ -2,8 +2,9 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.model.naming import make_autoname
 from erpnext.assets.doctype.asset.asset import Asset
+from frappe.model.naming import make_autoname
+
 
 class CustomAsset(Asset):
 	"""Extends the standard ERPNext Asset with:
@@ -16,9 +17,9 @@ class CustomAsset(Asset):
 	def autoname(self):
 		"""Override naming: combine category prefix with user-specified or next sequential number."""
 		from artem_erp.artem_erp.doctype.asset_category_specification.asset_category_specification import (
+			build_full_asset_name,
 			get_category_prefix,
 			get_next_asset_number,
-			build_full_asset_name,
 		)
 
 		if self.asset_category:
@@ -40,9 +41,9 @@ class CustomAsset(Asset):
 				# Check uniqueness
 				if frappe.db.exists("Asset", candidate_name):
 					frappe.throw(
-						frappe._("Asset with ID '{0}' already exists. Please choose a different Series Number.").format(
-							candidate_name
-						),
+						frappe._(
+							"Asset with ID '{0}' already exists. Please choose a different Series Number."
+						).format(candidate_name),
 						title=frappe._("Duplicate Asset ID"),
 					)
 
@@ -60,7 +61,7 @@ class CustomAsset(Asset):
 		self.asset_type = "Existing Asset"
 		self.is_existing_asset = 1
 		self.calculate_depreciation = 0
- 
+
 		# Ensure purchase_date is populated so standard ERPNext validations pass
 		if not getattr(self, "purchase_date", None):
 			self.purchase_date = self.custom_warranty_start or frappe.utils.nowdate()
@@ -110,7 +111,7 @@ class CustomAsset(Asset):
 					if not getattr(self, "custom_series_number", None):
 						self.custom_series_number = suffix
 					self.custom_device_id = int(suffix)
-			except (ValueError, AttributeError):
+			except ValueError, AttributeError:
 				pass
 
 		# Rebuild spec rows if category template changed (API edits)
@@ -154,7 +155,9 @@ class CustomAsset(Asset):
 
 	def make_asset_movement(self):
 		"""Create initial receipt movement bypassing India Compliance GST e-Waybill validations."""
-		reference_doctype = "Purchase Receipt" if getattr(self, "purchase_receipt", None) else "Purchase Invoice"
+		reference_doctype = (
+			"Purchase Receipt" if getattr(self, "purchase_receipt", None) else "Purchase Invoice"
+		)
 		reference_docname = getattr(self, "purchase_receipt", None) or getattr(self, "purchase_invoice", None)
 		transaction_date = frappe.utils.getdate(self.purchase_date or frappe.utils.nowdate())
 		if reference_docname:
@@ -213,6 +216,7 @@ class CustomAsset(Asset):
 			from artem_erp.artem_erp.doctype.employee_asset_allocation.employee_asset_allocation import (
 				sync_assignment_on_asset_save,
 			)
+
 			sync_assignment_on_asset_save(self)
 		except Exception:
 			frappe.log_error(frappe.get_traceback(), "Asset Allocation Sync Error")
@@ -231,6 +235,7 @@ class CustomAsset(Asset):
 				try:
 					emp = frappe.get_doc("Employee", emp_id)
 					from artem_erp.doc_events.employee import sync_employee_assets_table
+
 					sync_employee_assets_table(emp)
 					emp.flags.ignore_validate = True
 					emp.flags.ignore_mandatory = True
@@ -253,14 +258,14 @@ class CustomAsset(Asset):
 		if not cat:
 			return None
 		if cat.get("custom_asset_series"):
-			# e.g. "LAP-.####" – take the first line if multiple
+			# e.g. "LAP-.####" - take the first line if multiple
 			series_str = cat["custom_asset_series"].strip().splitlines()[0].strip()
 			return series_str or None
 		if cat.get("custom_series_prefix"):
 			prefix = cat["custom_series_prefix"].strip().upper()
 			return f"{prefix}-.####"
 		return None
-		
+
 	def _load_specifications_from_category(self):
 		"""Copy spec template rows from Asset Category into this asset."""
 		if not self.asset_category:
@@ -279,6 +284,7 @@ class CustomAsset(Asset):
 					"value": row.get("default_value") or "",
 				},
 			)
+
 	def _sync_spec_rows(self):
 		"""
 		If the category has changed (e.g. via API) and spec rows no longer match
@@ -291,6 +297,7 @@ class CustomAsset(Asset):
 		if self.get("custom_specifications"):
 			return
 		self._load_specifications_from_category()
+
 	def _validate_spec_values(self):
 		"""Throw if any mandatory spec has an empty value."""
 		missing = [
@@ -300,11 +307,12 @@ class CustomAsset(Asset):
 		]
 		if missing:
 			frappe.throw(
-				frappe._(
-					"Required specifications for Asset Category <b>{0}</b>: {1}"
-				).format(self.asset_category, ", ".join(f"<b>{m}</b>" for m in missing)),
+				frappe._("Required specifications for Asset Category <b>{0}</b>: {1}").format(
+					self.asset_category, ", ".join(f"<b>{m}</b>" for m in missing)
+				),
 				title=frappe._("Mandatory Specification Missing"),
 			)
+
 	def _validate_spec_types(self):
 		"""Type-check each filled spec value against its declared data_type."""
 		for row in self.get("custom_specifications", []):
@@ -323,24 +331,22 @@ class CustomAsset(Asset):
 					valid_opts = [o.strip() for o in (row.options or "").splitlines() if o.strip()]
 					if valid_opts and val.lower() not in [o.lower() for o in valid_opts]:
 						frappe.throw(
-							frappe._(
-								"Specification <b>{0}</b>: value '{1}' must be one of: {2}"
-							).format(row.spec_name, val, ", ".join(valid_opts))
+							frappe._("Specification <b>{0}</b>: value '{1}' must be one of: {2}").format(
+								row.spec_name, val, ", ".join(valid_opts)
+							)
 						)
-			except (ValueError, TypeError):
+			except ValueError, TypeError:
 				frappe.throw(
-					frappe._(
-						"Specification <b>{0}</b>: value '{1}' is not a valid {2}."
-					).format(row.spec_name, val, dt)
+					frappe._("Specification <b>{0}</b>: value '{1}' is not a valid {2}.").format(
+						row.spec_name, val, dt
+					)
 				)
 
 	def _calculate_maintenance_summary(self):
 		"""Recalculate maintenance count and total maintenance cost from child records."""
 		records = self.get("custom_maintenance_records") or []
 		self.custom_maintenance_count = len(records)
-		self.custom_total_maintenance_cost = sum(
-			frappe.utils.flt(row.cost) for row in records
-		)
+		self.custom_total_maintenance_cost = sum(frappe.utils.flt(row.cost) for row in records)
 
 	def _has_active_repair(self):
 		"""Returns True if there is an active repair in Asset Repair or pending repair in child table."""
@@ -365,7 +371,9 @@ class CustomAsset(Asset):
 
 	def _validate_repair_assignment(self):
 		"""Throws an error if user attempts to assign an asset to a custodian while under repair."""
-		if self.custodian and (self._has_active_repair() or getattr(self, "custom_asset_status", None) == "In Repair"):
+		if self.custodian and (
+			self._has_active_repair() or getattr(self, "custom_asset_status", None) == "In Repair"
+		):
 			frappe.throw(
 				frappe._(
 					"Asset <b>{0}</b> is currently <b>In Repair</b> and cannot be assigned to an employee until repair is completed."

@@ -35,4 +35,3 @@ frappe.query_reports["Asset Repair Tracking"] = {
 		return value;
 	},
 };
-

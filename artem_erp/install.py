@@ -11,7 +11,12 @@ def sync_customizations():
 	"""Create app-owned custom fields and property setters on every site migration."""
 	# Cleanup obsolete fields
 	if frappe.db.exists("Custom Field", "Asset Category-custom_default_warranty_months"):
-		frappe.delete_doc("Custom Field", "Asset Category-custom_default_warranty_months", ignore_permissions=True, force=True)
+		frappe.delete_doc(
+			"Custom Field",
+			"Asset Category-custom_default_warranty_months",
+			ignore_permissions=True,
+			force=True,
+		)
 
 	create_custom_fields(CUSTOM_FIELDS, update=True, ignore_validate=True)
 	make_property_setter()
@@ -124,7 +129,6 @@ def sync_asset_field_order():
 	)
 
 
-
 def after_migrate():
 	sync_customizations()
 	setup_workspace_shortcuts()
@@ -143,27 +147,34 @@ def after_migrate():
 		from artem_erp.artem_erp.doctype.employee_asset_allocation.employee_asset_allocation import (
 			sync_all_employee_allocations,
 		)
+
 		sync_all_employee_allocations()
 	except Exception:
 		pass
+
 
 def after_install():
 	sync_customizations()
 	setup_workspace_shortcuts()
 	create_workflow()
 
+
 def setup_workspace_shortcuts():
 	from artem_erp.patches.create_role_based_hrms_workspaces import execute as setup_hrms_workspaces
 	from artem_erp.patches.payroll_shortcut import execute as setup_payroll_shortcuts
+
 	setup_payroll_shortcuts()
 	setup_hrms_workspaces()
 
 	from artem_erp.asset_maintenance_setup import setup_asset_maintenance_suite
+
 	setup_asset_maintenance_suite()
+
 
 def make_property_setter():
 	for property_setter in get_property_setters():
 		frappe.make_property_setter(property_setter, validate_fields_for_doctype=False)
+
 
 def add_workspace_shortcut(
 	workspace_name,
@@ -229,6 +240,7 @@ def add_workspace_shortcut(
 		workspace.append("items", new_item)
 
 	workspace.save()
+
 
 def create_workflow():
 	fixture_folder_name = ["workflow.device_login_authorization_workflow"]

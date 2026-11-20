@@ -21,12 +21,27 @@ frappe.ui.form.on("Employee Asset Allocation", {
 			frappe.db.get_value(
 				"Employee",
 				frm.doc.employee,
-				["name", "employee_name", "company_email", "personal_email", "user_id", "prefered_email", "department", "designation", "company"],
+				[
+					"name",
+					"employee_name",
+					"company_email",
+					"personal_email",
+					"user_id",
+					"prefered_email",
+					"department",
+					"designation",
+					"company",
+				],
 				(r) => {
 					if (r) {
 						frm.set_value("employee_id", r.name);
 						frm.set_value("employee_name", r.employee_name || "");
-						const email = r.company_email || r.personal_email || r.user_id || r.prefered_email || "";
+						const email =
+							r.company_email ||
+							r.personal_email ||
+							r.user_id ||
+							r.prefered_email ||
+							"";
 						frm.set_value("employee_email", email);
 						frm.set_value("department", r.department || "");
 						frm.set_value("designation", r.designation || "");
@@ -42,16 +57,24 @@ function _add_allocation_buttons(frm) {
 	if (!frm.doc.employee) return;
 
 	// 1. Assign Assets Button
-	frm.add_custom_button(__("Assign Assets"), () => {
-		_show_assign_assets_dialog(frm);
-	}, __("Actions")).addClass("btn-primary");
+	frm.add_custom_button(
+		__("Assign Assets"),
+		() => {
+			_show_assign_assets_dialog(frm);
+		},
+		__("Actions")
+	).addClass("btn-primary");
 
 	// 2. Return Asset Button
-	const has_assigned = (frm.doc.items || []).some(row => row.allocation_status === "Assigned");
+	const has_assigned = (frm.doc.items || []).some((row) => row.allocation_status === "Assigned");
 	if (has_assigned) {
-		frm.add_custom_button(__("Return Assets"), () => {
-			_show_return_assets_dialog(frm);
-		}, __("Actions")).addClass("btn-danger");
+		frm.add_custom_button(
+			__("Return Assets"),
+			() => {
+				_show_return_assets_dialog(frm);
+			},
+			__("Actions")
+		).addClass("btn-danger");
 	}
 }
 
@@ -81,9 +104,11 @@ function _show_assign_assets_dialog(frm) {
 		primary_action_label: __("Assign Selected Assets"),
 		primary_action(data) {
 			const selected = [];
-			dialog.$wrapper.find('input[type="checkbox"][name="selected_asset"]:checked').each(function () {
-				selected.push($(this).val());
-			});
+			dialog.$wrapper
+				.find('input[type="checkbox"][name="selected_asset"]:checked')
+				.each(function () {
+					selected.push($(this).val());
+				});
 
 			if (!selected.length) {
 				frappe.msgprint({
@@ -159,7 +184,7 @@ function _reload_available_assets_grid(dialog) {
 					</tr>
 				`;
 			} else {
-				assets.forEach(a => {
+				assets.forEach((a) => {
 					html += `
 						<tr>
 							<td style="text-align: center;">
@@ -167,8 +192,12 @@ function _reload_available_assets_grid(dialog) {
 							</td>
 							<td><b>${frappe.utils.escape_html(a.name)}</b></td>
 							<td>${frappe.utils.escape_html(a.asset_name || "")}</td>
-							<td><span class="badge badge-secondary">${frappe.utils.escape_html(a.asset_category || "")}</span></td>
-							<td><span class="indicator-pill green">${frappe.utils.escape_html(a.custom_asset_status || "In Stock")}</span></td>
+							<td><span class="badge badge-secondary">${frappe.utils.escape_html(
+								a.asset_category || ""
+							)}</span></td>
+							<td><span class="indicator-pill green">${frappe.utils.escape_html(
+								a.custom_asset_status || "In Stock"
+							)}</span></td>
 							<td>${frappe.utils.escape_html(a.location || "")}</td>
 						</tr>
 					`;
@@ -188,7 +217,7 @@ function _reload_available_assets_grid(dialog) {
 }
 
 function _show_return_assets_dialog(frm) {
-	const assigned_rows = (frm.doc.items || []).filter(r => r.allocation_status === "Assigned");
+	const assigned_rows = (frm.doc.items || []).filter((r) => r.allocation_status === "Assigned");
 	if (!assigned_rows.length) {
 		frappe.msgprint(__("No currently assigned assets to return."));
 		return;
@@ -210,7 +239,7 @@ function _show_return_assets_dialog(frm) {
 				<tbody>
 	`;
 
-	assigned_rows.forEach(r => {
+	assigned_rows.forEach((r) => {
 		html += `
 			<tr>
 				<td style="text-align: center;">
@@ -243,9 +272,11 @@ function _show_return_assets_dialog(frm) {
 		primary_action_label: __("Confirm Return"),
 		primary_action(data) {
 			const selected = [];
-			dialog.$wrapper.find('input[type="checkbox"][name="return_asset"]:checked').each(function () {
-				selected.push($(this).val());
-			});
+			dialog.$wrapper
+				.find('input[type="checkbox"][name="return_asset"]:checked')
+				.each(function () {
+					selected.push($(this).val());
+				});
 
 			if (!selected.length) {
 				frappe.msgprint(__("Please select at least one asset to return."));
@@ -286,7 +317,7 @@ function _show_return_assets_dialog(frm) {
 
 function _filter_items_display(frm) {
 	// Visual indicator styling in child table rows
-	(frm.doc.items || []).forEach(row => {
+	(frm.doc.items || []).forEach((row) => {
 		const grid_row = frm.fields_dict.items?.grid?.grid_rows_by_docname[row.name];
 		if (grid_row && grid_row.row) {
 			if (row.allocation_status === "Returned") {
@@ -297,4 +328,3 @@ function _filter_items_display(frm) {
 		}
 	});
 }
-

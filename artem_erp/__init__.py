@@ -25,6 +25,7 @@ def _disconnect_india_compliance_from_assets():
 	# 1. Patch ERPNext's get_round_off_applicable_accounts to accept variable args
 	try:
 		import erpnext.controllers.taxes_and_totals as tat
+
 		if hasattr(tat, "get_round_off_applicable_accounts"):
 			_orig_round_off = tat.get_round_off_applicable_accounts
 
@@ -38,6 +39,7 @@ def _disconnect_india_compliance_from_assets():
 	# 2. Patch India Compliance taxes controller and asset_movement
 	try:
 		import india_compliance.gst_india.utils.taxes_controller as tc
+
 		if hasattr(tc, "fetch_round_off_accounts"):
 			tc.fetch_round_off_accounts = safe_get_round_off
 

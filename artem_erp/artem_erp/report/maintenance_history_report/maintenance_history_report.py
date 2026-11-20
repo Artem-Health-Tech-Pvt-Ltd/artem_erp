@@ -2,6 +2,8 @@
 # For license information, please see license.txt
 import frappe
 from frappe import _
+
+
 def execute(filters=None):
 	filters = filters or {}
 	columns = get_columns()
@@ -9,6 +11,7 @@ def execute(filters=None):
 	chart = get_chart_data(data)
 	report_summary = get_report_summary(data)
 	return columns, data, None, chart, report_summary
+
 
 def get_columns():
 	return [
@@ -180,4 +183,3 @@ def get_report_summary(data):
 			"datatype": "Currency",
 		},
 	]
-

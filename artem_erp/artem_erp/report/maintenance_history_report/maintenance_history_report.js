@@ -19,7 +19,8 @@ frappe.query_reports["Maintenance History Report"] = {
 			fieldname: "maintenance_type",
 			label: __("Maintenance Type"),
 			fieldtype: "Select",
-			options: "\nHardware Repair\nSoftware / OS\nCleaning / Servicing\nUpgrade\nBattery / Power\nOther",
+			options:
+				"\nHardware Repair\nSoftware / OS\nCleaning / Servicing\nUpgrade\nBattery / Power\nOther",
 		},
 		{
 			fieldname: "custodian",
@@ -39,4 +40,3 @@ frappe.query_reports["Maintenance History Report"] = {
 		},
 	],
 };
-
