@@ -353,8 +353,17 @@ class EmployeesSalaryComponentOverride(Document):
 		if not eesic and "EESIC" in data:
 			eesic = flt(data["EESIC"])
 
-		monthly_ctc = flt(ctc) / 12.0
-		base_amount = flt(monthly_ctc - epfc - eesic, 2)
+		cycle_multiplier = {
+			"Monthly": 12,
+			"Fortnightly": 24,
+			"Bimonthly": 6,
+			"Weekly": 52,
+			"Daily": 365,
+		}.get(ss.payroll_frequency)
+		if not cycle_multiplier:
+			frappe.throw(_("A supported payroll frequency is required to calculate the assignment base."))
+		per_cycle_ctc = flt(ctc) / cycle_multiplier
+		base_amount = flt(per_cycle_ctc - epfc - eesic, 2)
 		return base_amount, epfc, eesic
 
 	def before_cancel(self):
