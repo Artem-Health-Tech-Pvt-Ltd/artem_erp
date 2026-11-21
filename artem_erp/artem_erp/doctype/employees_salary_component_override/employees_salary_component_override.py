@@ -284,14 +284,18 @@ class EmployeesSalaryComponentOverride(Document):
 
 		# Evaluate earnings (handling formulas that depend on overrides, e.g. HRA, AB)
 		for e in ss.get("earnings") or []:
+			cond = sanitize_expression(e.condition)
+			if cond and not _safe_eval(cond, COMPONENT_EVAL_GLOBALS.copy(), data):
+				if e.abbr:
+					data[e.abbr] = 0.0
+				data[e.salary_component] = 0.0
+				continue
+
 			if e.salary_component in overrides:
 				val = overrides[e.salary_component]
 			elif e.abbr and e.abbr in overrides_abbr:
 				val = overrides_abbr[e.abbr]
 			elif e.amount_based_on_formula and e.formula:
-				cond = sanitize_expression(e.condition)
-				if cond and not _safe_eval(cond, COMPONENT_EVAL_GLOBALS.copy(), data):
-					continue
 				formula = sanitize_expression(e.formula)
 				val = flt(_safe_eval(formula, COMPONENT_EVAL_GLOBALS.copy(), data))
 			else:
