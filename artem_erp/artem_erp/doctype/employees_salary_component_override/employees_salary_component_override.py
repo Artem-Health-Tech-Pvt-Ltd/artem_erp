@@ -484,7 +484,9 @@ class EmployeesSalaryComponentOverride(Document):
 			target_ssas.add(self.overridden_salary_structure_assignment)
 
 		for ssa_name in target_ssas:
-			if ssa_name and frappe.db.exists("Salary Structure Assignment", ssa_name):
+			if ssa_name and frappe.db.get_value(
+				"Salary Structure Assignment", ssa_name, "custom_employees_salary_component_override"
+			) == self.name:
 				frappe.db.set_value(
 					"Salary Structure Assignment",
 					ssa_name,
