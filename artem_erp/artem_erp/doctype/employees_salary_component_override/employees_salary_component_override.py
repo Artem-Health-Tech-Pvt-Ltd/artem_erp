@@ -151,6 +151,8 @@ class EmployeesSalaryComponentOverride(Document):
 
 	def on_submit(self):
 		self.validate_single_active_override()
+		if not cint(self.is_active):
+			frappe.throw(_("Activate the salary component override before submitting it."))
 		self.process_override_submission()
 
 	def process_override_submission(self):
