@@ -250,7 +250,6 @@ class CustomSalarySlip(SalarySlip):
 
 		return super().eval_condition_and_formula(struct_row, data)
 
-
 	def validate_additional_salary_review(self):
 		if not (self.company and self.start_date and self.end_date):
 			return
