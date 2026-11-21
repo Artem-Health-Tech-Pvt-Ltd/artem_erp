@@ -149,14 +149,17 @@ class CustomSalarySlip(SalarySlip):
 				"custom_employees_salary_component_override",
 			)
 
-		# Validate the linked override is submitted and active
+		# Validate the linked override is submitted, active, and effective for this slip period
+		slip_date = getattr(self, "start_date", None) or getattr(self, "posting_date", None) or getdate()
 		if override_name:
-			is_active, docstatus = frappe.db.get_value(
+			is_active, docstatus, eff_date = frappe.db.get_value(
 				"Employees Salary Component Override",
 				override_name,
-				["is_active", "docstatus"],
-			) or (0, 0)
+				["is_active", "docstatus", "effective_from_date"],
+			) or (0, 0, None)
 			if not (cint(is_active) and cint(docstatus) == 1):
+				override_name = None
+			elif eff_date and getdate(eff_date) > getdate(slip_date):
 				override_name = None
 
 		# 2. If not found on SSA, query active submitted override for this employee
@@ -165,6 +168,7 @@ class CustomSalarySlip(SalarySlip):
 				"employee": self.employee,
 				"docstatus": 1,
 				"is_active": 1,
+				"effective_from_date": ["<=", slip_date],
 			}
 			if self.salary_structure:
 				filters["salary_structure"] = self.salary_structure
@@ -210,15 +214,10 @@ class CustomSalarySlip(SalarySlip):
 		return self._active_component_overrides_cache
 
 	def set_salary_component_override_status(self):
-		overrides = self.get_active_salary_component_overrides()
-		if overrides:
-			self.custom_component_override_applied = 1
-			# Get document name from first component override info
-			first_comp = next(iter(overrides.values()))
-			self.custom_salary_component_override = first_comp.get("docname")
-		else:
-			self.custom_component_override_applied = 0
-			self.custom_salary_component_override = None
+		# Reset override applied indicators; will be flagged only when
+		# an override actually contributes to an evaluated component amount.
+		self.custom_component_override_applied = 0
+		self.custom_salary_component_override = None
 
 	def eval_condition_and_formula(self, struct_row, data):
 		overrides = self.get_active_salary_component_overrides()
@@ -230,6 +229,10 @@ class CustomSalarySlip(SalarySlip):
 			condition = struct_row.condition
 			if condition and not _safe_eval(condition, self.whitelisted_globals, data):
 				return None
+
+			# Mark slip only when an override actually contributes to its amount
+			self.custom_component_override_applied = 1
+			self.custom_salary_component_override = override_info.get("docname")
 
 			# Update default_amount on struct_row so update_component_row receives it
 			struct_row.default_amount = override_amount

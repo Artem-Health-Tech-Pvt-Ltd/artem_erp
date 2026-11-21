@@ -183,9 +183,9 @@ class EmployeesSalaryComponentOverride(Document):
 		ctc = flt(old_ssa.ctc)
 		if ctc <= 0:
 			frappe.throw(
-				_("Salary Structure Assignment {0} must have a positive CTC before applying component overrides.").format(
-					frappe.bold(old_ssa.name)
-				)
+				_(
+					"Salary Structure Assignment {0} must have a positive CTC before applying component overrides."
+				).format(frappe.bold(old_ssa.name))
 			)
 
 		base_amount, epfc, eesic = self.calculate_overridden_base_amount(old_ssa, ctc)
@@ -196,10 +196,24 @@ class EmployeesSalaryComponentOverride(Document):
 			old_ssa.flags.ignore_permissions = True
 			old_ssa.cancel()
 
+		# Preserve prior assignment for earlier periods if override starts in the future
+		if self.effective_from_date and getdate(self.effective_from_date) > getdate(old_ssa.from_date):
+			prior_ssa = frappe.copy_doc(old_ssa)
+			prior_ssa.docstatus = 0
+			prior_ssa.amended_from = None
+			prior_ssa.from_date = old_ssa.from_date
+			prior_ssa.custom_is_override_salary_structure_component = 0
+			prior_ssa.custom_employees_salary_component_override = None
+			prior_ssa.flags.ignore_permissions = True
+			prior_ssa.insert()
+			prior_ssa.submit()
+
 		# 3. Create an Amended Salary Structure Assignment
 		new_ssa = frappe.copy_doc(old_ssa)
 		new_ssa.docstatus = 0
 		new_ssa.amended_from = old_ssa.name
+		if self.effective_from_date:
+			new_ssa.from_date = self.effective_from_date
 		new_ssa.base = base_amount
 		new_ssa.custom_is_override_salary_structure_component = 1
 		new_ssa.custom_employees_salary_component_override = self.name
@@ -282,77 +296,6 @@ class EmployeesSalaryComponentOverride(Document):
 		for abbr, val in overrides_abbr.items():
 			data[abbr] = val
 
-		# Evaluate earnings (handling formulas that depend on overrides, e.g. HRA, AB)
-		for e in ss.get("earnings") or []:
-			cond = sanitize_expression(e.condition)
-			if cond and not _safe_eval(cond, COMPONENT_EVAL_GLOBALS.copy(), data):
-				if e.abbr:
-					data[e.abbr] = 0.0
-				data[e.salary_component] = 0.0
-				continue
-
-			if e.salary_component in overrides:
-				val = overrides[e.salary_component]
-			elif e.abbr and e.abbr in overrides_abbr:
-				val = overrides_abbr[e.abbr]
-			elif e.amount_based_on_formula and e.formula:
-				formula = sanitize_expression(e.formula)
-				val = flt(_safe_eval(formula, COMPONENT_EVAL_GLOBALS.copy(), data))
-			else:
-				val = flt(e.amount)
-
-			if e.abbr:
-				data[e.abbr] = val
-			data[e.salary_component] = val
-
-		data["gross_pay"] = sum(
-			flt(data.get(e.abbr, 0.0))
-			for e in (ss.get("earnings") or [])
-			if not e.statistical_component and not e.do_not_include_in_total and e.abbr
-		)
-
-		# Evaluate employer contributions
-		epfc = 0.0
-		eesic = 0.0
-		for ec in ss.get("employer_contributions") or []:
-			cond = sanitize_expression(ec.condition)
-			if cond and not _safe_eval(cond, COMPONENT_EVAL_GLOBALS.copy(), data):
-				continue
-
-			formula = sanitize_expression(ec.formula)
-			if ec.salary_component in overrides:
-				val = overrides[ec.salary_component]
-			elif ec.abbr and ec.abbr in overrides_abbr:
-				val = overrides_abbr[ec.abbr]
-			elif ec.amount_based_on_formula and formula:
-				val = flt(_safe_eval(formula, COMPONENT_EVAL_GLOBALS.copy(), data))
-			else:
-				val = flt(ec.amount)
-
-			if ec.abbr:
-				data[ec.abbr] = val
-			data[ec.salary_component] = val
-
-			abbr_upper = (ec.abbr or "").upper().strip()
-			comp_upper = (ec.salary_component or "").upper().strip()
-			if (
-				abbr_upper == "EPFC"
-				or "EMPLOYER PF" in comp_upper
-				or ("PF" in comp_upper and "EMPLOYER" in comp_upper)
-			):
-				epfc = val
-			elif (
-				abbr_upper in ("EESIC", "ESI-ER")
-				or "EMPLOYER ESI" in comp_upper
-				or ("ESI" in comp_upper and "EMPLOYER" in comp_upper)
-			):
-				eesic = val
-
-		if not epfc and "EPFC" in data:
-			epfc = flt(data["EPFC"])
-		if not eesic and "EESIC" in data:
-			eesic = flt(data["EESIC"])
-
 		cycle_multiplier = {
 			"Monthly": 12,
 			"Fortnightly": 24,
@@ -363,7 +306,94 @@ class EmployeesSalaryComponentOverride(Document):
 		if not cycle_multiplier:
 			frappe.throw(_("A supported payroll frequency is required to calculate the assignment base."))
 		per_cycle_ctc = flt(ctc) / cycle_multiplier
-		base_amount = flt(per_cycle_ctc - epfc - eesic, 2)
+
+		# Iteratively converge base and contributions until they satisfy Base = (CTC/freq) - EPFC - EESIC
+		current_base = flt(old_ssa.base) if old_ssa and getattr(old_ssa, "base", None) else per_cycle_ctc
+		base_amount = current_base
+		epfc = 0.0
+		eesic = 0.0
+
+		for _iteration in range(15):
+			data["base"] = current_base
+
+			# Evaluate earnings (handling formulas that depend on overrides or base, e.g. HRA, AB)
+			for e in ss.get("earnings") or []:
+				cond = sanitize_expression(e.condition)
+				if cond and not _safe_eval(cond, COMPONENT_EVAL_GLOBALS.copy(), data):
+					if e.abbr:
+						data[e.abbr] = 0.0
+					data[e.salary_component] = 0.0
+					continue
+
+				if e.salary_component in overrides:
+					val = overrides[e.salary_component]
+				elif e.abbr and e.abbr in overrides_abbr:
+					val = overrides_abbr[e.abbr]
+				elif e.amount_based_on_formula and e.formula:
+					formula = sanitize_expression(e.formula)
+					val = flt(_safe_eval(formula, COMPONENT_EVAL_GLOBALS.copy(), data))
+				else:
+					val = flt(e.amount)
+
+				if e.abbr:
+					data[e.abbr] = val
+				data[e.salary_component] = val
+
+			data["gross_pay"] = sum(
+				flt(data.get(e.abbr, 0.0))
+				for e in (ss.get("earnings") or [])
+				if not e.statistical_component and not e.do_not_include_in_total and e.abbr
+			)
+
+			# Evaluate employer contributions
+			epfc = 0.0
+			eesic = 0.0
+			for ec in ss.get("employer_contributions") or []:
+				cond = sanitize_expression(ec.condition)
+				if cond and not _safe_eval(cond, COMPONENT_EVAL_GLOBALS.copy(), data):
+					continue
+
+				formula = sanitize_expression(ec.formula)
+				if ec.salary_component in overrides:
+					val = overrides[ec.salary_component]
+				elif ec.abbr and ec.abbr in overrides_abbr:
+					val = overrides_abbr[ec.abbr]
+				elif ec.amount_based_on_formula and formula:
+					val = flt(_safe_eval(formula, COMPONENT_EVAL_GLOBALS.copy(), data))
+				else:
+					val = flt(ec.amount)
+
+				if ec.abbr:
+					data[ec.abbr] = val
+				data[ec.salary_component] = val
+
+				abbr_upper = (ec.abbr or "").upper().strip()
+				comp_upper = (ec.salary_component or "").upper().strip()
+				if (
+					abbr_upper == "EPFC"
+					or "EMPLOYER PF" in comp_upper
+					or ("PF" in comp_upper and "EMPLOYER" in comp_upper)
+				):
+					epfc = val
+				elif (
+					abbr_upper in ("EESIC", "ESI-ER")
+					or "EMPLOYER ESI" in comp_upper
+					or ("ESI" in comp_upper and "EMPLOYER" in comp_upper)
+				):
+					eesic = val
+
+			if not epfc and "EPFC" in data:
+				epfc = flt(data["EPFC"])
+			if not eesic and "EESIC" in data:
+				eesic = flt(data["EESIC"])
+
+			new_base = flt(per_cycle_ctc - epfc - eesic, 2)
+			if abs(new_base - current_base) < 0.01:
+				base_amount = new_base
+				break
+			current_base = new_base
+			base_amount = new_base
+
 		return base_amount, epfc, eesic
 
 	def before_cancel(self):
@@ -399,8 +429,36 @@ class EmployeesSalaryComponentOverride(Document):
 					except Exception:
 						pass
 
+					# Restore equivalent non-override assignment so subsequent payroll does not fail
+					self.restore_non_override_salary_structure_assignment(overridden_doc)
+
 		self.unlink_from_salary_structure_assignments()
 		self.unlink_from_salary_slips()
+
+	def restore_non_override_salary_structure_assignment(self, overridden_doc):
+		if not self.salary_structure_assignment or not frappe.db.exists(
+			"Salary Structure Assignment", self.salary_structure_assignment
+		):
+			return
+
+		old_ssa = frappe.get_doc("Salary Structure Assignment", self.salary_structure_assignment)
+		restored = frappe.copy_doc(old_ssa)
+		restored.docstatus = 0
+		restored.amended_from = overridden_doc.name
+		restored.custom_is_override_salary_structure_component = 0
+		restored.custom_employees_salary_component_override = None
+		restored.flags.ignore_permissions = True
+		restored.insert()
+		restored.submit()
+		try:
+			restored.add_comment(
+				"Comment",
+				_(
+					"Restored non-override assignment automatically upon cancellation of Employees Salary Component Override {0}."
+				).format(get_link_to_form("Employees Salary Component Override", self.name)),
+			)
+		except Exception:
+			pass
 
 	def cancel_linked_salary_slips(self):
 		linked_slips = frappe.get_all(
@@ -484,9 +542,13 @@ class EmployeesSalaryComponentOverride(Document):
 			target_ssas.add(self.overridden_salary_structure_assignment)
 
 		for ssa_name in target_ssas:
-			if ssa_name and frappe.db.get_value(
-				"Salary Structure Assignment", ssa_name, "custom_employees_salary_component_override"
-			) == self.name:
+			if (
+				ssa_name
+				and frappe.db.get_value(
+					"Salary Structure Assignment", ssa_name, "custom_employees_salary_component_override"
+				)
+				== self.name
+			):
 				frappe.db.set_value(
 					"Salary Structure Assignment",
 					ssa_name,
@@ -528,17 +590,29 @@ class EmployeesSalaryComponentOverride(Document):
 		if cint(self.is_active):
 			self.validate_single_active_override()
 			if active_assignment and frappe.db.exists("Salary Structure Assignment", active_assignment):
+				ssa_doc = frappe.get_doc("Salary Structure Assignment", active_assignment)
+				ctc = flt(ssa_doc.ctc)
+				recalc_base, _, _ = self.calculate_overridden_base_amount(ssa_doc, ctc)
 				frappe.db.set_value(
 					"Salary Structure Assignment",
 					active_assignment,
 					{
+						"base": recalc_base,
 						"custom_is_override_salary_structure_component": 1,
 						"custom_employees_salary_component_override": self.name,
 					},
 					update_modified=False,
 				)
 		else:
-			# Option 1: Remove reference from linked Salary Structure Assignment
+			# Restore original base when deactivating
+			orig_base = None
+			if self.salary_structure_assignment and frappe.db.exists(
+				"Salary Structure Assignment", self.salary_structure_assignment
+			):
+				orig_base = frappe.db.get_value(
+					"Salary Structure Assignment", self.salary_structure_assignment, "base"
+				)
+
 			target_ssas = set()
 			if self.overridden_salary_structure_assignment:
 				target_ssas.add(self.overridden_salary_structure_assignment)
@@ -554,13 +628,17 @@ class EmployeesSalaryComponentOverride(Document):
 
 			for ssa_name in target_ssas:
 				if ssa_name and frappe.db.exists("Salary Structure Assignment", ssa_name):
+					update_dict = {
+						"custom_is_override_salary_structure_component": 0,
+						"custom_employees_salary_component_override": None,
+					}
+					if orig_base is not None and ssa_name == self.overridden_salary_structure_assignment:
+						update_dict["base"] = orig_base
+
 					frappe.db.set_value(
 						"Salary Structure Assignment",
 						ssa_name,
-						{
-							"custom_is_override_salary_structure_component": 0,
-							"custom_employees_salary_component_override": None,
-						},
+						update_dict,
 						update_modified=False,
 					)
 
@@ -572,6 +650,12 @@ def get_active_assignment_details(
 ) -> dict:
 	if not employee:
 		return {}
+
+	if not frappe.has_permission("Employee", "read", employee):
+		frappe.throw(
+			_("Not permitted to view details for Employee {0}").format(employee),
+			frappe.PermissionError,
+		)
 
 	effective_date = getdate(effective_date) if effective_date else getdate()
 
@@ -586,7 +670,6 @@ def get_active_assignment_details(
 		order_by="from_date desc",
 		limit=1,
 	)
-
 
 	if not ssa_list:
 		return {}
@@ -609,10 +692,38 @@ def get_eligible_components(
 	if not salary_structure:
 		return []
 
+	if employee and not frappe.has_permission("Employee", "read", employee):
+		frappe.throw(
+			_("Not permitted to view details for Employee {0}").format(employee),
+			frappe.PermissionError,
+		)
+
+	if salary_structure and not frappe.has_permission("Salary Structure", "read", salary_structure):
+		frappe.throw(
+			_("Not permitted to view Salary Structure {0}").format(salary_structure),
+			frappe.PermissionError,
+		)
+
 	if not salary_structure_assignment and employee:
 		details = get_active_assignment_details(employee)
 		if details:
 			salary_structure_assignment = details.get("salary_structure_assignment")
+
+	if salary_structure_assignment and not frappe.has_permission(
+		"Salary Structure Assignment", "read", salary_structure_assignment
+	):
+		frappe.throw(
+			_("Not permitted to view Salary Structure Assignment {0}").format(salary_structure_assignment),
+			frappe.PermissionError,
+		)
+
+	if salary_structure_assignment and not frappe.has_permission(
+		"Salary Structure Assignment", "read", salary_structure_assignment
+	):
+		frappe.throw(
+			_("Not permitted to view Salary Structure Assignment {0}").format(salary_structure_assignment),
+			frappe.PermissionError,
+		)
 
 	evaluated_map = {}
 	if salary_structure_assignment:

@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, getdate
 from hrms.payroll.doctype.salary_structure_assignment.salary_structure_assignment import (
 	COMPONENT_EVAL_GLOBALS,
 	SALARY_COMPONENT_FLAGS,
@@ -28,25 +28,33 @@ class CustomSalaryStructureAssignment(SalaryStructureAssignment):
 
 		override_name = getattr(self, "custom_employees_salary_component_override", None)
 		if override_name:
-			is_active, docstatus = frappe.db.get_value(
+			is_active, docstatus, eff_date = frappe.db.get_value(
 				"Employees Salary Component Override",
 				override_name,
-				["is_active", "docstatus"],
-			) or (0, 0)
+				["is_active", "docstatus", "effective_from_date"],
+			) or (0, 0, None)
 			if not (cint(is_active) and cint(docstatus) == 1):
+				override_name = None
+			elif (
+				eff_date and getattr(self, "from_date", None) and getdate(eff_date) > getdate(self.from_date)
+			):
 				override_name = None
 
 		if not override_name and (
 			cint(getattr(self, "custom_is_override_salary_structure_component", 0)) or self.docstatus == 1
 		):
+			filters = {
+				"employee": self.employee,
+				"docstatus": 1,
+				"is_active": 1,
+				"overridden_salary_structure_assignment": self.name,
+			}
+			if getattr(self, "from_date", None):
+				filters["effective_from_date"] = ["<=", self.from_date]
+
 			override_name = frappe.db.get_value(
 				"Employees Salary Component Override",
-				{
-					"employee": self.employee,
-					"docstatus": 1,
-					"is_active": 1,
-					"overridden_salary_structure_assignment": self.name,
-				},
+				filters,
 				"name",
 			)
 
