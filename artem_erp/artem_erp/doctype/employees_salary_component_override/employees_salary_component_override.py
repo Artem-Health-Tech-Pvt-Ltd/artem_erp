@@ -20,7 +20,7 @@ class EmployeesSalaryComponentOverride(Document):
 		super()._validate_links()
 
 	def validate(self):
-		if self.docstatus == 1:
+		if self.docstatus == 1 and getattr(self, "_action", None) != "submit":
 			self.flags.ignore_links = True
 			if cint(self.is_active):
 				self.validate_single_active_override()
