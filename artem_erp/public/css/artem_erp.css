@@ -1,0 +1,26 @@
+/* Artem ERP - Custom Styles */
+
+/* 1. Center logo and header on Sign In / Login pages */
+.page-card-head {
+	align-items: center !important;
+	text-align: center !important;
+}
+
+.page-card-head img.app-logo {
+	margin-left: auto !important;
+	margin-right: auto !important;
+	align-self: center !important;
+	display: block !important;
+	max-height: 48px !important;
+	width: auto !important;
+}
+
+.page-card-head .page-card-head-text {
+	align-items: center !important;
+	text-align: center !important;
+}
+
+.page-card-head h4,
+.page-card-head .page-card-subtitle {
+	text-align: center !important;
+}

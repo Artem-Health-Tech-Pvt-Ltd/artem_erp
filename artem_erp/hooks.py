@@ -5,32 +5,41 @@ app_description = "ERPNext and HRMS customizations for Artem Healthtech"
 app_email = "support@artemhealthtech.com"
 app_license = "mit"
 
+app_logo_url = "/assets/artem_erp/images/artem_logo.png"
+
+website_context = {
+	"favicon": "/assets/artem_erp/images/favicon.png",
+	"splash_image": "/assets/artem_erp/images/artem_logo.png",
+}
+
+website_route_rules = [
+	{"from_route": "/hrms/<path:app_path>", "to_route": "hrms"},
+]
+
 # Apps
 # ------------------
 
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "artem_erp",
-# 		"logo": "/assets/artem_erp/logo.png",
-# 		"title": "Artem ERP",
-# 		"route": "/artem_erp",
-# 		"has_permission": "artem_erp.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+	{
+		"name": "artem_erp",
+		"logo": "/assets/artem_erp/images/artem_logo.png",
+		"title": "Artem ERP",
+		"route": "/desk",
+	}
+]
 
 # Includes in <head>
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/artem_erp/css/artem_erp.css"
-# app_include_js = "/assets/artem_erp/js/artem_erp.js"
+app_include_css = "/assets/artem_erp/css/artem_erp.css"
 app_include_js = "/assets/artem_erp/js/artem_erp.js"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/artem_erp/css/artem_erp.css"
+web_include_css = "/assets/artem_erp/css/artem_erp.css"
 web_include_js = "/assets/artem_erp/js/artem_erp.js"
 
 # include custom scss in every website theme (without file extension ".scss")
@@ -195,6 +204,7 @@ doc_events = {
 
 scheduler_events = {
 	"hourly_long": [
+		"artem_erp.scheduler_events.delayed_attendance.process_delayed_employee_checkins",
 		"artem_erp.scheduler_events.attendance_penalty.process_attendance_penalties",
 	],
 	"cron": {
