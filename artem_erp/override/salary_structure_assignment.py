@@ -49,18 +49,6 @@ class CustomSalaryStructureAssignment(SalaryStructureAssignment):
 				},
 				"name",
 			)
-			if not override_name:
-				override_name = frappe.db.get_value(
-					"Employees Salary Component Override",
-					{
-						"employee": self.employee,
-						"docstatus": 1,
-						"is_active": 1,
-						"salary_structure": self.salary_structure,
-					},
-					"name",
-					order_by="creation desc",
-				)
 
 		if override_name:
 			details = frappe.get_all(
