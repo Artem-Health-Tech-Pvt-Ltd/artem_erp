@@ -139,6 +139,12 @@ class CustomSalaryStructureAssignment(SalaryStructureAssignment):
 
 		return evaluated_components
 
+	def before_cancel(self):
+		if hasattr(super(), "before_cancel"):
+			super().before_cancel()
+		self.ignore_linked_doctypes = ["Employees Salary Component Override"]
+		self.flags.ignore_links = True
+
 	def on_cancel(self):
 		if hasattr(super(), "on_cancel"):
 			super().on_cancel()
@@ -162,17 +168,16 @@ class CustomSalaryStructureAssignment(SalaryStructureAssignment):
 				update_modified=False,
 			)
 
-		# 2. Clear references from cancelled Employees Salary Component Override documents
+		# 2. Clear references from Employees Salary Component Override documents
 		for field in ("salary_structure_assignment", "overridden_salary_structure_assignment"):
-			cancelled_overrides = frappe.get_all(
+			linked_overrides = frappe.get_all(
 				"Employees Salary Component Override",
 				filters={
-					"docstatus": 2,
 					field: self.name,
 				},
 				pluck="name",
 			)
-			for ov_name in cancelled_overrides:
+			for ov_name in linked_overrides:
 				frappe.db.set_value(
 					"Employees Salary Component Override",
 					ov_name,
