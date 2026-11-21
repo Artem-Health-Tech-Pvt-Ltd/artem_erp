@@ -168,8 +168,12 @@ class EmployeesSalaryComponentOverride(Document):
 
 		# 1. Calculate the Base Amount = (CTC / 12) - EPFC - EESIC
 		ctc = flt(old_ssa.ctc)
-		if not ctc:
-			ctc = flt(frappe.db.get_value("Salary Structure Assignment", old_ssa.name, "ctc"))
+		if ctc <= 0:
+			frappe.throw(
+				_("Salary Structure Assignment {0} must have a positive CTC before applying component overrides.").format(
+					frappe.bold(old_ssa.name)
+				)
+			)
 
 		base_amount, epfc, eesic = self.calculate_overridden_base_amount(old_ssa, ctc)
 
