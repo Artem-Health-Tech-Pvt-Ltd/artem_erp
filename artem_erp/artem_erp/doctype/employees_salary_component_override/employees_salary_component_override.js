@@ -202,7 +202,7 @@ frappe.ui.form.on("Employees Salary Component Override", {
 	},
 
 	effective_from_date: function (frm) {
-		if (frm.doc.employee && !frm.doc.salary_structure_assignment) {
+		if (frm.doc.employee) {
 			frm.trigger("employee");
 		}
 	},
