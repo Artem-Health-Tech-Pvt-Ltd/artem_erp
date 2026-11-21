@@ -165,6 +165,17 @@ class EmployeesSalaryComponentOverride(Document):
 			)
 
 		old_ssa = frappe.get_doc("Salary Structure Assignment", self.salary_structure_assignment)
+		if (
+			old_ssa.docstatus != 1
+			or old_ssa.employee != self.employee
+			or old_ssa.company != self.company
+			or old_ssa.salary_structure != self.salary_structure
+		):
+			frappe.throw(
+				_(
+					"The Salary Structure Assignment must be submitted and match the employee, company, and salary structure."
+				)
+			)
 
 		# 1. Calculate the Base Amount = (CTC / 12) - EPFC - EESIC
 		ctc = flt(old_ssa.ctc)
