@@ -143,7 +143,6 @@ class CustomSalaryStructureAssignment(SalaryStructureAssignment):
 		if hasattr(super(), "before_cancel"):
 			super().before_cancel()
 		self.ignore_linked_doctypes = ["Employees Salary Component Override"]
-		self.flags.ignore_links = True
 
 	def on_cancel(self):
 		if hasattr(super(), "on_cancel"):
