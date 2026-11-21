@@ -271,7 +271,6 @@ extend_doctype_class = {
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-ignore_links_on_delete = ["Salary Structure Assignment", "Employees Salary Component Override"]
 
 # Request Events
 # ----------------
