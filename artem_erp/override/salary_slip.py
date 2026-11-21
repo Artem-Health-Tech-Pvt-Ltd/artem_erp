@@ -2,8 +2,8 @@ import math
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, add_months, flt, get_link_to_form, getdate
-from hrms.payroll.doctype.salary_slip.salary_slip import SalarySlip, get_salary_component_data
+from frappe.utils import add_days, add_months, cint, flt, get_link_to_form, getdate
+from hrms.payroll.doctype.salary_slip.salary_slip import SalarySlip, _safe_eval, get_salary_component_data
 
 from artem_erp.override.additional_salary import (
 	get_custom_additional_salaries,
@@ -117,6 +117,141 @@ class CustomSalarySlip(SalarySlip):
 	def validate(self):
 		self.validate_additional_salary_review()
 		super().validate()
+		self.set_salary_component_override_status()
+
+	def get_active_salary_component_overrides(self):
+		if hasattr(self, "_active_component_overrides_cache"):
+			return self._active_component_overrides_cache
+
+		self._active_component_overrides_cache = {}
+		if not self.employee:
+			return self._active_component_overrides_cache
+
+		override_name = None
+		# 1. Check linked SSA directly
+		if not hasattr(self, "_salary_structure_assignment"):
+			if getattr(self, "salary_structure", None) and getattr(self, "actual_start_date", None):
+				try:
+					self.set_salary_structure_assignment()
+				except Exception:
+					pass
+
+		ssa_doc = getattr(self, "_salary_structure_assignment", None)
+		ssa_name = (
+			ssa_doc.name
+			if hasattr(ssa_doc, "name")
+			else (ssa_doc.get("name") if isinstance(ssa_doc, dict) else ssa_doc)
+		)
+		if ssa_name:
+			override_name = frappe.db.get_value(
+				"Salary Structure Assignment",
+				ssa_name,
+				"custom_employees_salary_component_override",
+			)
+
+		# Validate the linked override is submitted, active, and effective for this slip period
+		slip_date = getattr(self, "start_date", None) or getattr(self, "posting_date", None) or getdate()
+		if override_name:
+			is_active, docstatus, eff_date = frappe.db.get_value(
+				"Employees Salary Component Override",
+				override_name,
+				["is_active", "docstatus", "effective_from_date"],
+			) or (0, 0, None)
+			if not (cint(is_active) and cint(docstatus) == 1):
+				override_name = None
+			elif eff_date and getdate(eff_date) > getdate(slip_date):
+				override_name = None
+
+		# 2. If not found on SSA, query active submitted override for this employee
+		if not override_name:
+			filters = {
+				"employee": self.employee,
+				"docstatus": 1,
+				"is_active": 1,
+				"effective_from_date": ["<=", slip_date],
+			}
+			if self.salary_structure:
+				filters["salary_structure"] = self.salary_structure
+			if ssa_name:
+				filters_overridden = dict(filters)
+				filters_overridden["overridden_salary_structure_assignment"] = ssa_name
+				override_name = frappe.db.get_value(
+					"Employees Salary Component Override",
+					filters_overridden,
+					"name",
+					order_by="creation desc",
+				)
+				if not override_name:
+					filters["salary_structure_assignment"] = ssa_name
+					override_name = frappe.db.get_value(
+						"Employees Salary Component Override",
+						filters,
+						"name",
+						order_by="creation desc",
+					)
+			else:
+				override_name = frappe.db.get_value(
+					"Employees Salary Component Override",
+					filters,
+					"name",
+					order_by="creation desc",
+				)
+
+		if override_name:
+			details = frappe.get_all(
+				"Salary Component Override Detail",
+				filters={"parent": override_name},
+				fields=["salary_component", "abbr", "component_type", "override_amount"],
+			)
+			for row in details:
+				self._active_component_overrides_cache[row.salary_component] = {
+					"override_amount": flt(row.override_amount),
+					"abbr": row.abbr,
+					"component_type": row.component_type,
+					"docname": override_name,
+				}
+
+		return self._active_component_overrides_cache
+
+	def set_salary_component_override_status(self):
+		# Reset override applied indicators; will be flagged only when
+		# an override actually contributes to an evaluated component amount.
+		self.custom_component_override_applied = 0
+		self.custom_salary_component_override = None
+
+	def eval_condition_and_formula(self, struct_row, data):
+		overrides = self.get_active_salary_component_overrides()
+		if overrides and struct_row.salary_component in overrides:
+			override_info = overrides[struct_row.salary_component]
+			override_amount = flt(override_info["override_amount"])
+
+			# Evaluate condition if defined
+			condition = struct_row.condition
+			if condition and not _safe_eval(condition, self.whitelisted_globals, data):
+				return None
+
+			# Mark slip only when an override actually contributes to its amount
+			self.custom_component_override_applied = 1
+			self.custom_salary_component_override = override_info.get("docname")
+
+			# Update default_amount on struct_row so update_component_row receives it
+			struct_row.default_amount = override_amount
+
+			# Prorate if payment-days dependent
+			if struct_row.depends_on_payment_days and cint(self.total_working_days):
+				amount = override_amount * flt(self.payment_days) / cint(self.total_working_days)
+			else:
+				amount = override_amount
+
+			amount = flt(amount, struct_row.precision or 2)
+			if amount is not None:
+				data[struct_row.abbr] = amount
+				if hasattr(self, "default_data") and self.default_data is not None:
+					self.default_data[struct_row.abbr] = override_amount
+
+			return amount
+
+		return super().eval_condition_and_formula(struct_row, data)
 
 	def validate_additional_salary_review(self):
 		if not (self.company and self.start_date and self.end_date):

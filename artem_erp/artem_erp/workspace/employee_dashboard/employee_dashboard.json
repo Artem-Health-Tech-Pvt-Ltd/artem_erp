@@ -283,17 +283,6 @@
   },
   {
    "hidden": 0,
-   "icon": "cpu",
-   "is_query_report": 0,
-   "label": "Biometric Device Details",
-   "link_count": 0,
-   "link_to": "Biometric Device Details",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
    "icon": "settings",
    "is_query_report": 0,
    "label": "Artem Biometric Configuration",
@@ -304,7 +293,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-11-19 11:01:56.781296",
+ "modified": "2026-11-20 16:33:38.509450",
  "modified_by": "Administrator",
  "module": "Artem ERP",
  "name": "Employee Dashboard",
