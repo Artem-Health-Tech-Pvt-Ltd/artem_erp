@@ -587,18 +587,6 @@ def get_active_assignment_details(
 		limit=1,
 	)
 
-	if not ssa_list:
-		# Fallback to any latest submitted assignment
-		ssa_list = frappe.get_all(
-			"Salary Structure Assignment",
-			filters={
-				"employee": employee,
-				"docstatus": 1,
-			},
-			fields=["name", "salary_structure", "company", "from_date", "base", "variable"],
-			order_by="from_date desc",
-			limit=1,
-		)
 
 	if not ssa_list:
 		return {}
