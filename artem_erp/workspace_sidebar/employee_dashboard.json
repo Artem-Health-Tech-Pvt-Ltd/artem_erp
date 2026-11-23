@@ -323,18 +323,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "cpu",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Biometric Device Details",
-   "link_to": "Biometric Device Details",
-   "link_type": "DocType",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 1,
-   "collapsible": 1,
    "icon": "settings",
    "indent": 0,
    "keep_closed": 0,
@@ -345,7 +333,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-11-18 18:10:18.098776",
+ "modified": "2026-11-20 16:34:13.589511",
  "modified_by": "Administrator",
  "module": "Artem ERP",
  "name": "Employee Dashboard",
