@@ -24,7 +24,18 @@ def cancel_and_delete(doctype, name):
 
 
 class TestEmployeeAdditionalSalaryPayrollReview(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		if not frappe.db.exists("DocType", "Employee") or not frappe.db.exists(
+			"DocType", "Additional Salary"
+		):
+			raise unittest.SkipTest("HRMS DocTypes not installed.")
+
 	def setUp(self):
+		if not frappe.db.exists("DocType", "Employee") or not frappe.db.exists(
+			"DocType", "Additional Salary"
+		):
+			raise unittest.SkipTest("HRMS DocTypes not installed.")
 		super().setUp()
 		ssa = frappe.db.get_value(
 			"Salary Structure Assignment",

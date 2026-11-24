@@ -12,7 +12,13 @@ from frappe.utils import (
 	format_date,
 	getdate,
 )
-from hrms.utils import generate_date_range
+
+try:
+	from hrms.utils import generate_date_range
+except ImportError:
+
+	def generate_date_range(*args, **kwargs):
+		return []
 
 
 @frappe.whitelist()

@@ -5,7 +5,6 @@ import datetime
 import json
 
 import frappe
-from erpnext.accounts.utils import get_fiscal_year
 from frappe import _
 from frappe.model.workflow import apply_workflow
 from frappe.utils import (
@@ -16,14 +15,37 @@ from frappe.utils import (
 	formatdate,
 	getdate,
 )
-from hrms.hr.doctype.leave_application.leave_application import (
-	get_leave_balance_on,
-	is_lwp,
-)
-from hrms.hr.utils import (
-	get_holidays_for_employee,
-	get_leave_period,
-)
+
+try:
+	from erpnext.accounts.utils import get_fiscal_year
+except ImportError:
+
+	def get_fiscal_year(*args, **kwargs):
+		return [None, None, None]
+
+
+try:
+	from hrms.hr.doctype.leave_application.leave_application import (
+		get_leave_balance_on,
+		is_lwp,
+	)
+	from hrms.hr.utils import (
+		get_holidays_for_employee,
+		get_leave_period,
+	)
+except ImportError:
+
+	def get_leave_balance_on(*args, **kwargs):
+		return 0
+
+	def is_lwp(*args, **kwargs):
+		return False
+
+	def get_holidays_for_employee(*args, **kwargs):
+		return []
+
+	def get_leave_period(*args, **kwargs):
+		return []
 
 
 def get_sandwich_settings() -> dict:

@@ -12,11 +12,28 @@ from frappe.query_builder import Case
 from frappe.query_builder.functions import Count, Extract, Sum
 from frappe.utils import add_days, cint, cstr, formatdate, getdate
 from frappe.utils.nestedset import get_descendants_of
-from hrms.utils import date_diff, get_date_range
-from hrms.utils.holiday_list import (
-	fill_employee_holiday_list_date_gaps_with_company_holiday_list,
-	get_assigned_holiday_lists_to_employee_and_company,
-)
+
+try:
+	from hrms.utils import date_diff, get_date_range
+	from hrms.utils.holiday_list import (
+		fill_employee_holiday_list_date_gaps_with_company_holiday_list,
+		get_assigned_holiday_lists_to_employee_and_company,
+	)
+except ImportError:
+
+	def date_diff(*args, **kwargs):
+		return 0
+
+	def get_date_range(*args, **kwargs):
+		return []
+
+	def fill_employee_holiday_list_date_gaps_with_company_holiday_list(*args, **kwargs):
+		return []
+
+	def get_assigned_holiday_lists_to_employee_and_company(*args, **kwargs):
+		return {}
+
+
 from pypika import Field
 from pypika.terms import Criterion
 

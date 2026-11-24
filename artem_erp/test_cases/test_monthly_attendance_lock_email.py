@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Artem Healthtech and Contributors
 # See license.txt
 
+import unittest
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -16,6 +18,8 @@ from artem_erp.auto_email.utils import get_artem_settings
 class TestMonthlyAttendanceLockEmail(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
+		if not frappe.db.exists("DocType", "Employee"):
+			raise unittest.SkipTest("HRMS DocType 'Employee' is not installed.")
 		super().setUpClass()
 		cls.class_cleanup_records = []
 		cls.test_email_group = "_Test Monthly Lock Email Group"

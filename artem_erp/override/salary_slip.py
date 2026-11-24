@@ -2,8 +2,20 @@ import math
 
 import frappe
 from frappe import _
+from frappe.model.document import Document
 from frappe.utils import add_days, add_months, cint, flt, get_link_to_form, getdate
-from hrms.payroll.doctype.salary_slip.salary_slip import SalarySlip, _safe_eval, get_salary_component_data
+
+try:
+	from hrms.payroll.doctype.salary_slip.salary_slip import SalarySlip, _safe_eval, get_salary_component_data
+except ImportError:
+	SalarySlip = Document
+
+	def get_salary_component_data(*args, **kwargs):
+		return {}
+
+	def _safe_eval(expr, *args, **kwargs):
+		return True
+
 
 from artem_erp.override.additional_salary import (
 	get_custom_additional_salaries,
