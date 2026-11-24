@@ -447,7 +447,10 @@ def process_single_attendance_delayed_checkins(
 		)
 
 	if frappe.get_meta("Attendance").has_field("custom_penalty"):
-		values_to_update["custom_penalty"] = cint(getattr(att_doc, "custom_penalty", 0))
+		if final_status == "Present" and not att_doc.late_entry:
+			values_to_update["custom_penalty"] = 0
+		else:
+			values_to_update["custom_penalty"] = cint(getattr(att_doc, "custom_penalty", 0))
 
 	try:
 		frappe.db.set_value("Attendance", attendance_name, values_to_update, update_modified=True)

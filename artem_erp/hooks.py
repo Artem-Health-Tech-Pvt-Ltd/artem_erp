@@ -59,6 +59,7 @@ doctype_js = {
 	"Additional Salary": "public/js/additional_salary.js",
 	"Payroll Entry": "public/js/payroll_entry.js",
 	"Leave Application": "public/js/leave_application.js",
+	"Attendance Request": "public/js/attendance_request.js",
 	"Asset Category": "public/js/asset_category.js",
 	"Asset": "public/js/asset.js",
 	"Employee": "public/js/employee.js",
@@ -269,6 +270,8 @@ extend_doctype_class = {
 	"Salary Slip": "artem_erp.override.salary_slip.CustomSalarySlip",
 	"Attendance Request": "artem_erp.override.attendance_request.CustomAttendanceRequest",
 	"Asset": "artem_erp.override.asset.CustomAsset",
+	"Leave Application": "artem_erp.override.leave_application.CustomLeaveApplication",
+	"Salary Structure Assignment": "artem_erp.override.salary_structure_assignment.CustomSalaryStructureAssignment",
 }
 
 
@@ -293,7 +296,6 @@ extend_doctype_class = {
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-# ignore_links_on_delete = ["Communication", "ToDo"]
 
 # Request Events
 # ----------------

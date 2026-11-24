@@ -447,6 +447,11 @@ def get_custom_additional_salaries(employee, start_date, end_date, component_typ
 	"""
 	Replacement for get_additional_salaries with support for duration-based recurring additional salaries.
 	"""
+	if start_date:
+		start_date = getdate(start_date)
+	if end_date:
+		end_date = getdate(end_date)
+
 	comp_type = "Earning" if component_type == "earnings" else "Deduction"
 
 	additional_sal = frappe.qb.DocType("Additional Salary")
