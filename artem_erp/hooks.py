@@ -53,7 +53,13 @@ web_include_js = "/assets/artem_erp/js/artem_erp.js"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+ignore_links_on_delete = [
+	"Salary Withholding Cycle",
+	"Full and Final Outstanding Statement",
+	"Salary Withholding",
+	"Full and Final Statement",
+]
+
 doctype_js = {
 	"Attendance": "public/js/attendance.js",
 	"Shift Assignment": "public/js/shift_assignment.js",
@@ -61,6 +67,9 @@ doctype_js = {
 	"Payroll Entry": "public/js/payroll_entry.js",
 	"Leave Application": "public/js/leave_application.js",
 	"Attendance Request": "public/js/attendance_request.js",
+	"Salary Withholding": "public/js/salary_withholding.js",
+	# "Salary Slip": "public/js/salary_slip.js",
+	"Full and Final Statement": "public/js/full_and_final_statement.js",
 }
 doctype_list_js = {
 	"Attendance": "public/js/attendance_list.js",
@@ -167,12 +176,33 @@ doc_events = {
 	"User": {
 		"validate": "artem_erp.artem_erp.device_login.validate_user",
 	},
+	"Salary Withholding": {
+		"validate": "artem_erp.doc_events.salary_withholding.validate",
+		"on_update": "artem_erp.doc_events.salary_withholding.on_update",
+		"on_submit": "artem_erp.doc_events.salary_withholding.on_submit",
+		"before_cancel": "artem_erp.doc_events.salary_withholding.before_cancel",
+		"on_cancel": "artem_erp.doc_events.salary_withholding.on_cancel",
+	},
 	"Salary Slip": {
+		"validate": "artem_erp.doc_events.salary_slip.validate",
+		"before_cancel": "artem_erp.doc_events.salary_slip.before_cancel",
 		"on_submit": "artem_erp.doc_events.salary_slip.on_submit",
 		"on_cancel": "artem_erp.doc_events.salary_slip.on_cancel",
 	},
 	"Payroll Entry": {
+		"onload": "artem_erp.doc_events.payroll_entry.on_load",
+		"validate": "artem_erp.doc_events.payroll_entry.validate",
 		"before_submit": "artem_erp.doc_events.payroll_entry.before_submit",
+	},
+	"Full and Final Statement": {
+		"validate": "artem_erp.doc_events.full_and_final_statement.validate",
+		"before_cancel": "artem_erp.doc_events.full_and_final_statement.before_cancel",
+		"on_submit": "artem_erp.doc_events.full_and_final_statement.on_submit",
+		"on_cancel": "artem_erp.doc_events.full_and_final_statement.on_cancel",
+	},
+	"Journal Entry": {
+		"on_submit": "artem_erp.doc_events.full_and_final_statement.on_journal_entry_status_change",
+		"on_cancel": "artem_erp.doc_events.full_and_final_statement.on_journal_entry_status_change",
 	},
 	"Employee": {
 		"validate": "artem_erp.doc_events.employee.validate_aadhaar_number",
@@ -247,26 +277,28 @@ extend_doctype_class = {
 	"Attendance Request": "artem_erp.override.attendance_request.CustomAttendanceRequest",
 	"Leave Application": "artem_erp.override.leave_application.CustomLeaveApplication",
 	"Salary Structure Assignment": "artem_erp.override.salary_structure_assignment.CustomSalaryStructureAssignment",
+	"Full and Final Statement": "artem_erp.override.full_and_final_statement.CustomFullandFinalStatement",
+	"Payroll Entry": "artem_erp.override.payroll_entry.CustomPayrollEntry",
 }
 
 
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "artem_erp.event.get_events"
-# }
+override_whitelisted_methods = {
+	"hrms.hr.doctype.full_and_final_statement.full_and_final_statement.get_account_and_amount": "artem_erp.doc_events.full_and_final_statement.custom_get_account_and_amount",
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
-# override_doctype_dashboards = {
-# 	"Task": "artem_erp.task.get_dashboard_data"
-# }
+override_doctype_dashboards = {
+	"Full and Final Statement": "artem_erp.dashboard.full_and_final_statement_dashboard.get_data"
+}
 
 # exempt linked doctypes from being automatically cancelled
 #
-# auto_cancel_exempted_doctypes = ["Auto Repeat"]
+auto_cancel_exempted_doctypes = ["Salary Withholding", "Salary Slip"]
 
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------

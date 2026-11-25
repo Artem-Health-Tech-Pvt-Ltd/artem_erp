@@ -408,6 +408,26 @@ class CustomSalarySlip(SalarySlip):
 			future_months = max(0, ((to_date.year - from_date.year) * 12) + (to_date.month - from_date.month))
 			return flt(monthly_additional_amount * future_months)
 
+	def get_status(self):
+		if self.docstatus == 2:
+			return "Cancelled"
+		else:
+			if self.salary_withholding and not self.get("custom_is_partially_withheld"):
+				return "Withheld"
+			elif self.docstatus == 0:
+				return "Draft"
+			elif self.docstatus == 1:
+				return "Submitted"
+
+	def before_cancel(self):
+		self.flags.ignore_links = True
+		self.ignore_linked_doctypes = (
+			"Salary Withholding",
+			"Salary Withholding Cycle",
+			"Full and Final Statement",
+			"Full and Final Outstanding Statement",
+		)
+
 	def on_submit(self):
 		super().on_submit()
 		update_additional_salary_payment_history(self, cancel=False)

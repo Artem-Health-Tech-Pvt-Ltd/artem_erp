@@ -4,10 +4,12 @@
 frappe.ui.form.on("Payroll Entry", {
 	refresh(frm) {
 		update_payroll_entry_actions(frm);
+		check_and_remove_withheld_salaries_button(frm);
 	},
 
 	onload_post_render(frm) {
 		update_payroll_entry_actions(frm);
+		check_and_remove_withheld_salaries_button(frm);
 	},
 
 	company(frm) {
@@ -122,4 +124,16 @@ function apply_draft_review_actions(frm, review_name) {
 	// 2. "Create Salary Slips" MUST NOT be displayed while Review is in Draft.
 	// Set primary action to "Save" so user can edit and save in draft status (including Ctrl+S).
 	frm.page.set_primary_action(__("Save"), () => frm.save());
+}
+
+function check_and_remove_withheld_salaries_button(frm) {
+	if (frm.doc.docstatus !== 1) return;
+
+	// If no employees have is_salary_withheld, ensure 'Release Withheld Salaries' button is removed
+	const has_withheld = (frm.doc.employees || []).some(
+		(emp) => cint(emp.is_salary_withheld) === 1
+	);
+	if (!has_withheld) {
+		frm.remove_custom_button(__("Release Withheld Salaries"));
+	}
 }

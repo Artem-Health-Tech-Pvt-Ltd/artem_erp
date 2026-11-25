@@ -100,6 +100,47 @@ def _validate_employees(employee_ids):
 		frappe.throw(message, title=_("Missing Employee Bank Details"))
 
 
+def validate(doc, method=None):
+	sync_payroll_entry_salary_withholdings(doc)
+
+
 def before_submit(doc, method=None):
 	check_additional_salary_review_completed(doc)
 	validate_employee_bank_details(doc)
+	sync_payroll_entry_salary_withholdings(doc)
+
+
+def on_load(doc, method=None):
+	"""
+	Keeps is_salary_withheld in sync with active Salary Withholding cycles
+	when Payroll Entry is viewed or loaded.
+	"""
+	sync_payroll_entry_salary_withholdings(doc)
+	if doc.docstatus == 1 and getattr(doc, "employees", None):
+		for emp_row in doc.employees:
+			frappe.db.set_value(
+				"Payroll Employee Detail",
+				emp_row.name,
+				"is_salary_withheld",
+				emp_row.is_salary_withheld,
+				update_modified=False,
+			)
+
+
+def sync_payroll_entry_salary_withholdings(doc):
+	"""
+	Ensures employees with active (unreleased) salary withholding (percentage or standard)
+	have is_salary_withheld = 1 in Payroll Entry employee details.
+	If withholding is released or none exists, ensures is_salary_withheld = 0.
+	"""
+	if not getattr(doc, "employees", None) or not doc.start_date or not doc.end_date:
+		return
+
+	from hrms.payroll.doctype.payroll_entry.payroll_entry import get_salary_withholdings
+
+	for emp_row in doc.employees:
+		withholdings = get_salary_withholdings(doc.start_date, doc.end_date, emp_row.employee)
+		if withholdings:
+			emp_row.is_salary_withheld = 1
+		else:
+			emp_row.is_salary_withheld = 0
